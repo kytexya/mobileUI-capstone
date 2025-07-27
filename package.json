@@ -1,0 +1,17 @@
+{
+  "dependencies": {
+    "@expo-google-fonts/inter": "^0.4.1",
+    "@expo/vector-icons": "^14.1.0",
+    "@react-native-picker/picker": "^2.11.1",
+    "@react-navigation/bottom-tabs": "^7.4.2",
+    "@react-navigation/native": "^7.1.14",
+    "@react-navigation/stack": "^7.4.2",
+    "expo": "^53.0.19",
+    "expo-app-loading": "^2.1.1",
+    "expo-font": "^13.3.2",
+    "expo-linear-gradient": "~14.1.5",
+    "react-native-dropdown-picker": "^5.4.6",
+    "react-native-safe-area-context": "^5.5.2",
+    "react-native-screens": "^4.13.1"
+  }
+}
