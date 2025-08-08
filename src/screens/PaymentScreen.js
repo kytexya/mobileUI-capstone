@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, Modal, Pressable, Alert, TextInput, Image } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert, Modal, Pressable } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -8,48 +8,53 @@ const mockPayments = [
   { id: '2', service: 'Sửa chữa', amount: 2500000, status: 'Đã thanh toán' },
 ];
 
-const onlineMethods = [
-  { key: 'bank', label: 'Thẻ ngân hàng', icon: 'credit-card' },
-  { key: 'momo', label: 'Momo', icon: 'cellphone' },
-  { key: 'zalopay', label: 'ZaloPay', icon: 'qrcode-scan' },
-  { key: 'vnpay', label: 'VNPay', icon: 'qrcode' },
+const paymentMethods = [
+  { 
+    key: 'bank', 
+    label: 'Thẻ ngân hàng', 
+    icon: 'credit-card',
+    description: 'Visa, Mastercard, JCB',
+    color: '#4f8cff'
+  },
+  { 
+    key: 'zalopay', 
+    label: 'ZaloPay', 
+    icon: 'qrcode-scan',
+    description: 'Ví điện tử ZaloPay',
+    color: '#2196f3'
+  },
+  { 
+    key: 'vnpay', 
+    label: 'VNPay', 
+    icon: 'qrcode',
+    description: 'Cổng thanh toán VNPay',
+    color: '#ff9800'
+  },
+  { 
+    key: 'cash', 
+    label: 'Tiền mặt', 
+    icon: 'cash',
+    description: 'Thanh toán khi nhận xe',
+    color: '#4caf50'
+  },
 ];
 
-const qrImages = {
-  momo: require('../assets/banner.png'), // dùng tạm banner làm QR demo
-  zalopay: require('../assets/banner.png'),
-  vnpay: require('../assets/banner.png'),
-};
-
-const PaymentScreen = () => {
+const PaymentScreen = ({ navigation }) => {
   const [payments, setPayments] = useState(mockPayments);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedBill, setSelectedBill] = useState(null);
-  const [selectedMethod, setSelectedMethod] = useState(onlineMethods[0].key);
-  const [cardNumber, setCardNumber] = useState('');
-  const [cardName, setCardName] = useState('');
-  const [cardExpiry, setCardExpiry] = useState('');
-  const [cardCVV, setCardCVV] = useState('');
 
   const openPaymentModal = (item) => {
     setSelectedBill(item);
-    setSelectedMethod(onlineMethods[0].key);
-    setCardNumber('');
-    setCardName('');
-    setCardExpiry('');
-    setCardCVV('');
     setModalVisible(true);
   };
 
-  const handleConfirmPayment = () => {
-    // Giả lập thanh toán thành công
-    setPayments(prev => prev.map(bill =>
-      bill.id === selectedBill.id ? { ...bill, status: 'Đã thanh toán' } : bill
-    ));
+  const selectPaymentMethod = (method) => {
     setModalVisible(false);
-    setTimeout(() => {
-      Alert.alert('Thanh toán thành công', 'Cảm ơn bạn đã thanh toán online!');
-    }, 300);
+    navigation.navigate('PaymentDetailScreen', {
+      selectedBill: selectedBill,
+      selectedMethod: method.key
+    });
   };
 
   return (
@@ -84,125 +89,94 @@ const PaymentScreen = () => {
               <Text style={[styles.status, { color: item.status === 'Đã thanh toán' ? '#28a745' : '#ff5252' }]}>{item.status}</Text>
             </View>
             {item.status === 'Chưa thanh toán' && (
-              <TouchableOpacity activeOpacity={0.85} style={{ borderRadius: 12, overflow: 'hidden', marginTop: 8 }} onPress={() => openPaymentModal(item)}>
+              <TouchableOpacity 
+                activeOpacity={0.85} 
+                style={styles.paymentButtonContainer} 
+                onPress={() => openPaymentModal(item)}
+              >
                 <LinearGradient
                   colors={['#4f8cff', '#8f5cff']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
-                  style={styles.payBtn}
+                  style={styles.paymentButton}
                 >
-                  <Text style={styles.payBtnText}>Thanh toán</Text>
+                  <MaterialCommunityIcons name="credit-card-check" size={24} color="#fff" />
+                  <Text style={styles.paymentButtonText}>Thanh toán ngay</Text>
                 </LinearGradient>
               </TouchableOpacity>
             )}
           </View>
         )}
       />
-      {/* Modal thanh toán online */}
+
+      {/* Modal chọn phương thức thanh toán */}
       <Modal
         visible={modalVisible}
-        animationType="slide"
+        animationType="fade"
         transparent
         onRequestClose={() => setModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Thanh toán online</Text>
-            {selectedBill && (
-              <View style={{ marginBottom: 18 }}>
-                <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 4 }}>Dịch vụ: {selectedBill.service}</Text>
-                <Text style={{ fontSize: 16, color: '#007bff', marginBottom: 4 }}>Số tiền: {selectedBill.amount.toLocaleString()} VNĐ</Text>
-              </View>
-            )}
-            <Text style={{ fontWeight: 'bold', marginBottom: 8 }}>Chọn phương thức thanh toán:</Text>
-            {onlineMethods.map(method => (
-              <Pressable
-                key={method.key}
-                style={[styles.methodRow, selectedMethod === method.key && styles.methodRowSelected]}
-                onPress={() => setSelectedMethod(method.key)}
+            {/* Header */}
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Chọn phương thức thanh toán</Text>
+              <TouchableOpacity 
+                style={styles.closeButton}
+                onPress={() => setModalVisible(false)}
               >
-                <MaterialCommunityIcons name={method.icon} size={22} color={selectedMethod === method.key ? '#4f8cff' : '#888'} style={{ marginRight: 10 }} />
-                <Text style={{ fontSize: 16, color: selectedMethod === method.key ? '#4f8cff' : '#222' }}>{method.label}</Text>
-                {selectedMethod === method.key && (
-                  <MaterialCommunityIcons name="check-circle" size={20} color="#4f8cff" style={{ marginLeft: 'auto' }} />
-                )}
-              </Pressable>
-            ))}
-            {/* Form nhập thông tin thẻ hoặc QR code */}
-            {selectedMethod === 'bank' ? (
-              <View style={{ marginTop: 16 }}>
-                <View style={styles.inputGroup}>
-                  <MaterialCommunityIcons name="credit-card-outline" size={22} color="#4f8cff" style={styles.inputIcon} />
-                  <TextInput
-                    style={[styles.input, { paddingLeft: 40 }]}
-                    placeholder="Số thẻ"
-                    keyboardType="number-pad"
-                    value={cardNumber}
-                    onChangeText={setCardNumber}
-                    maxLength={19}
-                    placeholderTextColor="#b0b8c1"
-                  />
+                <MaterialCommunityIcons name="close" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Payment Summary */}
+            {selectedBill && (
+              <View style={styles.paymentSummary}>
+                <View style={styles.summaryRow}>
+                  <MaterialCommunityIcons name="car-cog" size={20} color="#007bff" />
+                  <Text style={styles.summaryText}>{selectedBill.service}</Text>
                 </View>
-                <View style={styles.inputGroup}>
-                  <MaterialCommunityIcons name="account" size={22} color="#4f8cff" style={styles.inputIcon} />
-                  <TextInput
-                    style={[styles.input, { paddingLeft: 40 }]}
-                    placeholder="Tên chủ thẻ"
-                    value={cardName}
-                    onChangeText={setCardName}
-                    autoCapitalize="characters"
-                    placeholderTextColor="#b0b8c1"
-                  />
+                <View style={styles.summaryRow}>
+                  <MaterialCommunityIcons name="currency-usd" size={20} color="#28a745" />
+                  <Text style={styles.summaryAmount}>{selectedBill.amount.toLocaleString()} VNĐ</Text>
                 </View>
-                <View style={{ flexDirection: 'row', gap: 8 }}>
-                  <View style={[styles.inputGroup, { flex: 1 }]}>
-                    <MaterialCommunityIcons name="calendar" size={20} color="#4f8cff" style={styles.inputIcon} />
-                    <TextInput
-                      style={[styles.input, { paddingLeft: 38 }]}
-                      placeholder="MM/YY"
-                      value={cardExpiry}
-                      onChangeText={setCardExpiry}
-                      maxLength={5}
-                      placeholderTextColor="#b0b8c1"
-                    />
-                  </View>
-                  <View style={[styles.inputGroup, { flex: 1 }]}>
-                    <MaterialCommunityIcons name="lock" size={20} color="#4f8cff" style={styles.inputIcon} />
-                    <TextInput
-                      style={[styles.input, { paddingLeft: 38 }]}
-                      placeholder="CVV"
-                      value={cardCVV}
-                      onChangeText={setCardCVV}
-                      maxLength={4}
-                      secureTextEntry
-                      placeholderTextColor="#b0b8c1"
-                    />
-                  </View>
-                </View>
-              </View>
-            ) : (
-              <View style={styles.qrBox}>
-                <Text style={{ marginBottom: 8, fontWeight: 'bold', color: '#1976d2', fontSize: 15 }}>Quét mã QR để thanh toán</Text>
-                <View style={styles.qrFrame}>
-                  <Image
-                    source={qrImages[selectedMethod]}
-                    style={{ width: 140, height: 140, borderRadius: 12, backgroundColor: '#fff' }}
-                    resizeMode="contain"
-                  />
-                </View>
-                <Text style={{ color: '#888', fontSize: 13, marginTop: 6 }}>Mã QR demo</Text>
               </View>
             )}
-            <TouchableOpacity
-              style={[styles.payBtn, { marginTop: 18, marginBottom: 6 }]}
-              onPress={handleConfirmPayment}
-              activeOpacity={0.85}
-            >
-              <Text style={styles.payBtnText}>Xác nhận thanh toán</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => setModalVisible(false)} style={{ alignItems: 'center', marginTop: 2 }}>
-              <Text style={{ color: '#888', fontSize: 15 }}>Huỷ</Text>
-            </TouchableOpacity>
+
+            {/* Payment Methods */}
+            <View style={styles.methodsContainer}>
+              <Text style={styles.methodsTitle}>Phương thức thanh toán</Text>
+              {paymentMethods.map((method) => (
+                <TouchableOpacity
+                  key={method.key}
+                  style={styles.methodCard}
+                  onPress={() => selectPaymentMethod(method)}
+                  activeOpacity={0.7}
+                >
+                  <View style={[styles.methodIcon, { backgroundColor: method.color + '20' }]}>
+                    <MaterialCommunityIcons 
+                      name={method.icon} 
+                      size={24} 
+                      color={method.color} 
+                    />
+                  </View>
+                  <View style={styles.methodInfo}>
+                    <Text style={styles.methodLabel}>{method.label}</Text>
+                    <Text style={styles.methodDescription}>{method.description}</Text>
+                  </View>
+                  <MaterialCommunityIcons 
+                    name="chevron-right" 
+                    size={24} 
+                    color="#ccc" 
+                  />
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Footer */}
+            <View style={styles.modalFooter}>
+              <Text style={styles.footerText}>Thông tin thanh toán được bảo mật</Text>
+            </View>
           </View>
         </View>
       </Modal>
@@ -220,12 +194,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 32,
     marginBottom: 12,
-  },
-  logo: {
-    width: 60,
-    height: 60,
-    marginBottom: 8,
-    borderRadius: 14,
   },
   title: {
     fontSize: 26,
@@ -269,116 +237,160 @@ const styles = StyleSheet.create({
   statusRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 16,
   },
   status: {
     fontSize: 15,
     fontWeight: 'bold',
   },
-  payBtn: {
-    paddingVertical: 14,
-    borderRadius: 14,
-    alignItems: 'center',
-    shadowColor: '#4f8cff',
-    shadowOpacity: 0.22,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
-    backgroundColor: 'transparent',
+  paymentButtonContainer: {
+    borderRadius: 16,
     overflow: 'hidden',
+    shadowColor: '#4f8cff',
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 8,
   },
-  payBtnText: {
+  paymentButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 18,
+    paddingHorizontal: 24,
+    backgroundColor: 'transparent',
+  },
+  paymentButtonText: {
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 18,
     letterSpacing: 1,
-    fontFamily: 'Inter_500Medium',
+    marginLeft: 8,
   },
+  // Modal styles
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.18)',
+    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   modalContent: {
     width: '90%',
     backgroundColor: '#fff',
-    borderRadius: 22,
-    padding: 26,
-    shadowColor: '#4f8cff',
-    shadowOpacity: 0.22,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 12,
+    borderRadius: 24,
+    padding: 0,
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 15,
+    maxHeight: '80%',
   },
-  modalTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#4f8cff',
-    marginBottom: 18,
-    textAlign: 'center',
-    letterSpacing: 0.5,
-    fontFamily: 'Inter_700Bold',
-  },
-  methodRow: {
+  modalHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 10,
-    borderRadius: 12,
-    marginBottom: 8,
-    backgroundColor: '#f4f6fb',
-    borderWidth: 1.2,
-    borderColor: 'transparent',
-    shadowColor: '#4f8cff',
-    shadowOpacity: 0.06,
-    shadowRadius: 2,
-    shadowOffset: { width: 0, height: 1 },
-    elevation: 1,
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
   },
-  methodRowSelected: {
-    backgroundColor: '#e3eaff',
-    borderColor: '#4f8cff',
-    borderWidth: 1.5,
-    shadowOpacity: 0.13,
-    elevation: 2,
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    flex: 1,
   },
-  input: {
-    backgroundColor: '#f4f6fb',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    fontSize: 16,
-    marginBottom: 10,
-    borderWidth: 1.2,
-    borderColor: '#e3eaff',
-    color: '#222',
-    fontFamily: 'Inter_400Regular',
-  },
-  inputGroup: {
-    position: 'relative',
+  closeButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#f5f5f5',
+    alignItems: 'center',
     justifyContent: 'center',
   },
-  inputIcon: {
-    position: 'absolute',
-    left: 10,
-    top: 13,
-    zIndex: 2,
+  paymentSummary: {
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    backgroundColor: '#f8f9fa',
+    marginHorizontal: 24,
+    marginTop: 16,
+    borderRadius: 12,
   },
-  qrBox: {
+  summaryRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 18,
-    marginBottom: 6,
+    marginBottom: 8,
   },
-  qrFrame: {
-    backgroundColor: '#f4f6fb',
-    borderRadius: 18,
-    padding: 12,
-    shadowColor: '#4f8cff',
-    shadowOpacity: 0.10,
-    shadowRadius: 8,
+  summaryText: {
+    fontSize: 16,
+    color: '#666',
+    marginLeft: 8,
+  },
+  summaryAmount: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#28a745',
+    marginLeft: 8,
+  },
+  methodsContainer: {
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+  },
+  methodsTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 16,
+  },
+  methodCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
+    elevation: 2,
+  },
+  methodIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  methodInfo: {
+    flex: 1,
+  },
+  methodLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 4,
+  },
+  methodDescription: {
+    fontSize: 14,
+    color: '#666',
+  },
+  modalFooter: {
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+    alignItems: 'center',
+  },
+  footerText: {
+    fontSize: 12,
+    color: '#999',
   },
 });
 

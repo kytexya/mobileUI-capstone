@@ -9,6 +9,7 @@ import VehiclesScreen from '../screens/VehiclesScreen';
 import BookingScreen from '../screens/BookingScreen';
 import HistoryScreen from '../screens/HistoryScreen';
 import PaymentScreen from '../screens/PaymentScreen';
+import PaymentDetailScreen from '../screens/PaymentDetailScreen';
 import NotificationScreen from '../screens/NotificationScreen';
 import ChatbotScreen from '../screens/ChatbotScreen';
 import ActivityScreen from '../screens/ActivityScreen';
@@ -27,6 +28,7 @@ const HomeStack = () => (
     <HomeStackNav.Screen name="VehiclesScreen" component={VehiclesScreen} />
     <HomeStackNav.Screen name="HistoryScreen" component={HistoryScreen} />
     <HomeStackNav.Screen name="PaymentScreen" component={PaymentScreen} />
+    <HomeStackNav.Screen name="PaymentDetailScreen" component={PaymentDetailScreen} />
     <HomeStackNav.Screen name="ChatbotScreen" component={ChatbotScreen} />
   </HomeStackNav.Navigator>
 );
