@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 
 const initialMessages = [
   { id: '1', sender: 'bot', text: 'Xin chào! Tôi có thể giúp gì cho bạn?' },
@@ -21,16 +21,13 @@ const ChatbotScreen = () => {
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <View style={styles.container}>
         <Text style={styles.title}>Hỗ trợ khách hàng (Chatbot)</Text>
-        <FlatList
-          data={messages}
-          keyExtractor={item => item.id}
-          renderItem={({ item }) => (
-            <View style={[styles.message, item.sender === 'user' ? styles.userMsg : styles.botMsg]}>
+        <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+          {messages.map((item) => (
+            <View key={item.id} style={[styles.message, item.sender === 'user' ? styles.userMsg : styles.botMsg]}>
               <Text style={{ color: item.sender === 'user' ? '#fff' : '#333' }}>{item.text}</Text>
             </View>
-          )}
-          style={{ flex: 1 }}
-        />
+          ))}
+        </ScrollView>
         <View style={styles.inputRow}>
           <TextInput
             style={styles.input}

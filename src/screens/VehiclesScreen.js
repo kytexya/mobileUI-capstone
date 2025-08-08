@@ -1,25 +1,20 @@
 import React, { useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, TextInput, StyleSheet, Modal } from 'react-native';
-import { FontAwesome5, MaterialIcons } from '@expo/vector-icons';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, Modal } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-
-const initialVehicles = [
-  { id: '1', name: 'Toyota Camry', plate: '30A-12345' },
-  { id: '2', name: 'Honda CRV', plate: '29B-67890' },
-];
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 
 const VehiclesScreen = () => {
-  const [vehicles, setVehicles] = useState(initialVehicles);
+  const [vehicles, setVehicles] = useState([
+    { id: '1', name: 'Toyota Camry', plate: '30A-12345' },
+    { id: '2', name: 'Honda CRV', plate: '51B-67890' },
+  ]);
   const [modalVisible, setModalVisible] = useState(false);
   const [newName, setNewName] = useState('');
   const [newPlate, setNewPlate] = useState('');
 
   const handleAddVehicle = () => {
-    if (newName && newPlate) {
-      setVehicles([
-        ...vehicles,
-        { id: Date.now().toString(), name: newName, plate: newPlate },
-      ]);
+    if (newName.trim() && newPlate.trim()) {
+      setVehicles([...vehicles, { id: Date.now().toString(), name: newName, plate: newPlate }]);
       setNewName('');
       setNewPlate('');
       setModalVisible(false);
@@ -33,21 +28,18 @@ const VehiclesScreen = () => {
   const renderItem = ({ item }) => (
     <View style={styles.vehicleCard}>
       <View style={styles.vehicleInfo}>
-        <MaterialCommunityIcons name="car-sports" size={30} color="#22336b" style={styles.vehicleIcon} />
+        <MaterialCommunityIcons name="car" size={28} color="#1976d2" style={styles.vehicleIcon} />
         <View>
           <Text style={styles.vehicleName}>{item.name}</Text>
           <Text style={styles.vehiclePlate}>{item.plate}</Text>
         </View>
       </View>
-      <TouchableOpacity
-        style={({ pressed }) => [
-          styles.deleteBtn,
-          pressed && styles.deleteBtnPressed
-        ]}
+      <TouchableOpacity 
+        style={styles.deleteBtn} 
         onPress={() => handleDelete(item.id)}
         activeOpacity={0.7}
       >
-        <MaterialCommunityIcons name="trash-can-outline" size={22} color="#ff5252" />
+        <FontAwesome5 name="trash" size={16} color="#ff5252" />
       </TouchableOpacity>
     </View>
   );
@@ -59,13 +51,16 @@ const VehiclesScreen = () => {
         <MaterialCommunityIcons name="car-sports" size={28} color="#22336b" style={{ marginRight: 8 }} />
         <Text style={styles.title}>Quản lý xe của bạn</Text>
       </View>
-      <FlatList
-        data={vehicles}
-        renderItem={renderItem}
-        keyExtractor={item => item.id}
+      <ScrollView 
         style={{ marginBottom: 16 }}
-        ListEmptyComponent={<Text style={styles.emptyText}>Chưa có xe nào. Hãy thêm xe mới!</Text>}
-      />
+        showsVerticalScrollIndicator={false}
+      >
+        {vehicles.length > 0 ? (
+          vehicles.map((item) => renderItem({ item }))
+        ) : (
+          <Text style={styles.emptyText}>Chưa có xe nào. Hãy thêm xe mới!</Text>
+        )}
+      </ScrollView>
       <TouchableOpacity style={styles.addBtn} onPress={() => setModalVisible(true)} activeOpacity={0.85}>
         <FontAwesome5 name="plus" size={16} color="#fff" style={{ marginRight: 8 }} />
         <Text style={styles.addBtnText}>Thêm xe mới</Text>

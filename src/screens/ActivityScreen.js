@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const mockOngoing = [
@@ -33,12 +33,12 @@ const ActivityScreen = () => {
           {activeTab === 'history' && <View style={styles.tabUnderline} />}
         </TouchableOpacity>
       </View>
-      <FlatList
-        data={data}
-        keyExtractor={item => item.id}
+      <ScrollView 
         contentContainerStyle={{ paddingBottom: 24, marginTop: 10 }}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
+        showsVerticalScrollIndicator={false}
+      >
+        {data.map((item) => (
+          <View key={item.id} style={styles.card}>
             <View style={styles.row}>
               <MaterialCommunityIcons name={item.icon} size={28} color={getStatusColor(item.status)} style={{ marginRight: 14 }} />
               <View style={{ flex: 1 }}>
@@ -53,8 +53,8 @@ const ActivityScreen = () => {
               </View>
             </View>
           </View>
-        )}
-      />
+        ))}
+      </ScrollView>
     </View>
   );
 };

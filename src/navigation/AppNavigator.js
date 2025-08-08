@@ -10,6 +10,7 @@ import BookingScreen from '../screens/BookingScreen';
 import HistoryScreen from '../screens/HistoryScreen';
 import PaymentScreen from '../screens/PaymentScreen';
 import PaymentDetailScreen from '../screens/PaymentDetailScreen';
+import ServicePackageScreen from '../screens/ServicePackageScreen';
 import NotificationScreen from '../screens/NotificationScreen';
 import ChatbotScreen from '../screens/ChatbotScreen';
 import ActivityScreen from '../screens/ActivityScreen';
@@ -29,6 +30,7 @@ const HomeStack = () => (
     <HomeStackNav.Screen name="HistoryScreen" component={HistoryScreen} />
     <HomeStackNav.Screen name="PaymentScreen" component={PaymentScreen} />
     <HomeStackNav.Screen name="PaymentDetailScreen" component={PaymentDetailScreen} />
+    <HomeStackNav.Screen name="ServicePackageScreen" component={ServicePackageScreen} />
     <HomeStackNav.Screen name="ChatbotScreen" component={ChatbotScreen} />
   </HomeStackNav.Navigator>
 );

@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Image, Dimensions, FlatList } from 'react-native';
-import { MaterialIcons, FontAwesome5, Ionicons, MaterialCommunityIcons, MaterialCommunityIcons as MCI } from '@expo/vector-icons';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Image, Dimensions } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { ScrollView as RNScrollView } from 'react-native';
 
 const carImage = require('../assets/banner.png');
@@ -21,13 +21,13 @@ const mainFeatures = [
   {
     key: 'booking',
     label: 'Đặt lịch',
-    icon: <MaterialIcons name="event-available" size={36} color="#1976d2" />,
+    icon: <MaterialCommunityIcons name="calendar-clock" size={36} color="#1976d2" />,
     screen: 'BookingScreen',
   },
   {
     key: 'vehicles',
     label: 'Quản lý xe',
-    icon: <FontAwesome5 name="car" size={32} color="#43a047" />,
+    icon: <MaterialCommunityIcons name="car" size={32} color="#43a047" />,
     screen: 'VehiclesScreen',
   },
   {
@@ -39,7 +39,7 @@ const mainFeatures = [
   {
     key: 'payment',
     label: 'Thanh toán',
-    icon: <MaterialIcons name="payment" size={32} color="#fbc02d" />,
+    icon: <MaterialCommunityIcons name="credit-card" size={32} color="#fbc02d" />,
     screen: 'PaymentScreen',
   },
 ];
@@ -139,20 +139,19 @@ const HomeScreen = ({ navigation }) => {
         <Image source={middleBanner.image} style={styles.middleBannerImg} resizeMode="contain" />
       </View>
       {/* Banner quảng cáo lớn bên dưới 4 ô chức năng */}
-      <FlatList
-        data={bigAds}
-        keyExtractor={item => item.id}
+      <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={[styles.bigAdSlider, { marginTop: 16 }]}
-        renderItem={({ item }) => (
-          <View style={styles.bigAdCard}>
+      >
+        {bigAds.map(item => (
+          <View key={item.id} style={styles.bigAdCard}>
             <Image source={item.image} style={styles.bigAdImg} resizeMode="cover" />
             <Text style={styles.bigAdTitle} numberOfLines={2}>{item.title}</Text>
             <Text style={styles.bigAdDesc} numberOfLines={3}>{item.desc}</Text>
           </View>
-        )}
-      />
+        ))}
+      </ScrollView>
       {/* Banner nhỏ giữa, style nổi bật */}
       <View style={styles.smallBanner}>
         <Text style={styles.smallBannerTitle}>{smallBanner.title}</Text>
@@ -164,20 +163,19 @@ const HomeScreen = ({ navigation }) => {
           <Text style={styles.sectionTitle}>Khuyến mãi nổi bật</Text>
           <TouchableOpacity><Text style={styles.seeMore}>Xem thêm</Text></TouchableOpacity>
         </View>
-        <FlatList
-          data={promotions}
-          keyExtractor={item => item.id}
+        <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.promoCardSlider}
-          renderItem={({ item }) => (
-            <View style={styles.promoCardBox}>
+        >
+          {promotions.map(item => (
+            <View key={item.id} style={styles.promoCardBox}>
               <Image source={item.image} style={styles.promoCardImg} resizeMode="cover" />
               <Text style={styles.promoCardTitle}>{item.title}</Text>
               {!!item.label && <View style={styles.promoCardLabel}><Text style={styles.promoCardLabelText}>{item.label}</Text></View>}
             </View>
-          )}
-        />
+          ))}
+        </ScrollView>
       </View>
     </ScrollView>
   );

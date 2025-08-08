@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const mockHistory = [
@@ -22,11 +22,12 @@ const HistoryScreen = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Lịch sử dịch vụ</Text>
-      <FlatList
-        data={mockHistory}
-        keyExtractor={item => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
+      <ScrollView 
+        contentContainerStyle={{ paddingBottom: 24 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {mockHistory.map((item) => (
+          <View key={item.id} style={styles.card}>
             <View style={styles.row}>
               {getServiceIcon(item.service)}
               <View style={{ flex: 1 }}>
@@ -39,9 +40,8 @@ const HistoryScreen = () => {
               </View>
             </View>
           </View>
-        )}
-        contentContainerStyle={{ paddingBottom: 24 }}
-      />
+        ))}
+      </ScrollView>
     </View>
   );
 };

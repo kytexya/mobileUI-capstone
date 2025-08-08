@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -30,12 +30,12 @@ const NotificationScreen = () => {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <Text style={styles.title}>Thông báo</Text>
-      <FlatList
-        data={mockNotifications}
-        keyExtractor={item => item.id}
+      <ScrollView 
         contentContainerStyle={{ paddingBottom: 24, marginTop: 18 }}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
+        showsVerticalScrollIndicator={false}
+      >
+        {mockNotifications.map((item) => (
+          <View key={item.id} style={styles.card}>
             <View style={styles.cardHeader}>
               {getIcon(item.type)}
               <View style={{ flex: 1 }}>
@@ -45,8 +45,8 @@ const NotificationScreen = () => {
               <Text style={styles.date}>{item.date}</Text>
             </View>
           </View>
-        )}
-      />
+        ))}
+      </ScrollView>
     </SafeAreaView>
   );
 };

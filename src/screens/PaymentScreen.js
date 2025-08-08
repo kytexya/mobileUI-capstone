@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert, Modal, Pressable } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, Modal, Pressable } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -62,12 +62,11 @@ const PaymentScreen = ({ navigation }) => {
       <View style={styles.header}>
         <Text style={styles.title}>Thanh toán</Text>
       </View>
-      <FlatList
-        data={payments}
-        keyExtractor={item => item.id}
+      <ScrollView
         contentContainerStyle={{ paddingBottom: 24 }}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
+      >
+        {payments.map((item) => (
+          <View style={styles.card} key={item.id}>
             <View style={styles.cardHeader}>
               {item.service === 'Bảo dưỡng' ? (
                 <MaterialCommunityIcons name="car-cog" size={28} color="#1976d2" style={{ marginRight: 10 }} />
@@ -106,8 +105,8 @@ const PaymentScreen = ({ navigation }) => {
               </TouchableOpacity>
             )}
           </View>
-        )}
-      />
+        ))}
+      </ScrollView>
 
       {/* Modal chọn phương thức thanh toán */}
       <Modal

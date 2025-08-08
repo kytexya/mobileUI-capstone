@@ -201,7 +201,7 @@ const PaymentDetailScreen = ({ route, navigation }) => {
         activeOpacity={0.8}
       >
         <LinearGradient
-          colors={['#4f8cff', '#8f5cff']}
+          colors={['#34d399', '#10b981']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={styles.gradientButton}
