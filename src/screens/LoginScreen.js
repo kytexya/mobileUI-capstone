@@ -1,44 +1,191 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, Image } from 'react-native';
-import Icon from 'react-native-vector-icons/Feather';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  Image,
+  Alert,
+} from "react-native";
+import Icon from "react-native-vector-icons/Feather";
+import { useForm, Controller } from "react-hook-form";
+import axios from 'axios';
+import { emailRegex, phoneRegex } from "../utils/validator";
+import AppConfig from "../utils/AppConfig";
+import { DOMAIN_URL } from "../utils/Constant";
 
 const LoginScreen = ({ navigation }) => {
-  const [emailOrPhone, setEmailOrPhone] = useState('');
-  const [password, setPassword] = useState('');
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({ mode: "onChange", defaultValues: {
+    // emailOrPhone: 'luongle@carserv.com',
+    // password: '735@'
+  } });
+
+  const onSubmit = (data) => {
+
+    const dataSubmit = {
+      userName: data?.emailOrPhone,
+      password: data?.password,
+    }
+    axios.post(DOMAIN_URL + '/Home/Login', dataSubmit)
+      .then(function (response) {
+        const token = response.data;
+        console.log("token : ", token);
+        AppConfig.ACCESS_TOKEN = token;
+        handleGetUser(token,data?.emailOrPhone);
+        navigation.replace("MainTabs");
+      })
+      .catch(function (error) {
+        Alert.alert(
+          "Lỗi",
+          "Đã xảy ra lỗi, vui lòng thử lại!",
+          [
+            { text: "OK", onPress: () => console.log("OK Pressed") }
+          ],
+          { cancelable: false }
+        );
+      })
+      .finally(function () {});
+  };
+
+  const handleGetUser = (token,email) => {
+    console.log("`/Account/by-mail/${email}` ",DOMAIN_URL + `/Account/by-mail/${email}`);
+    console.log("AppConfig.ACCESS_TOKEN ",token);
+    
+    
+    axios.get(`${DOMAIN_URL}/Account/by-mail/${email}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    )
+      .then(function (response) {
+        const user = response.data;
+        console.log("user : ", user);
+        AppConfig.USER_ID = user.userId
+        AppConfig.USER_OBJ = user
+      })
+      .catch(function (error) {
+        console.log("XXXXZ",error);
+        
+        Alert.alert(
+          "Lỗi",
+          "Lấy thông tin thất bại, vui lòng thử lại!",
+          [
+            { text: "OK", onPress: () => console.log("OK Pressed") }
+          ],
+          { cancelable: false }
+        );
+      })
+      .finally(function () {});
+  }
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#f4f6fb' }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: "#f4f6fb" }}
+      behavior={Platform.OS === "ios" ? "padding" : 'padding'}
+    >
       <View style={styles.outerContainer}>
         <View style={styles.card}>
-          <Image source={require('../assets/logo.png')} style={styles.logo} resizeMode="contain" />
+          <Image
+            source={require("../assets/logo.png")}
+            style={styles.logo}
+            resizeMode="contain"
+          />
           <Text style={styles.title}>Đăng nhập</Text>
-          <View style={styles.inputContainer}>
-            <Icon name="user" size={20} color="#007bff" style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholder="Email hoặc Số điện thoại"
-              value={emailOrPhone}
-              onChangeText={setEmailOrPhone}
-              keyboardType="default"
-              autoCapitalize="none"
-              placeholderTextColor="#aaa"
-            />
-          </View>
-          <View style={styles.inputContainer}>
-            <Icon name="lock" size={20} color="#007bff" style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholder="Mật khẩu"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              placeholderTextColor="#aaa"
-            />
-          </View>
-          <TouchableOpacity style={styles.button} onPress={() => navigation.replace('MainTabs')} activeOpacity={0.85}>
+          <Controller
+            control={control}
+            name="emailOrPhone"
+            rules={{
+              required: "Vui lòng nhập email !",
+              validate: (value) =>
+                emailRegex.test(value) ||
+                "Email  không hợp lệ !",
+            }}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <View>
+                <View
+                  style={[
+                    styles.inputContainer,
+                    errors.emailOrPhone && styles.errorField,
+                  ]}
+                >
+                  <Icon
+                    name="user"
+                    size={20}
+                    color="#007bff"
+                    style={styles.inputIcon}
+                  />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Nhập email"
+                    value={value}
+                    onBlur={onBlur}
+                    onChangeText={onChange}
+                  />
+                </View>
+                {errors.emailOrPhone && (
+                  <Text style={styles.inputError}>
+                    {errors.emailOrPhone.message}
+                  </Text>
+                )}
+              </View>
+            )}
+          />
+          <Controller
+            control={control}
+            name="password"
+            rules={{
+              required: "Vui lòng nhập mật khẩu",
+            }}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <View>
+                <View
+                  style={[
+                    styles.inputContainer,
+                    errors.password && styles.errorField,
+                  ]}
+                >
+                  <Icon
+                    name="lock"
+                    size={20}
+                    color="#007bff"
+                    style={styles.inputIcon}
+                  />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Mật khẩu"
+                    secureTextEntry
+                    value={value}
+                    onBlur={onBlur}
+                    onChangeText={onChange}
+                  />
+                </View>
+                {errors.password && (
+                  <Text style={styles.inputError}>
+                    {errors.password.message}
+                  </Text>
+                )}
+              </View>
+            )}
+          />
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handleSubmit(onSubmit)}
+            activeOpacity={0.85}
+          >
             <Text style={styles.buttonText}>Đăng nhập</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('RegisterScreen')}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate("RegisterScreen")}
+          >
             <Text style={styles.link}>Chưa có tài khoản? Đăng ký</Text>
           </TouchableOpacity>
         </View>
@@ -50,18 +197,18 @@ const LoginScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   outerContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f4f6fb',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f4f6fb",
   },
   card: {
-    width: '90%',
-    backgroundColor: '#fff',
+    width: "90%",
+    backgroundColor: "#fff",
     borderRadius: 24,
     paddingVertical: 36,
     paddingHorizontal: 28,
-    alignItems: 'center',
-    shadowColor: '#007bff',
+    alignItems: "center",
+    shadowColor: "#007bff",
     shadowOpacity: 0.12,
     shadowRadius: 16,
     shadowOffset: { width: 0, height: 8 },
@@ -75,21 +222,21 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
-    color: '#007bff',
+    fontWeight: "bold",
+    color: "#007bff",
     marginBottom: 28,
     letterSpacing: 1,
-    fontFamily: 'Inter_700Bold',
+    fontFamily: "Inter_700Bold",
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
-    backgroundColor: '#f8f9fa',
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+    backgroundColor: "#f8f9fa",
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
-    marginBottom: 16,
+    borderColor: "#e0e0e0",
+    marginTop: 16,
     paddingHorizontal: 10,
   },
   inputIcon: {
@@ -99,35 +246,45 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 14,
     fontSize: 16,
-    color: '#222',
-    fontFamily: 'Inter_400Regular',
+    color: "#222",
+    fontFamily: "Inter_400Regular",
   },
   button: {
-    backgroundColor: '#007bff',
+    backgroundColor: "#007bff",
     paddingVertical: 16,
     borderRadius: 14,
-    width: '100%',
-    alignItems: 'center',
+    width: "100%",
+    alignItems: "center",
     marginBottom: 12,
-    shadowColor: '#007bff',
+    shadowColor: "#007bff",
     shadowOpacity: 0.18,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
     elevation: 4,
+    marginTop: 16,
   },
   buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: "#fff",
+    fontWeight: "bold",
     fontSize: 18,
     letterSpacing: 1,
-    fontFamily: 'Inter_500Medium',
+    fontFamily: "Inter_500Medium",
   },
   link: {
-    color: '#007bff',
+    color: "#007bff",
     marginTop: 8,
     fontSize: 15,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: "Inter_400Regular",
+  },
+
+  errorField: {
+    borderWidth: 1,
+    borderColor: "#ff0000ff",
+  },
+
+  inputError: {
+    color: "#ff0000ff",
   },
 });
 
-export default LoginScreen; 
+export default LoginScreen;

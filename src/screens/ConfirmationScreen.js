@@ -8,6 +8,9 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import axios from 'axios';
+import AppConfig from '../utils/AppConfig';
+import { DOMAIN_URL } from '../utils/Constant';
 
 const ConfirmationScreen = ({ navigation, route }) => {
   const { 
@@ -16,7 +19,8 @@ const ConfirmationScreen = ({ navigation, route }) => {
     vehicleOption, 
     selectedDate, 
     selectedTime, 
-    selectedMechanic 
+    selectedMechanic,
+    packageId
   } = route.params;
 
   const serviceCategories = [
@@ -78,18 +82,46 @@ const ConfirmationScreen = ({ navigation, route }) => {
 
   const handleConfirmBooking = () => {
     // Here you would typically send the booking data to your backend
-    console.log('Booking confirmed:', {
-      selectedServices,
-      personalInfo,
-      vehicleOption,
-      selectedDate,
-      selectedTime,
-      selectedMechanic,
-      totalPrice
-    });
+    // console.log('Booking confirmed:', {
+    //   selectedServices,
+    //   personalInfo,
+    //   vehicleOption,
+    //   selectedDate,
+    //   selectedTime,
+    //   selectedMechanic,
+    //   totalPrice
+    // });
+
+    const dataSubmit = {
+      vehicleId: 1,
+      packageId: packageId,
+      serviceIds: selectedServices,
+      promotionId: null,
+      appointmentDate: `2025-08-${selectedDate}T${selectedTime}:28.598Z`
+    }    
+
+    axios.post(DOMAIN_URL + `/Appointment/schedule?customerId=${AppConfig.USER_ID}`,
+      dataSubmit,
+      {
+        headers: {
+          Authorization: `Bearer ${AppConfig.ACCESS_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    )
+      .then(function (response) {
+        console.log("response ",response);
+        
+        navigation.navigate('BookingSuccessScreen');
+      })
+      .catch(function (error) {
+        console.log(error);
+      })
+      .finally(function () {
+      });
     
     // Navigate to success screen or back to home
-    navigation.navigate('BookingSuccess');
+    // navigation.navigate('BookingSuccessScreen');
   };
 
   return (
@@ -140,7 +172,7 @@ const ConfirmationScreen = ({ navigation, route }) => {
                          <View style={styles.infoRow}>
                <Ionicons name="car" size={16} color="#1976d2" />
                <Text style={styles.infoText}>
-                 {vehicleOption === 'existing' ? 'Lấy từ thông tin xe của bạn' : 'Chọn xe mới'}
+                 {vehicleOption === 'existing' ? 'Lấy từ thông tin xe của bạn (Xpander)' : 'Chọn xe mới'}
                </Text>
              </View>
           </View>
@@ -169,7 +201,7 @@ const ConfirmationScreen = ({ navigation, route }) => {
           <View style={styles.infoCard}>
                          <View style={styles.infoRow}>
                <Ionicons name="calendar" size={16} color="#1976d2" />
-               <Text style={styles.infoText}>Ngày {selectedDate} tháng 1 năm 2024</Text>
+               <Text style={styles.infoText}>Ngày {selectedDate} tháng 8 năm 2025</Text>
              </View>
              <View style={styles.infoRow}>
                <Ionicons name="time" size={16} color="#1976d2" />

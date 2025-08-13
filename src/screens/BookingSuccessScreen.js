@@ -5,74 +5,77 @@ import {
   StyleSheet,
   TouchableOpacity,
   SafeAreaView,
+  ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 const BookingSuccessScreen = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        {/* Success Icon */}
-        <View style={styles.iconContainer}>
-          <View style={styles.successIcon}>
-            <Ionicons name="checkmark" size={60} color="white" />
-          </View>
-        </View>
-
-        {/* Success Message */}
-        <Text style={styles.title}>Đặt Lịch Thành Công!</Text>
-        <Text style={styles.subtitle}>
-          Chúng tôi đã nhận được yêu cầu đặt lịch của bạn
-        </Text>
-
-        {/* Booking Details */}
-        <View style={styles.detailsCard}>
-          <Text style={styles.detailsTitle}>Thông tin đặt lịch</Text>
-          <View style={styles.detailRow}>
-            <Ionicons name="calendar" size={16} color="#4CAF50" />
-            <Text style={styles.detailText}>Mã đặt lịch: #BK2024001</Text>
-          </View>
-          <View style={styles.detailRow}>
-            <Ionicons name="mail" size={16} color="#4CAF50" />
-            <Text style={styles.detailText}>Email xác nhận đã được gửi</Text>
-          </View>
-          <View style={styles.detailRow}>
-            <Ionicons name="notifications" size={16} color="#4CAF50" />
-            <Text style={styles.detailText}>SMS nhắc nhở sẽ được gửi trước 1 giờ</Text>
-          </View>
-        </View>
-
-        {/* Next Steps */}
-        <View style={styles.nextStepsCard}>
-          <Text style={styles.nextStepsTitle}>Bước tiếp theo</Text>
-          <View style={styles.stepItem}>
-            <View style={styles.stepNumber}>
-              <Text style={styles.stepNumberText}>1</Text>
+      <ScrollView>
+        <View style={styles.content}>
+          {/* Success Icon */}
+          <View style={styles.iconContainer}>
+            <View style={styles.successIcon}>
+              <Ionicons name="checkmark" size={60} color="white" />
             </View>
-            <Text style={styles.stepText}>Kiểm tra email để xem chi tiết đặt lịch</Text>
           </View>
-          <View style={styles.stepItem}>
-            <View style={styles.stepNumber}>
-              <Text style={styles.stepNumberText}>2</Text>
-            </View>
-            <Text style={styles.stepText}>Đến đúng giờ đã đặt lịch</Text>
-          </View>
-          <View style={styles.stepItem}>
-            <View style={styles.stepNumber}>
-              <Text style={styles.stepNumberText}>3</Text>
-            </View>
-            <Text style={styles.stepText}>Mang theo giấy tờ xe và mã đặt lịch</Text>
-          </View>
-        </View>
 
-        {/* Contact Info */}
-        <View style={styles.contactCard}>
-          <Text style={styles.contactTitle}>Cần hỗ trợ?</Text>
-          <Text style={styles.contactText}>
-            Liên hệ chúng tôi qua hotline: 1900-xxxx
+          {/* Success Message */}
+          <Text style={styles.title}>Đặt Lịch Thành Công!</Text>
+          <Text style={styles.subtitle}>
+            Chúng tôi đã nhận được yêu cầu đặt lịch của bạn
           </Text>
+
+          {/* Booking Details */}
+          <View style={styles.detailsCard}>
+            <Text style={styles.detailsTitle}>Thông tin đặt lịch</Text>
+            <View style={styles.detailRow}>
+              <Ionicons name="calendar" size={16} color="#4CAF50" />
+              <Text style={styles.detailText}>Mã đặt lịch: #BK2024001</Text>
+            </View>
+            <View style={styles.detailRow}>
+              <Ionicons name="mail" size={16} color="#4CAF50" />
+              <Text style={styles.detailText}>Email xác nhận đã được gửi</Text>
+            </View>
+            <View style={styles.detailRow}>
+              <Ionicons name="notifications" size={16} color="#4CAF50" />
+              <Text style={styles.detailText}>SMS nhắc nhở sẽ được gửi trước 1 giờ</Text>
+            </View>
+          </View>
+
+          {/* Next Steps */}
+          <View style={styles.nextStepsCard}>
+            <Text style={styles.nextStepsTitle}>Bước tiếp theo</Text>
+            <View style={styles.stepItem}>
+              <View style={styles.stepNumber}>
+                <Text style={styles.stepNumberText}>1</Text>
+              </View>
+              <Text style={styles.stepText}>Kiểm tra email để xem chi tiết đặt lịch</Text>
+            </View>
+            <View style={styles.stepItem}>
+              <View style={styles.stepNumber}>
+                <Text style={styles.stepNumberText}>2</Text>
+              </View>
+              <Text style={styles.stepText}>Đến đúng giờ đã đặt lịch</Text>
+            </View>
+            <View style={styles.stepItem}>
+              <View style={styles.stepNumber}>
+                <Text style={styles.stepNumberText}>3</Text>
+              </View>
+              <Text style={styles.stepText}>Mang theo giấy tờ xe và mã đặt lịch</Text>
+            </View>
+          </View>
+
+          {/* Contact Info */}
+          <View style={styles.contactCard}>
+            <Text style={styles.contactTitle}>Cần hỗ trợ?</Text>
+            <Text style={styles.contactText}>
+              Liên hệ chúng tôi qua hotline: 1900-xxxx
+            </Text>
+          </View>
         </View>
-      </View>
+      </ScrollView>
 
       {/* Action Buttons */}
       <View style={styles.footer}>
@@ -228,11 +231,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#4CAF50',
+    backgroundColor: '#fff'
   },
   secondaryButtonText: {
     color: '#4CAF50',
     fontSize: 16,
     fontWeight: 'bold',
+    
   },
 });
 
