@@ -14,6 +14,11 @@ import ServicePackageScreen from '../screens/ServicePackageScreen';
 import NotificationScreen from '../screens/NotificationScreen';
 import ChatbotScreen from '../screens/ChatbotScreen';
 import ActivityScreen from '../screens/ActivityScreen';
+import BookingFlowScreen from '../screens/BookingFlowScreen';
+import PersonalInfoScreen from '../screens/PersonalInfoScreen';
+import DateTimeScreen from '../screens/DateTimeScreen';
+import ConfirmationScreen from '../screens/ConfirmationScreen';
+import BookingSuccessScreen from '../screens/BookingSuccessScreen';
 import { Ionicons, MaterialIcons, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 import { TouchableOpacity, SafeAreaView, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -32,6 +37,11 @@ const HomeStack = () => (
     <HomeStackNav.Screen name="PaymentDetailScreen" component={PaymentDetailScreen} />
     <HomeStackNav.Screen name="ServicePackageScreen" component={ServicePackageScreen} />
     <HomeStackNav.Screen name="ChatbotScreen" component={ChatbotScreen} />
+    <HomeStackNav.Screen name="BookingFlowScreen" component={BookingFlowScreen} />
+    <HomeStackNav.Screen name="PersonalInfoScreen" component={PersonalInfoScreen} />
+    <HomeStackNav.Screen name="DateTimeScreen" component={DateTimeScreen} />
+    <HomeStackNav.Screen name="ConfirmationScreen" component={ConfirmationScreen} />
+    <HomeStackNav.Screen name="BookingSuccessScreen" component={BookingSuccessScreen} />
   </HomeStackNav.Navigator>
 );
 

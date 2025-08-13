@@ -22,7 +22,7 @@ const mainFeatures = [
     key: 'booking',
     label: 'Đặt lịch',
     icon: <MaterialCommunityIcons name="calendar-clock" size={36} color="#1976d2" />,
-    screen: 'BookingScreen',
+    screen: 'BookingFlowScreen',
   },
   {
     key: 'vehicles',
