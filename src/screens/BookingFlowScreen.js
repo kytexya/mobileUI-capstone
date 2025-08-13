@@ -17,7 +17,7 @@ const BookingFlowScreen = ({ navigation }) => {
 
   const serviceCombos = [
     {
-      id: 'combo1',
+      id: '1',
       title: 'Combo Bảo Dưỡng Cơ Bản',
       description: 'Thay dầu + lọc + kiểm tra tổng thể',
       originalPrice: '560.000đ',
@@ -27,7 +27,7 @@ const BookingFlowScreen = ({ navigation }) => {
       popular: true
     },
     {
-      id: 'combo2',
+      id: '2',
       title: 'Combo Bảo Dưỡng Toàn Diện',
       description: 'Bảo dưỡng + vệ sinh + chăm sóc',
       originalPrice: '1.200.000đ',
@@ -37,7 +37,7 @@ const BookingFlowScreen = ({ navigation }) => {
       popular: false
     },
     {
-      id: 'combo3',
+      id: '3',
       title: 'Combo Vệ Sinh Cao Cấp',
       description: 'Rửa xe + đánh bóng + phủ ceramic',
       originalPrice: '1.100.000đ',
@@ -218,7 +218,7 @@ const BookingFlowScreen = ({ navigation }) => {
       <View style={styles.footer}>
         <TouchableOpacity
           style={[styles.nextButton, selectedServices.length > 0 && styles.nextButtonActive]}
-          onPress={() => navigation.navigate('PersonalInfoScreen', { selectedServices })}
+          onPress={() => navigation.navigate('PersonalInfoScreen', { selectedServices, packageId: selectedComboId })}
           disabled={selectedServices.length === 0}
         >
           <Text style={styles.nextButtonText}>Tiếp theo</Text>

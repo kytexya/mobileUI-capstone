@@ -6,10 +6,12 @@
     "@react-navigation/bottom-tabs": "^7.4.2",
     "@react-navigation/native": "^7.1.14",
     "@react-navigation/stack": "^7.4.2",
+    "axios": "^1.11.0",
     "expo": "^53.0.19",
     "expo-app-loading": "^2.1.1",
     "expo-font": "^13.3.2",
     "expo-linear-gradient": "~14.1.5",
+    "react-hook-form": "^7.62.0",
     "react-native-dropdown-picker": "^5.4.6",
     "react-native-safe-area-context": "^5.5.2",
     "react-native-screens": "^4.13.1"

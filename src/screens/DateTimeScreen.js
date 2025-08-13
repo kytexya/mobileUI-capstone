@@ -10,7 +10,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 
 const DateTimeScreen = ({ navigation, route }) => {
-  const { selectedServices, personalInfo, vehicleOption } = route.params;
+  const { selectedServices, personalInfo, vehicleOption, packageId } = route.params;
   const [selectedDate, setSelectedDate] = useState(23);
   const [selectedTime, setSelectedTime] = useState('08:00');
   const [selectedMechanic, setSelectedMechanic] = useState('none');
@@ -93,7 +93,7 @@ const DateTimeScreen = ({ navigation, route }) => {
             <TouchableOpacity style={styles.monthButton}>
               <Ionicons name="chevron-back" size={20} color="#333" />
             </TouchableOpacity>
-            <Text style={styles.monthText}>Tháng 1 năm 2024</Text>
+            <Text style={styles.monthText}>Tháng 8 năm 2025</Text>
             <TouchableOpacity style={styles.monthButton}>
               <Ionicons name="chevron-forward" size={20} color="#333" />
             </TouchableOpacity>
@@ -170,7 +170,8 @@ const DateTimeScreen = ({ navigation, route }) => {
             vehicleOption,
             selectedDate,
             selectedTime,
-            selectedMechanic
+            selectedMechanic,
+            packageId
           })}
         >
           <Text style={styles.nextButtonText}>Tiếp theo</Text>
@@ -392,6 +393,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+  selectedTimeText: {
+    color: '#fff'
+  }
 });
 
 export default DateTimeScreen;

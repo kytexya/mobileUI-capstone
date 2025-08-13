@@ -10,19 +10,39 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import ProgressBar from '../components/ProgressBar';
+import { useForm, Controller } from "react-hook-form";
+import { emailRegex, phoneRegex } from '../utils/validator';
+import AppConfig from '../utils/AppConfig';
 
 const PersonalInfoScreen = ({ navigation, route }) => {
-  const { selectedServices } = route.params;
-  const [personalInfo, setPersonalInfo] = useState({
-    fullName: 'Nguyễn Huỳnh Vân Anh',
-    email: 'nhvanh2111@gmail.com',
-    phone: '0123456789',
-  });
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({ mode: "onChange", defaultValues: {
+    fullName: AppConfig.USER_OBJ.fullName,
+    email: AppConfig.USER_OBJ.email,
+    phone: AppConfig.USER_OBJ.phoneNumber,
+  } });
+
+  const { selectedServices, packageId } = route.params;
   const [vehicleOption, setVehicleOption] = useState('existing'); // 'existing' or 'new'
 
-  const updatePersonalInfo = (field, value) => {
-    setPersonalInfo(prev => ({ ...prev, [field]: value }));
-  };
+  const onSubmit = (data) => {
+    const personalInfo = {
+      fullName: data?.fullName,
+      email: data?.email,
+      phone: data?.phone,
+    }
+    
+    navigation.navigate('DateTimeScreen', { 
+      selectedServices, 
+      personalInfo,
+      vehicleOption,
+      packageId
+    })
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -38,49 +58,121 @@ const PersonalInfoScreen = ({ navigation, route }) => {
         <View style={styles.section}>
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Họ & tên</Text>
-            <View style={styles.inputWrapper}>
-              <TextInput
-                style={styles.input}
-                value={personalInfo.fullName}
-                onChangeText={(text) => updatePersonalInfo('fullName', text)}
-                placeholder="Nhập họ và tên"
+              <Controller
+                control={control}
+                name="fullName"
+                rules={{
+                  required: "Vui lòng nhập họ và tên !",
+                }}
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <View>
+                    <View
+                      style={[
+                        styles.inputWrapper,
+                        errors.fullName && styles.errorField,
+                      ]}
+                    >
+                      <TextInput
+                        style={styles.input}
+                        placeholder="Nhập họ và tên"
+                        value={value}
+                        onBlur={onBlur}
+                        onChangeText={onChange}
+                      />
+                      <TouchableOpacity style={styles.editButton}>
+                        <Ionicons name="pencil" size={16} color="#1976d2" />
+                      </TouchableOpacity>
+                    </View>
+                    {errors.fullName && (
+                      <Text style={styles.inputError}>
+                        {errors.fullName.message}
+                      </Text>
+                    )}
+                  </View>
+                )}
               />
-                             <TouchableOpacity style={styles.editButton}>
-                 <Ionicons name="pencil" size={16} color="#1976d2" />
-               </TouchableOpacity>
-             </View>
            </View>
 
            <View style={styles.inputContainer}>
              <Text style={styles.label}>Email</Text>
-             <View style={styles.inputWrapper}>
-               <TextInput
-                 style={styles.input}
-                 value={personalInfo.email}
-                 onChangeText={(text) => updatePersonalInfo('email', text)}
-                 placeholder="Nhập email"
-                 keyboardType="email-address"
-               />
-               <TouchableOpacity style={styles.editButton}>
-                 <Ionicons name="pencil" size={16} color="#1976d2" />
-               </TouchableOpacity>
-             </View>
+             <Controller
+                control={control}
+                name="email"
+                rules={{
+                  required: "Email không hợp lệ !",
+                  validate: (value) =>
+                    emailRegex.test(value) ||
+                    "Email không hợp lệ !",
+                }}
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <View>
+                    <View
+                      style={[
+                        styles.inputWrapper,
+                        errors.email && styles.errorField,
+                      ]}
+                    >
+                      <TextInput
+                        style={styles.input}
+                        placeholder="Nhập email"
+                        value={value}
+                        onBlur={onBlur}
+                        onChangeText={onChange}
+                        keyboardType="email-address"
+                      />
+                      <TouchableOpacity style={styles.editButton}>
+                        <Ionicons name="pencil" size={16} color="#1976d2" />
+                      </TouchableOpacity>
+                    </View>
+                    {errors.email && (
+                      <Text style={styles.inputError}>
+                        {errors.email.message}
+                      </Text>
+                    )}
+                  </View>
+                )}
+              />
            </View>
 
            <View style={styles.inputContainer}>
              <Text style={styles.label}>Số điện thoại</Text>
-             <View style={styles.inputWrapper}>
-               <TextInput
-                 style={styles.input}
-                 value={personalInfo.phone}
-                 onChangeText={(text) => updatePersonalInfo('phone', text)}
-                 placeholder="Nhập số điện thoại"
-                 keyboardType="phone-pad"
-               />
-               <TouchableOpacity style={styles.editButton}>
-                 <Ionicons name="pencil" size={16} color="#1976d2" />
-               </TouchableOpacity>
-            </View>
+            <Controller
+                control={control}
+                name="phone"
+                rules={{
+                  required: "Email không hợp lệ !",
+                  validate: (value) =>
+                    phoneRegex.test(value) ||
+                    "Số điện thoại không hợp lệ !",
+                }}
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <View>
+                    <View
+                      style={[
+                        styles.inputWrapper,
+                        errors.phone && styles.errorField,
+                      ]}
+                    >
+                      <TextInput
+                        style={styles.input}
+                        placeholder="Nhập số điện thoại"
+                        value={value}
+                        onBlur={onBlur}
+                        onChangeText={onChange}
+                        keyboardType="phone-pad"
+                      />
+                      <TouchableOpacity style={styles.editButton}>
+                        <Ionicons name="pencil" size={16} color="#1976d2" />
+                      </TouchableOpacity>
+                    </View>
+                    {errors.phone && (
+                      <Text style={styles.inputError}>
+                        {errors.phone.message}
+                      </Text>
+                    )}
+                  </View>
+                )}
+              />
           </View>
         </View>
 
@@ -98,8 +190,9 @@ const PersonalInfoScreen = ({ navigation, route }) => {
                   <View style={styles.radioInner} />
                 )}
               </View>
-              <Text style={styles.radioLabel}>Lấy từ thông tin xe của bạn</Text>
+              <Text style={styles.radioLabel}>Lấy từ thông tin xe của bạn (Xpander)</Text>
             </TouchableOpacity>
+
             <TouchableOpacity style={styles.selectButton}>
               <Text style={styles.selectButtonText}>Chọn</Text>
             </TouchableOpacity>
@@ -130,11 +223,7 @@ const PersonalInfoScreen = ({ navigation, route }) => {
       <View style={styles.footer}>
         <TouchableOpacity
           style={styles.nextButton}
-          onPress={() => navigation.navigate('DateTimeScreen', { 
-            selectedServices, 
-            personalInfo,
-            vehicleOption 
-          })}
+          onPress={handleSubmit(onSubmit)}
         >
           <Text style={styles.nextButtonText}>Tiếp theo</Text>
         </TouchableOpacity>
@@ -177,6 +266,10 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
     borderRadius: 8,
     backgroundColor: '#f8f9fa',
+  },
+  errorField: {
+    borderWidth: 1,
+    borderColor: '#ff0000ff',
   },
   input: {
     flex: 1,
@@ -291,6 +384,9 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  inputError: {
+    color: "#ff0000ff",
   },
 });
 
