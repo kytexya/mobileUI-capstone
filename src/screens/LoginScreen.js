@@ -183,6 +183,26 @@ const LoginScreen = ({ navigation }) => {
           >
             <Text style={styles.buttonText}>Đăng nhập</Text>
           </TouchableOpacity>
+          
+          {/* Nút để vào ứng dụng mà không cần đăng nhập */}
+          <TouchableOpacity
+            style={[styles.button, styles.skipButton]}
+            onPress={() => {
+              // Mock user data để test
+              AppConfig.ACCESS_TOKEN = "mock_token_123";
+              AppConfig.USER_ID = "mock_user_123";
+              AppConfig.USER_OBJ = {
+                userId: "mock_user_123",
+                email: "test@example.com",
+                name: "Test User"
+              };
+              navigation.replace("MainTabs");
+            }}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.skipButtonText}>Vào ứng dụng (Test)</Text>
+          </TouchableOpacity>
+          
           <TouchableOpacity
             onPress={() => navigation.navigate("RegisterScreen")}
           >
@@ -267,6 +287,17 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "bold",
     fontSize: 18,
+    letterSpacing: 1,
+    fontFamily: "Inter_500Medium",
+  },
+  skipButton: {
+    backgroundColor: "#28a745",
+    marginTop: 8,
+  },
+  skipButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
     letterSpacing: 1,
     fontFamily: "Inter_500Medium",
   },

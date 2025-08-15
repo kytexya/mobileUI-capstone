@@ -88,11 +88,27 @@ const BookingFlowScreen = ({ navigation }) => {
   ];
 
   const toggleService = (serviceId) => {
-    setSelectedServices(prev => 
-      prev.includes(serviceId) 
+    setSelectedServices(prev => {
+      const newServices = prev.includes(serviceId) 
         ? prev.filter(id => id !== serviceId)
-        : [...prev, serviceId]
-    );
+        : [...prev, serviceId];
+      
+      // Kiểm tra xem có còn đủ dịch vụ để tạo thành combo không
+      if (selectedComboId) {
+        const selectedCombo = serviceCombos.find(combo => combo.id === selectedComboId);
+        if (selectedCombo) {
+          const comboServices = selectedCombo.services;
+          const hasAllComboServices = comboServices.every(service => newServices.includes(service));
+          
+          // Nếu không còn đủ dịch vụ combo, chuyển sang chế độ dịch vụ riêng lẻ
+          if (!hasAllComboServices) {
+            setSelectedComboId(null);
+          }
+        }
+      }
+      
+      return newServices;
+    });
   };
 
   const toggleCategory = (categoryId) => {
@@ -164,11 +180,7 @@ const BookingFlowScreen = ({ navigation }) => {
                 </View>
               </View>
 
-              <View style={[styles.comboCheckbox, isComboSelected(combo) && styles.comboCheckboxSelected]}>
-                {isComboSelected(combo) && (
-                  <Ionicons name="checkmark" size={16} color="white" />
-                )}
-              </View>
+
             </TouchableOpacity>
           ))}
         </View>
@@ -191,23 +203,52 @@ const BookingFlowScreen = ({ navigation }) => {
 
             {expandedService === category.id && (
               <View style={styles.servicesList}>
-                {category.services.map((service) => (
-                  <TouchableOpacity
-                    key={service.id}
-                    style={styles.serviceItem}
-                    onPress={() => toggleService(service.id)}
-                  >
-                    <View style={styles.serviceInfo}>
-                      <Text style={styles.serviceName}>{service.name}</Text>
-                      <Text style={styles.servicePrice}>{service.price}</Text>
-                    </View>
-                    <View style={[styles.checkbox, isServiceSelected(service.id) && styles.checkboxSelected]}>
-                      {isServiceSelected(service.id) && (
-                        <Ionicons name="checkmark" size={16} color="white" />
-                      )}
-                    </View>
-                  </TouchableOpacity>
-                ))}
+                {category.services
+                  .sort((a, b) => {
+                    // Sắp xếp: dịch vụ combo lên trên, dịch vụ riêng lẻ xuống dưới
+                    const aInCombo = selectedComboId && serviceCombos.find(combo => combo.id === selectedComboId)?.services.includes(a.id);
+                    const bInCombo = selectedComboId && serviceCombos.find(combo => combo.id === selectedComboId)?.services.includes(b.id);
+                    
+                    if (aInCombo && !bInCombo) return -1;
+                    if (!aInCombo && bInCombo) return 1;
+                    
+                    // Trong cùng nhóm, sắp xếp theo trạng thái chọn
+                    const aSelected = isServiceSelected(a.id);
+                    const bSelected = isServiceSelected(b.id);
+                    if (aSelected && !bSelected) return -1;
+                    if (!aSelected && bSelected) return 1;
+                    return 0;
+                  })
+                  .map((service) => {
+                    const isInCombo = selectedComboId && serviceCombos.find(combo => combo.id === selectedComboId)?.services.includes(service.id);
+                    return (
+                      <TouchableOpacity
+                        key={service.id}
+                        style={[
+                          styles.serviceItem,
+                          isServiceSelected(service.id) && styles.serviceItemSelected,
+                          isInCombo && styles.comboServiceItem
+                        ]}
+                        onPress={() => toggleService(service.id)}
+                      >
+                        <View style={styles.serviceInfo}>
+                          <Text style={[
+                            styles.serviceName,
+                            isServiceSelected(service.id) && styles.serviceNameSelected
+                          ]}>
+                            {service.name}
+                            {isInCombo && <Text style={styles.comboLabel}> (Combo)</Text>}
+                          </Text>
+                          <Text style={styles.servicePrice}>{service.price}</Text>
+                        </View>
+                        <View style={[styles.checkbox, isServiceSelected(service.id) && styles.checkboxSelected]}>
+                          {isServiceSelected(service.id) && (
+                            <Ionicons name="checkmark" size={16} color="white" />
+                          )}
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  })}
               </View>
             )}
           </View>
@@ -300,15 +341,15 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   popularBadge: {
-    backgroundColor: '#1976d2',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
+    backgroundColor: '#ff6b35',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 16,
   },
   popularText: {
     color: 'white',
-    fontSize: 12,
-    fontWeight: 'bold',
+    fontSize: 11,
+    fontWeight: '600',
   },
   comboPricing: {
     flexDirection: 'row',
@@ -388,6 +429,21 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#e9ecef',
   },
+  serviceItemSelected: {
+    backgroundColor: '#f0f8ff',
+    borderLeftWidth: 3,
+    borderLeftColor: '#1976d2',
+  },
+  comboServiceItem: {
+    backgroundColor: '#fff8e1',
+    borderLeftWidth: 3,
+    borderLeftColor: '#ff6b35',
+  },
+  comboLabel: {
+    color: '#ff6b35',
+    fontSize: 12,
+    fontWeight: '500',
+  },
   serviceInfo: {
     flex: 1,
   },
@@ -395,6 +451,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#333',
     marginBottom: 4,
+  },
+  serviceNameSelected: {
+    color: '#1976d2',
+    fontWeight: '600',
   },
   servicePrice: {
     fontSize: 12,

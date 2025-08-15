@@ -20,7 +20,8 @@ const ConfirmationScreen = ({ navigation, route }) => {
     selectedDate, 
     selectedTime, 
     selectedMechanic,
-    packageId
+    packageId,
+    selectedVehicles
   } = route.params;
 
   const serviceCategories = [
@@ -62,7 +63,43 @@ const ConfirmationScreen = ({ navigation, route }) => {
     }
   ];
 
+  // Mock data cho combo
+  const comboData = [
+    {
+      id: 1,
+      title: 'Combo Bảo Dưỡng Cơ Bản',
+      description: 'Thay dầu + lọc + kiểm tra tổng thể',
+      originalPrice: '560.000đ',
+      discountPrice: '450.000đ',
+      discount: '20%',
+      services: [1, 2, 3, 4, 5, 6] // IDs của các dịch vụ trong combo
+    },
+    {
+      id: 2,
+      title: 'Combo Vệ Sinh Toàn Diện',
+      description: 'Rửa xe + vệ sinh nội thất + đánh bóng',
+      originalPrice: '400.000đ',
+      discountPrice: '320.000đ',
+      discount: '20%',
+      services: [13, 17, 15] // IDs của các dịch vụ trong combo
+    }
+  ];
+
   const getSelectedServiceDetails = () => {
+    // Nếu có packageId (đã chọn combo), hiển thị combo
+    if (packageId) {
+      const selectedCombo = comboData.find(combo => combo.id === packageId);
+      if (selectedCombo) {
+        return [{
+          id: selectedCombo.id,
+          name: selectedCombo.title,
+          price: selectedCombo.discountPrice,
+          isCombo: true
+        }];
+      }
+    }
+    
+    // Nếu không có combo, hiển thị dịch vụ riêng lẻ
     const details = [];
     serviceCategories.forEach(category => {
       category.services.forEach(service => {
@@ -75,9 +112,19 @@ const ConfirmationScreen = ({ navigation, route }) => {
   };
 
   const selectedServiceDetails = getSelectedServiceDetails();
+  const vehicleCount = selectedVehicles ? selectedVehicles.length : 1;
+  
+  // Tính giá dựa trên combo hoặc dịch vụ riêng lẻ
   const totalPrice = selectedServiceDetails.reduce((sum, service) => {
-    const price = parseInt(service.price.replace(/[^\d]/g, ''));
-    return sum + price;
+    if (service.isCombo) {
+      // Nếu là combo, lấy giá combo
+      const price = parseInt(service.price.replace(/[^\d]/g, ''));
+      return sum + (price * vehicleCount);
+    } else {
+      // Nếu là dịch vụ riêng lẻ, tính như cũ
+      const price = parseInt(service.price.replace(/[^\d]/g, ''));
+      return sum + (price * vehicleCount);
+    }
   }, 0);
 
   const handleConfirmBooking = () => {
@@ -169,12 +216,31 @@ const ConfirmationScreen = ({ navigation, route }) => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Thông tin xe</Text>
           <View style={styles.infoCard}>
-                         <View style={styles.infoRow}>
-               <Ionicons name="car" size={16} color="#1976d2" />
-               <Text style={styles.infoText}>
-                 {vehicleOption === 'existing' ? 'Lấy từ thông tin xe của bạn (Xpander)' : 'Chọn xe mới'}
-               </Text>
-             </View>
+            {selectedVehicles && selectedVehicles.length > 0 ? (
+              <>
+                {selectedVehicles.map((vehicle, index) => (
+                  <View key={vehicle.id} style={styles.vehicleRow}>
+                    <View style={styles.vehicleInfo}>
+                      <Ionicons name="car" size={16} color="#1976d2" />
+                      <View style={styles.vehicleDetails}>
+                        <Text style={styles.vehicleName}>{vehicle.model}</Text>
+                        <Text style={styles.vehicleSubInfo}>
+                          {vehicle.licensePlate} • {vehicle.year} • {vehicle.color}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                ))}
+                
+              </>
+            ) : (
+              <View style={styles.infoRow}>
+                <Ionicons name="car" size={16} color="#1976d2" />
+                <Text style={styles.infoText}>
+                  {vehicleOption === 'existing' ? 'Lấy từ thông tin xe của bạn' : 'Chọn xe mới'}
+                </Text>
+              </View>
+            )}
           </View>
         </View>
 
@@ -182,12 +248,48 @@ const ConfirmationScreen = ({ navigation, route }) => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Dịch vụ đã chọn</Text>
           <View style={styles.servicesCard}>
-            {selectedServiceDetails.map((service) => (
-              <View key={service.id} style={styles.serviceRow}>
-                <Text style={styles.serviceName}>{service.name}</Text>
-                <Text style={styles.servicePrice}>{service.price}</Text>
-              </View>
-            ))}
+                         {selectedServiceDetails.map((service) => {
+               const basePrice = parseInt(service.price.replace(/[^\d]/g, ''));
+               const totalServicePrice = basePrice * vehicleCount;
+               return (
+                 <View key={service.id} style={styles.serviceRow}>
+                   <View style={styles.serviceInfo}>
+                     <Text style={styles.serviceName}>{service.name}</Text>
+                     {service.isCombo && (
+                       <Text style={styles.comboNote}>Gói combo tiết kiệm</Text>
+                     )}
+                   </View>
+                   <View style={styles.priceContainer}>
+                     <Text style={styles.servicePrice}>
+                       {service.isCombo ? (
+                         // Nếu là combo, hiển thị giá combo
+                         <>
+                           <Text style={styles.comboPrice}>{service.price}</Text>
+                           {vehicleCount > 1 && (
+                             <Text style={styles.multiplier}> x{vehicleCount}</Text>
+                           )}
+                         </>
+                       ) : (
+                         // Nếu là dịch vụ riêng lẻ, hiển thị x3 khi có nhiều xe
+                         vehicleCount > 1 ? (
+                           <>
+                             <Text>{service.price} </Text>
+                             <Text style={styles.multiplier}>x{vehicleCount}</Text>
+                           </>
+                         ) : (
+                           service.price
+                         )
+                       )}
+                     </Text>
+                     {vehicleCount > 1 && (
+                       <Text style={styles.totalServicePrice}>
+                         = {totalServicePrice.toLocaleString()}đ
+                       </Text>
+                     )}
+                   </View>
+                 </View>
+               );
+             })}
             <View style={styles.totalRow}>
               <Text style={styles.totalLabel}>Tổng cộng:</Text>
               <Text style={styles.totalPrice}>{totalPrice.toLocaleString()}đ</Text>
@@ -340,10 +442,35 @@ const styles = StyleSheet.create({
     color: '#333',
     flex: 1,
   },
+  serviceInfo: {
+    flex: 1,
+  },
+  comboNote: {
+    fontSize: 11,
+    color: '#ff6b35',
+    fontStyle: 'italic',
+    marginTop: 2,
+  },
+  comboPrice: {
+    color: '#ff6b35',
+    fontWeight: '700',
+  },
   servicePrice: {
     fontSize: 14,
     fontWeight: '600',
     color: '#1976d2',
+  },
+  priceContainer: {
+    alignItems: 'flex-end',
+  },
+  totalServicePrice: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#1976d2',
+    marginTop: 2,
+  },
+  multiplier: {
+    color: '#666',
   },
   totalRow: {
     flexDirection: 'row',
@@ -363,6 +490,57 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#1976d2',
+  },
+  vehicleRow: {
+    marginBottom: 12,
+  },
+  vehicleInfo: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  vehicleDetails: {
+    flex: 1,
+    marginLeft: 8,
+  },
+  vehicleName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 2,
+  },
+  vehicleSubInfo: {
+    fontSize: 12,
+    color: '#666',
+  },
+  vehiclePriceRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 8,
+    marginTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#e9ecef',
+  },
+  vehiclePriceLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+  },
+  vehiclePrice: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1976d2',
+  },
+  totalBreakdown: {
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#e9ecef',
+  },
+  breakdownText: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 2,
   },
   termsCard: {
     backgroundColor: '#fff3cd',

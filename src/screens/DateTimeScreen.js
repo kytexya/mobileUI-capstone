@@ -6,18 +6,65 @@ import {
   ScrollView,
   TouchableOpacity,
   SafeAreaView,
+  Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 const DateTimeScreen = ({ navigation, route }) => {
-  const { selectedServices, personalInfo, vehicleOption, packageId } = route.params;
+  const { selectedServices, personalInfo, vehicleOption, selectedVehicles, packageId } = route.params;
   const [selectedDate, setSelectedDate] = useState(23);
   const [selectedTime, setSelectedTime] = useState('08:00');
   const [selectedMechanic, setSelectedMechanic] = useState('none');
+  const [showMechanicModal, setShowMechanicModal] = useState(false);
 
+  // Mock data cho danh sách nhân viên
+  const mechanics = [
+    {
+      id: 1,
+      name: 'Nguyễn Văn An',
+      specialty: 'Động cơ & Hộp số',
+      experience: '5 năm',
+      rating: 4.8,
+      avatar: '👨‍🔧'
+    },
+    {
+      id: 2,
+      name: 'Trần Thị Bình',
+      specialty: 'Hệ thống điện',
+      experience: '3 năm',
+      rating: 4.6,
+      avatar: '👩‍🔧'
+    },
+    {
+      id: 3,
+      name: 'Lê Văn Cường',
+      specialty: 'Hệ thống phanh',
+      experience: '7 năm',
+      rating: 4.9,
+      avatar: '👨‍🔧'
+    },
+    {
+      id: 4,
+      name: 'Phạm Thị Dung',
+      specialty: 'Điều hòa & Làm mát',
+      experience: '4 năm',
+      rating: 4.7,
+      avatar: '👩‍🔧'
+    }
+  ];
+
+  // Mock data cho slot có sẵn/không có sẵn
   const timeSlots = [
-    '08:00', '09:00', '10:00', '11:00', '12:00',
-    '13:00', '14:00', '15:00', '16:00', '17:00'
+    { time: '08:00', available: true },
+    { time: '09:00', available: false },
+    { time: '10:00', available: true },
+    { time: '11:00', available: true },
+    { time: '12:00', available: false },
+    { time: '13:00', available: true },
+    { time: '14:00', available: true },
+    { time: '15:00', available: false },
+    { time: '16:00', available: true },
+    { time: '17:00', available: true }
   ];
 
   const generateCalendarDays = () => {
@@ -66,23 +113,39 @@ const DateTimeScreen = ({ navigation, route }) => {
             Bạn có thể chọn một thợ để sửa chữa chiếc xe của bạn
           </Text>
           
-          <View style={styles.mechanicOption}>
-            <TouchableOpacity
-              style={styles.radioContainer}
-              onPress={() => setSelectedMechanic('none')}
+                     <View style={styles.mechanicOption}>
+             {selectedMechanic === 'none' ? (
+               <TouchableOpacity
+                 style={styles.radioContainer}
+                 onPress={() => setSelectedMechanic('none')}
+               >
+                 <View style={[styles.radioButton, selectedMechanic === 'none' && styles.radioSelected]}>
+                   {selectedMechanic === 'none' && (
+                     <View style={styles.radioInner} />
+                   )}
+                 </View>
+                 <Text style={styles.radioLabel}>Không chỉ định</Text>
+               </TouchableOpacity>
+             ) : (
+               <View style={styles.mechanicInfoContainer}>
+                 <Text style={styles.mechanicName}>
+                   {mechanics.find(m => m.id === selectedMechanic)?.name}
+                 </Text>
+               </View>
+             )}
+            <TouchableOpacity 
+              style={styles.selectButton}
+              onPress={() => setShowMechanicModal(true)}
             >
-              <View style={[styles.radioButton, selectedMechanic === 'none' && styles.radioSelected]}>
-                {selectedMechanic === 'none' && (
-                  <View style={styles.radioInner} />
-                )}
-              </View>
-              <Text style={styles.radioLabel}>Không chỉ định</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.selectButton}>
               <Text style={styles.selectButtonText}>Chọn</Text>
             </TouchableOpacity>
           </View>
-          <Text style={styles.helperText}>Hệ thống sẽ tự động phân công thợ phù hợp</Text>
+                     <Text style={styles.helperText}>
+             {selectedMechanic === 'none' 
+               ? 'Hệ thống sẽ tự động phân công thợ phù hợp'
+               : `${mechanics.find(m => m.id === selectedMechanic)?.specialty} • ${mechanics.find(m => m.id === selectedMechanic)?.experience} • ⭐${mechanics.find(m => m.id === selectedMechanic)?.rating}`
+             }
+           </Text>
         </View>
 
         {/* Date Selection */}
@@ -139,21 +202,27 @@ const DateTimeScreen = ({ navigation, route }) => {
           <Text style={styles.sectionTitle}>Chọn thời gian</Text>
           
           <View style={styles.timeGrid}>
-            {timeSlots.map((time) => (
+            {timeSlots.map((slot) => (
               <TouchableOpacity
-                key={time}
+                key={slot.time}
                 style={[
                   styles.timeSlot,
-                  selectedTime === time && styles.selectedTimeSlot
+                  !slot.available && styles.unavailableTimeSlot,
+                  selectedTime === slot.time && slot.available && styles.selectedTimeSlot
                 ]}
-                onPress={() => setSelectedTime(time)}
+                onPress={() => slot.available && setSelectedTime(slot.time)}
+                disabled={!slot.available}
               >
                 <Text style={[
                   styles.timeText,
-                  selectedTime === time && styles.selectedTimeText
+                  !slot.available && styles.unavailableTimeText,
+                  selectedTime === slot.time && slot.available && styles.selectedTimeText
                 ]}>
-                  {time}
+                  {slot.time}
                 </Text>
+                {!slot.available && (
+                  <Text style={styles.unavailableLabel}>Đã đặt</Text>
+                )}
               </TouchableOpacity>
             ))}
           </View>
@@ -168,6 +237,7 @@ const DateTimeScreen = ({ navigation, route }) => {
             selectedServices,
             personalInfo,
             vehicleOption,
+            selectedVehicles,
             selectedDate,
             selectedTime,
             selectedMechanic,
@@ -177,6 +247,90 @@ const DateTimeScreen = ({ navigation, route }) => {
           <Text style={styles.nextButtonText}>Tiếp theo</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Mechanic Selection Modal */}
+      <Modal
+        visible={showMechanicModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowMechanicModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Chọn nhân viên</Text>
+              <TouchableOpacity 
+                onPress={() => setShowMechanicModal(false)}
+                style={styles.closeButton}
+              >
+                <Ionicons name="close" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.mechanicList}>
+              {/* Option: Không chỉ định */}
+              <TouchableOpacity
+                style={[
+                  styles.mechanicItem,
+                  selectedMechanic === 'none' && styles.mechanicItemSelected
+                ]}
+                onPress={() => {
+                  setSelectedMechanic('none');
+                  setShowMechanicModal(false);
+                }}
+              >
+                <View style={styles.mechanicInfo}>
+                  <Text style={styles.mechanicName}>Không chỉ định</Text>
+                  <Text style={styles.mechanicSpecialty}>Hệ thống sẽ tự động phân công thợ phù hợp</Text>
+                </View>
+                <View style={[
+                  styles.mechanicCheckbox,
+                  selectedMechanic === 'none' && styles.mechanicCheckboxSelected
+                ]}>
+                  {selectedMechanic === 'none' && (
+                    <Ionicons name="checkmark" size={16} color="white" />
+                  )}
+                </View>
+              </TouchableOpacity>
+
+              {/* Danh sách nhân viên */}
+              {mechanics.map((mechanic) => (
+                <TouchableOpacity
+                  key={mechanic.id}
+                  style={[
+                    styles.mechanicItem,
+                    selectedMechanic === mechanic.id && styles.mechanicItemSelected
+                  ]}
+                  onPress={() => {
+                    setSelectedMechanic(mechanic.id);
+                    setShowMechanicModal(false);
+                  }}
+                >
+                  <View style={styles.mechanicAvatar}>
+                    <Text style={styles.avatarText}>{mechanic.avatar}</Text>
+                  </View>
+                  <View style={styles.mechanicInfo}>
+                    <Text style={styles.mechanicName}>{mechanic.name}</Text>
+                    <Text style={styles.mechanicSpecialty}>{mechanic.specialty}</Text>
+                    <View style={styles.mechanicDetails}>
+                      <Text style={styles.mechanicExperience}>{mechanic.experience}</Text>
+                      <Text style={styles.mechanicRating}>⭐ {mechanic.rating}</Text>
+                    </View>
+                  </View>
+                  <View style={[
+                    styles.mechanicCheckbox,
+                    selectedMechanic === mechanic.id && styles.mechanicCheckboxSelected
+                  ]}>
+                    {selectedMechanic === mechanic.id && (
+                      <Ionicons name="checkmark" size={16} color="white" />
+                    )}
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -271,6 +425,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#333',
     flex: 1,
+  },
+  mechanicInfoContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    marginLeft: 32,
+  },
+  mechanicName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
   },
   selectButton: {
     backgroundColor: '#1976d2',
@@ -395,7 +559,121 @@ const styles = StyleSheet.create({
   },
   selectedTimeText: {
     color: '#fff'
-  }
+  },
+  unavailableTimeSlot: {
+    backgroundColor: '#f5f5f5',
+    borderColor: '#ddd',
+    opacity: 0.6,
+  },
+  unavailableTimeText: {
+    color: '#999',
+  },
+  unavailableLabel: {
+    fontSize: 10,
+    color: '#ff4444',
+    marginTop: 2,
+  },
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    width: '90%',
+    maxHeight: '80%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  closeButton: {
+    padding: 4,
+  },
+  mechanicList: {
+    maxHeight: 400,
+  },
+  mechanicItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e9ecef',
+  },
+  mechanicItemSelected: {
+    backgroundColor: '#f0f8ff',
+    borderLeftWidth: 3,
+    borderLeftColor: '#1976d2',
+  },
+  mechanicAvatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#e3f2fd',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  avatarText: {
+    fontSize: 24,
+  },
+  mechanicInfo: {
+    flex: 1,
+  },
+  mechanicName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 4,
+  },
+  mechanicSpecialty: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 4,
+  },
+  mechanicDetails: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  mechanicExperience: {
+    fontSize: 12,
+    color: '#999',
+    marginRight: 12,
+  },
+  mechanicRating: {
+    fontSize: 12,
+    color: '#ff9800',
+  },
+  mechanicCheckbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#ddd',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  mechanicCheckboxSelected: {
+    backgroundColor: '#1976d2',
+    borderColor: '#1976d2',
+  },
 });
 
 export default DateTimeScreen;
