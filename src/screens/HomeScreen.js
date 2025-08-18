@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Image, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Image, Dimensions, Animated } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { ScrollView as RNScrollView } from 'react-native';
+import AppConfig from '../utils/AppConfig';
 
 const carImage = require('../assets/banner.png');
 
@@ -11,10 +12,64 @@ const promotions = [
   { id: '2', title: 'Tặng voucher 50k', desc: 'Khi đặt lịch bảo dưỡng', image: require('../assets/banner.png'), label: 'VOUCHER 50K' },
   { id: '3', title: 'Miễn phí kiểm tra lốp', desc: '', image: require('../assets/banner.png'), label: 'MIỄN PHÍ' },
 ];
-// Mock data trạng thái dịch vụ
+// Timeline steps definition
+const timelineSteps = [
+  { id: 1, icon: 'clock-outline', label: 'Đặt lịch', color: '#9E9E9E' },
+  { id: 2, icon: 'check-circle', label: 'Xác nhận', color: '#2196F3' },
+  { id: 3, icon: 'car-wrench', label: 'Thực hiện', color: '#9C27B0' },
+  { id: 4, icon: 'check-all', label: 'Hoàn tất', color: '#4CAF50' },
+];
+
+// Mock data trạng thái dịch vụ với timeline và thông tin xe
 const serviceStatus = [
-  { id: 'a1', name: 'Thay dầu', status: 'Đang chờ xác nhận', icon: <MaterialCommunityIcons name="oil" size={24} color="#1976d2" />, progress: 30 },
-  { id: 'a2', name: 'Rửa xe', status: 'Đang thực hiện', icon: <MaterialCommunityIcons name="car-wash" size={24} color="#43a047" />, progress: 60 },
+  { 
+    id: 'a1', 
+    name: 'Bảo dưỡng', 
+    iconName: 'oil',
+    color: '#FF6B35', // Cam cho thay dầu
+    bgColor: '#FFF8F3',
+    currentStep: 2, // Đang ở bước xác nhận
+    timeBooked: '09:00 - 10:00',
+    date: 'Hôm nay',
+    vehicle: {
+      brand: 'Toyota',
+      model: 'Vios',
+      licensePlate: '30A-12345',
+      year: '2022'
+    }
+  },
+  { 
+    id: 'a2', 
+    name: 'Rửa xe', 
+    iconName: 'car-wash',
+    color: '#00BCD4', // Xanh cyan cho rửa xe
+    bgColor: '#F0FDFF',
+    currentStep: 3, // Đang thực hiện
+    timeBooked: '14:00 - 15:00',
+    date: 'Hôm nay',
+    vehicle: {
+      brand: 'Honda',
+      model: 'City',
+      licensePlate: '51B-67890',
+      year: '2021'
+    }
+  },
+  { 
+    id: 'a3', 
+    name: 'Kiểm tra lốp', 
+    iconName: 'tire',
+    color: '#4CAF50', // Xanh lá cho hoàn thành
+    bgColor: '#F1F8F4',
+    currentStep: 4, // Hoàn thành
+    timeBooked: '08:00 - 09:00',
+    date: 'Hôm qua',
+    vehicle: {
+      brand: 'Mitsubishi',
+      model: 'Xpander',
+      licensePlate: '29C-11111',
+      year: '2023'
+    }
+  },
 ];
 
 const mainFeatures = [
@@ -83,6 +138,59 @@ const smallBanner = {
 };
 
 // Hàm lấy màu theo phần trăm tiến trình
+// Component Timeline để hiển thị trạng thái theo bước
+const ServiceTimeline = ({ currentStep, serviceColor }) => {
+  return (
+    <View style={styles.timelineContainer}>
+      {timelineSteps.map((step, index) => {
+        const isCompleted = step.id <= currentStep;
+        const isCurrent = step.id === currentStep;
+        const isLast = index === timelineSteps.length - 1;
+        
+        return (
+          <View key={step.id} style={styles.timelineStep}>
+            {/* Step icon */}
+            <View style={[
+              styles.timelineIcon,
+              {
+                backgroundColor: isCompleted ? (isCurrent ? serviceColor : step.color) : '#E0E0E0',
+                borderColor: isCompleted ? (isCurrent ? serviceColor : step.color) : '#E0E0E0',
+              }
+            ]}>
+              <MaterialCommunityIcons
+                name={step.icon}
+                size={16}
+                color={isCompleted ? 'white' : '#9E9E9E'}
+              />
+            </View>
+            
+            {/* Connector line */}
+            {!isLast && (
+              <View style={[
+                styles.timelineConnector,
+                {
+                  backgroundColor: step.id < currentStep ? step.color : '#E0E0E0'
+                }
+              ]} />
+            )}
+            
+            {/* Step label */}
+            <Text style={[
+              styles.timelineLabel,
+              {
+                color: isCurrent ? serviceColor : (isCompleted ? '#333' : '#9E9E9E'),
+                fontWeight: isCurrent ? 'bold' : 'normal'
+              }
+            ]}>
+              {step.label}
+            </Text>
+          </View>
+        );
+      })}
+    </View>
+  );
+};
+
 const getProgressColor = (percent) => {
   if (percent < 40) return '#ff7043'; // đỏ/cam nhạt
   if (percent < 80) return '#ffb300'; // vàng/cam
@@ -90,29 +198,99 @@ const getProgressColor = (percent) => {
 };
 
 const HomeScreen = ({ navigation }) => {
+  // Lấy tên người dùng từ AppConfig
+  const getUserName = () => {
+    if (AppConfig.USER_OBJ && AppConfig.USER_OBJ.fullName) {
+      return AppConfig.USER_OBJ.fullName;
+    }
+    if (AppConfig.USER_OBJ && AppConfig.USER_OBJ.name) {
+      return AppConfig.USER_OBJ.name;
+    }
+    return 'Bạn'; // Fallback nếu không có tên
+  };
+
   return (
     <ScrollView style={{ flex: 1, backgroundColor: '#f6f8fa' }} contentContainerStyle={{ paddingBottom: 24 }}>
       {/* DASHBOARD */}
       <View style={styles.dashboardWrap}>
         {/* Chào mừng user */}
-        <Text style={styles.welcomeText}>Xin chào, Bao 👋</Text>
+        <Text style={styles.welcomeText}>Xin chào, {getUserName()} 👋</Text>
         {/* Trạng thái dịch vụ đang đặt */}
-        <View style={styles.statusCard}>
-          <Text style={styles.statusTitle}>Dịch vụ đang đặt</Text>
-          {serviceStatus.map(s => (
-            <View key={s.id} style={styles.statusRow}>
-              <View style={styles.statusIcon}>{s.icon}</View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.statusService}>{s.name}</Text>
-                <Text style={styles.statusState}>{s.status}</Text>
-                {/* Progress bar */}
-                <View style={styles.progressBarWrap}>
-                  <View style={[styles.progressBar, { width: `${s.progress}%`, backgroundColor: getProgressColor(s.progress) }]} />
+        <View style={styles.servicesContainer}>
+          <View style={styles.servicesTitleContainer}>
+            <Text style={styles.servicesTitle}>Dịch vụ đang đặt</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Hoạt động')}>
+              <Text style={styles.seeAllText}>Xem tất cả</Text>
+            </TouchableOpacity>
+          </View>
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.servicesScrollContainer}
+          >
+            {serviceStatus.map(service => (
+              <TouchableOpacity 
+                key={service.id} 
+                style={[styles.serviceCard, { backgroundColor: service.bgColor }]}
+                onPress={() => {
+                  // Navigate to Activity screen with service info
+                  navigation.navigate('Hoạt động', {
+                    initialTab: service.currentStep === 4 ? 'history' : 'ongoing',
+                    serviceId: service.id
+                  });
+                }}
+                activeOpacity={0.7}
+              >
+                {/* Header with icon and info */}
+                <View style={styles.serviceHeader}>
+                  <View style={[styles.serviceIconContainer, { backgroundColor: service.color }]}>
+                    <MaterialCommunityIcons 
+                      name={service.iconName} 
+                      size={24} 
+                      color="white" 
+                    />
+                  </View>
+                  <View style={styles.serviceInfo}>
+                    <Text style={styles.serviceName}>{service.name}</Text>
+                    <Text style={styles.serviceTime}>{service.timeBooked} • {service.date}</Text>
+                  </View>
                 </View>
-                <Text style={styles.progressText}>{s.progress}%</Text>
-              </View>
-            </View>
-          ))}
+                
+                {/* Vehicle Info */}
+                <View style={styles.vehicleInfoCard}>
+                  <MaterialCommunityIcons 
+                    name="car" 
+                    size={16} 
+                    color={service.color} 
+                    style={styles.vehicleIcon}
+                  />
+                  <View style={styles.vehicleDetails}>
+                    <Text style={styles.vehicleName}>
+                      {service.vehicle.brand} {service.vehicle.model} ({service.vehicle.year})
+                    </Text>
+                    <Text style={styles.vehiclePlate}>
+                      {service.vehicle.licensePlate}
+                    </Text>
+                  </View>
+                </View>
+                
+                {/* Timeline */}
+                <ServiceTimeline 
+                  currentStep={service.currentStep}
+                  serviceColor={service.color}
+                />
+                
+                {/* Tap indicator */}
+                <View style={styles.tapIndicator}>
+                  <MaterialCommunityIcons 
+                    name="chevron-right" 
+                    size={20} 
+                    color={service.color}
+                  />
+                </View>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
         </View>
       </View>
       {/* Thanh tính năng chính dạng ô vuông bo tròn */}
@@ -225,6 +403,192 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   welcomeText: { fontSize: 19, fontWeight: 'bold', color: '#222', fontFamily: 'Inter_700Bold' },
+  
+  // New service cards styles
+  servicesContainer: {
+    marginBottom: 20,
+  },
+  servicesTitleContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingHorizontal: 4,
+  },
+  servicesTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  seeAllText: {
+    fontSize: 14,
+    color: '#1976d2',
+    fontWeight: '500',
+  },
+  servicesScrollContainer: {
+    paddingHorizontal: 4,
+  },
+  serviceCard: {
+    width: 300,
+    height: 240,
+    borderRadius: 16,
+    padding: 16,
+    paddingBottom: 20,
+    marginRight: 12,
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
+    position: 'relative',
+  },
+  serviceHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  serviceIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  serviceInfo: {
+    flex: 1,
+  },
+  serviceName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 2,
+  },
+  serviceTime: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 2,
+  },
+  serviceDate: {
+    fontSize: 12,
+    color: '#999',
+  },
+  
+  // Vehicle info styles
+  vehicleInfoCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  vehicleIcon: {
+    marginRight: 8,
+  },
+  vehicleDetails: {
+    flex: 1,
+  },
+  vehicleName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 2,
+  },
+  vehiclePlate: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#666',
+    letterSpacing: 1,
+  },
+  progressContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  circularProgressContainer: {
+    position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  circularProgressBackground: {
+    position: 'absolute',
+    backgroundColor: '#E0E0E0',
+  },
+  circularProgressFill: {
+    position: 'absolute',
+  },
+  progressTextContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
+  },
+  progressPercentText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  
+  // Timeline styles
+  timelineContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    marginTop: 8,
+  },
+  timelineStep: {
+    alignItems: 'center',
+    flex: 1,
+    position: 'relative',
+  },
+  timelineIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    marginBottom: 8,
+    zIndex: 2,
+  },
+  timelineConnector: {
+    position: 'absolute',
+    top: 16,
+    left: '50%',
+    right: '-50%',
+    height: 2,
+    zIndex: 1,
+  },
+  timelineLabel: {
+    fontSize: 10,
+    textAlign: 'center',
+    marginTop: 4,
+  },
+  tapIndicator: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -399,16 +763,18 @@ const styles = StyleSheet.create({
   mainFeatureBox: {
     flex: 1,
     marginHorizontal: 6,
-    borderRadius: 18,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 18,
-    backgroundColor: '#f4f6fb', // xám nhạt
-    elevation: 2,
-    shadowColor: '#1976d2',
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
   },
   mainFeatureIcon: {
     marginBottom: 8,
@@ -608,11 +974,13 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginRight: 16,
     overflow: 'hidden',
-    elevation: 2,
-    shadowColor: '#1976d2',
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
     marginBottom: 8,
     minHeight: 140,
     maxHeight: 180,
@@ -657,11 +1025,13 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginRight: 14,
     overflow: 'hidden',
-    elevation: 2,
-    shadowColor: '#1976d2',
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
     alignItems: 'center',
     paddingBottom: 10,
     marginBottom: 4,
@@ -695,18 +1065,20 @@ const styles = StyleSheet.create({
   middleBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 22,
+    borderRadius: 16,
     marginHorizontal: 8,
     marginTop: 18,
     marginBottom: 18,
     paddingVertical: 18,
     paddingHorizontal: 18,
     minHeight: 100,
-    elevation: 2,
-    shadowColor: '#1ec6b6',
-    shadowOpacity: 0.10,
-    shadowRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
   },
   middleBannerTitle: {
     color: '#fff',
@@ -741,17 +1113,19 @@ const styles = StyleSheet.create({
   },
   smallBanner: {
     backgroundColor: '#fbc02d',
-    borderRadius: 18,
+    borderRadius: 16,
     marginHorizontal: 8,
     marginTop: 18,
     marginBottom: 18,
     paddingVertical: 18,
     paddingHorizontal: 18,
-    elevation: 1,
-    shadowColor: '#fbc02d',
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
     alignItems: 'flex-start',
   },
   smallBannerTitle: {

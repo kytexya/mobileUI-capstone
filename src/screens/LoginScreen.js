@@ -194,7 +194,9 @@ const LoginScreen = ({ navigation }) => {
               AppConfig.USER_OBJ = {
                 userId: "mock_user_123",
                 email: "test@example.com",
-                name: "Test User"
+                fullName: "Bao Nguyễn",
+                name: "Bao Nguyễn",
+                phoneNumber: "0123456789"
               };
               navigation.replace("MainTabs");
             }}

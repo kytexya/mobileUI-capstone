@@ -10,24 +10,36 @@ import {
   Modal,
   Alert,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
 const VehiclesScreen = ({ navigation }) => {
   const [showAddVehicleModal, setShowAddVehicleModal] = useState(false);
   const [vehicles, setVehicles] = useState([
     {
       id: 1,
-      model: 'Toyota Camry',
+      brand: 'Toyota',
+      model: 'Camry',
       licensePlate: '30A-12345',
       year: '2022',
       color: 'Trắng',
+      mileage: '25,000 km',
+      fuelType: 'Xăng',
+      status: 'Hoạt động',
+      lastService: '15/10/2024',
+      nextService: '15/01/2025',
     },
     {
       id: 2,
-      model: 'Honda CRV',
+      brand: 'Honda',
+      model: 'CRV',
       licensePlate: '51B-67890',
       year: '2021',
       color: 'Đen',
+      mileage: '32,000 km',
+      fuelType: 'Xăng',
+      status: 'Hoạt động',
+      lastService: '20/09/2024',
+      nextService: '20/12/2024',
     }
   ]);
   const [newVehicle, setNewVehicle] = useState({
@@ -84,22 +96,62 @@ const VehiclesScreen = ({ navigation }) => {
       <ScrollView style={styles.content}>
         {vehicles.map((vehicle) => (
           <View key={vehicle.id} style={styles.vehicleCard}>
-            <View style={styles.vehicleInfo}>
-              <Ionicons name="car" size={24} color="#1976d2" />
-              <View style={styles.vehicleText}>
-                <Text style={styles.vehicleModel}>{vehicle.model}</Text>
-                <Text style={styles.vehicleLicense}>{vehicle.licensePlate}</Text>
-                <Text style={styles.vehicleDetails}>
-                  {vehicle.year && vehicle.color ? `${vehicle.year} • ${vehicle.color}` : ''}
-                </Text>
+            {/* Header with car info and status */}
+            <View style={styles.vehicleHeader}>
+              <View style={styles.vehicleMainInfo}>
+                <View style={styles.vehicleIcon}>
+                  <MaterialCommunityIcons name="car" size={24} color="#1976d2" />
+                </View>
+                <View style={styles.vehicleText}>
+                  <Text style={styles.vehicleModel}>{vehicle.brand} {vehicle.model}</Text>
+                  <Text style={styles.vehicleLicense}>{vehicle.licensePlate}</Text>
+                </View>
+              </View>
+              <View style={styles.vehicleActions}>
+                <View style={[styles.statusBadge, { backgroundColor: vehicle.status === 'Hoạt động' ? '#E8F5E8' : '#FFF3E0' }]}>
+                  <MaterialCommunityIcons 
+                    name={vehicle.status === 'Hoạt động' ? 'check-circle' : 'alert-circle'} 
+                    size={12} 
+                    color={vehicle.status === 'Hoạt động' ? '#4CAF50' : '#FF9800'} 
+                  />
+                  <Text style={[styles.statusText, { color: vehicle.status === 'Hoạt động' ? '#4CAF50' : '#FF9800' }]}>
+                    {vehicle.status}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={() => deleteVehicle(vehicle.id)}
+                >
+                  <MaterialCommunityIcons name="delete" size={18} color="white" />
+                </TouchableOpacity>
               </View>
             </View>
-            <TouchableOpacity
-              style={styles.deleteButton}
-              onPress={() => deleteVehicle(vehicle.id)}
-            >
-              <Ionicons name="trash" size={20} color="white" />
-            </TouchableOpacity>
+
+            {/* Vehicle specs */}
+            <View style={styles.vehicleSpecs}>
+              <View style={styles.specBadge}>
+                <MaterialCommunityIcons name="calendar" size={14} color="#1976d2" />
+                <Text style={styles.specText}>{vehicle.year}</Text>
+              </View>
+              <View style={styles.specBadge}>
+                <MaterialCommunityIcons name="palette" size={14} color="#FF6B35" />
+                <Text style={styles.specText}>{vehicle.color}</Text>
+              </View>
+            </View>
+
+            {/* Service info */}
+            <View style={styles.serviceInfo}>
+              <View style={styles.serviceItem}>
+                <MaterialCommunityIcons name="wrench" size={14} color="#4CAF50" />
+                <Text style={styles.serviceLabel}>Bảo dưỡng cuối:</Text>
+                <Text style={styles.serviceDate}>{vehicle.lastService}</Text>
+              </View>
+              <View style={styles.serviceItem}>
+                <MaterialCommunityIcons name="calendar-clock" size={14} color="#FF9800" />
+                <Text style={styles.serviceLabel}>Bảo dưỡng tiếp:</Text>
+                <Text style={styles.serviceDate}>{vehicle.nextService}</Text>
+              </View>
+            </View>
           </View>
         ))}
       </ScrollView>
@@ -205,14 +257,19 @@ const VehiclesScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f6f8fa',
   },
   header: {
     backgroundColor: 'white',
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: 'rgba(0, 0, 0, 0.08)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
   },
   headerSubtitle: {
     fontSize: 12,
@@ -231,58 +288,140 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    padding: 20,
+    padding: 16,
   },
   vehicleCard: {
     backgroundColor: 'white',
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
-    marginBottom: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
     elevation: 3,
   },
-  vehicleInfo: {
+  // New detailed card styles
+  vehicleHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  vehicleMainInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
   },
+  vehicleIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#E3F2FD',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
   vehicleText: {
-    marginLeft: 12,
+    flex: 1,
   },
   vehicleModel: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: 'bold',
     color: '#333',
     marginBottom: 4,
   },
   vehicleLicense: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1976d2',
   },
-  vehicleDetails: {
+  vehicleActions: {
+    alignItems: 'flex-end',
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginBottom: 8,
+  },
+  statusText: {
     fontSize: 12,
-    color: '#999',
-    marginTop: 2,
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+  vehicleSpecs: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    marginBottom: 12,
+  },
+  specBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8F9FA',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 16,
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.05)',
+  },
+  specText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#333',
+    marginLeft: 5,
+  },
+  serviceInfo: {
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0, 0, 0, 0.05)',
+  },
+  serviceItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  serviceLabel: {
+    fontSize: 12,
+    color: '#666',
+    marginLeft: 6,
+    flex: 1,
+  },
+  serviceDate: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#333',
   },
   deleteButton: {
     backgroundColor: '#ff4444',
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 2,
   },
   footer: {
-    padding: 20,
+    padding: 16,
     backgroundColor: 'white',
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
+    borderTopColor: 'rgba(0, 0, 0, 0.08)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
   },
   addButton: {
     backgroundColor: '#1976d2',
@@ -291,6 +430,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
   },
   addButtonText: {
     color: 'white',
@@ -310,6 +456,13 @@ const styles = StyleSheet.create({
     width: '85%',
     padding: 24,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
   },
   modalHeader: {
     alignItems: 'center',
@@ -335,8 +488,8 @@ const styles = StyleSheet.create({
   },
   formInput: {
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
+    borderRadius: 12,
     padding: 12,
     fontSize: 16,
     backgroundColor: '#f8f9fa',
@@ -348,10 +501,17 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     backgroundColor: '#1976d2',
-    borderRadius: 8,
+    borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
     marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
   },
   saveButtonDisabled: {
     backgroundColor: '#ccc',
@@ -363,6 +523,11 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     alignItems: 'center',
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 68, 68, 0.2)',
+    backgroundColor: 'rgba(255, 68, 68, 0.05)',
   },
   cancelButtonText: {
     color: '#ff4444',

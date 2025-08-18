@@ -12,10 +12,12 @@ import { Ionicons } from '@expo/vector-icons';
 
 const DateTimeScreen = ({ navigation, route }) => {
   const { selectedServices, personalInfo, vehicleOption, selectedVehicles, packageId } = route.params;
-  const [selectedDate, setSelectedDate] = useState(23);
-  const [selectedTime, setSelectedTime] = useState('08:00');
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedTime, setSelectedTime] = useState(null);
   const [selectedMechanic, setSelectedMechanic] = useState('none');
   const [showMechanicModal, setShowMechanicModal] = useState(false);
+  const [currentMonth, setCurrentMonth] = useState(8); // Tháng hiện tại (8 = Tháng 8)
+  const [currentYear, setCurrentYear] = useState(2025);
 
   // Mock data cho danh sách nhân viên
   const mechanics = [
@@ -69,11 +71,12 @@ const DateTimeScreen = ({ navigation, route }) => {
 
   const generateCalendarDays = () => {
     const days = [];
-    const daysInMonth = 31; // January 2024
-    const firstDayOfWeek = 1; // Monday (1 = Monday, 0 = Sunday)
+    const daysInMonth = new Date(currentYear, currentMonth, 0).getDate(); // Lấy số ngày trong tháng
+    const firstDayOfWeek = new Date(currentYear, currentMonth - 1, 1).getDay(); // Ngày đầu tiên của tháng (0 = CN, 1 = T2, ...)
+    const adjustedFirstDay = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1; // Chuyển đổi để T2 = 0
     
     // Add empty days for the beginning of the month
-    for (let i = 0; i < firstDayOfWeek; i++) {
+    for (let i = 0; i < adjustedFirstDay; i++) {
       days.push({ day: '', empty: true });
     }
     
@@ -83,6 +86,34 @@ const DateTimeScreen = ({ navigation, route }) => {
     }
     
     return days;
+  };
+
+  const getMonthName = (month) => {
+    const monthNames = [
+      'Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
+      'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'
+    ];
+    return monthNames[month - 1];
+  };
+
+  const goToPreviousMonth = () => {
+    if (currentMonth === 1) {
+      setCurrentMonth(12);
+      setCurrentYear(currentYear - 1);
+    } else {
+      setCurrentMonth(currentMonth - 1);
+    }
+    setSelectedDate(null); // Reset selected date when changing month
+  };
+
+  const goToNextMonth = () => {
+    if (currentMonth === 12) {
+      setCurrentMonth(1);
+      setCurrentYear(currentYear + 1);
+    } else {
+      setCurrentMonth(currentMonth + 1);
+    }
+    setSelectedDate(null); // Reset selected date when changing month
   };
 
   const weekDays = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
@@ -153,11 +184,11 @@ const DateTimeScreen = ({ navigation, route }) => {
           <Text style={styles.sectionTitle}>Chọn ngày</Text>
           
           <View style={styles.calendarHeader}>
-            <TouchableOpacity style={styles.monthButton}>
+            <TouchableOpacity style={styles.monthButton} onPress={goToPreviousMonth}>
               <Ionicons name="chevron-back" size={20} color="#333" />
             </TouchableOpacity>
-            <Text style={styles.monthText}>Tháng 8 năm 2025</Text>
-            <TouchableOpacity style={styles.monthButton}>
+            <Text style={styles.monthText}>{getMonthName(currentMonth)} năm {currentYear}</Text>
+            <TouchableOpacity style={styles.monthButton} onPress={goToNextMonth}>
               <Ionicons name="chevron-forward" size={20} color="#333" />
             </TouchableOpacity>
           </View>
@@ -232,7 +263,10 @@ const DateTimeScreen = ({ navigation, route }) => {
       {/* Next button */}
       <View style={styles.footer}>
         <TouchableOpacity
-          style={styles.nextButton}
+          style={[
+            styles.nextButton,
+            (!selectedDate || !selectedTime) && styles.nextButtonDisabled
+          ]}
           onPress={() => navigation.navigate('ConfirmationScreen', {
             selectedServices,
             personalInfo,
@@ -243,8 +277,14 @@ const DateTimeScreen = ({ navigation, route }) => {
             selectedMechanic,
             packageId
           })}
+          disabled={!selectedDate || !selectedTime}
         >
-          <Text style={styles.nextButtonText}>Tiếp theo</Text>
+          <Text style={[
+            styles.nextButtonText,
+            (!selectedDate || !selectedTime) && styles.nextButtonTextDisabled
+          ]}>
+            Tiếp theo
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -552,10 +592,16 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
   },
+  nextButtonDisabled: {
+    backgroundColor: '#ccc',
+  },
   nextButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  nextButtonTextDisabled: {
+    color: '#999',
   },
   selectedTimeText: {
     color: '#fff'

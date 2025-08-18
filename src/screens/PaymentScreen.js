@@ -4,8 +4,24 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const mockPayments = [
-  { id: '1', service: 'Bảo dưỡng', amount: 1200000, status: 'Chưa thanh toán' },
-  { id: '2', service: 'Sửa chữa', amount: 2500000, status: 'Đã thanh toán' },
+  { 
+    id: '1', 
+    service: 'Bảo dưỡng', 
+    iconName: 'oil',
+    color: '#FF6B35',
+    bgColor: '#FFF8F3',
+    amount: 1200000, 
+    status: 'Chưa thanh toán' 
+  },
+  { 
+    id: '2', 
+    service: 'Sửa chữa', 
+    iconName: 'wrench',
+    color: '#00BCD4',
+    bgColor: '#F0FDFF',
+    amount: 2500000, 
+    status: 'Đã thanh toán' 
+  },
 ];
 
 const paymentMethods = [
@@ -66,18 +82,20 @@ const PaymentScreen = ({ navigation }) => {
         contentContainerStyle={{ paddingBottom: 24 }}
       >
         {payments.map((item) => (
-          <View style={styles.card} key={item.id}>
+          <View style={[styles.card, { backgroundColor: item.bgColor }]} key={item.id}>
             <View style={styles.cardHeader}>
-              {item.service === 'Bảo dưỡng' ? (
-                <MaterialCommunityIcons name="car-cog" size={28} color="#1976d2" style={{ marginRight: 10 }} />
-              ) : (
-                <MaterialCommunityIcons name="wrench" size={28} color="#1976d2" style={{ marginRight: 10 }} />
-              )}
+              <View style={[styles.serviceIconContainer, { backgroundColor: item.color }]}>
+                <MaterialCommunityIcons 
+                  name={item.iconName} 
+                  size={24} 
+                  color="white" 
+                />
+              </View>
               <Text style={styles.service}>{item.service}</Text>
             </View>
             <View style={styles.amountRow}>
-              <MaterialCommunityIcons name="credit-card-outline" size={20} color="#28a745" style={{ marginRight: 6 }} />
-              <Text style={styles.amount}>{item.amount.toLocaleString()} VNĐ</Text>
+              <MaterialCommunityIcons name="currency-usd" size={18} color={item.color} style={{ marginRight: 8 }} />
+              <Text style={[styles.amount, { color: item.color }]}>{item.amount.toLocaleString()} VNĐ</Text>
             </View>
             <View style={styles.statusRow}>
               {item.status === 'Đã thanh toán' ? (
@@ -89,19 +107,12 @@ const PaymentScreen = ({ navigation }) => {
             </View>
             {item.status === 'Chưa thanh toán' && (
               <TouchableOpacity 
-                activeOpacity={0.85} 
-                style={styles.paymentButtonContainer} 
+                activeOpacity={0.7} 
+                style={[styles.paymentButtonContainer, { backgroundColor: item.color }]} 
                 onPress={() => openPaymentModal(item)}
               >
-                <LinearGradient
-                  colors={['#4f8cff', '#8f5cff']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.paymentButton}
-                >
-                  <MaterialCommunityIcons name="credit-card-check" size={24} color="#fff" />
-                  <Text style={styles.paymentButtonText}>Thanh toán ngay</Text>
-                </LinearGradient>
+                <MaterialCommunityIcons name="credit-card-check" size={20} color="#fff" />
+                <Text style={styles.paymentButtonText}>Thanh toán ngay</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -187,41 +198,51 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 0,
-    backgroundColor: '#f4f6fb',
+    backgroundColor: '#f6f8fa',
   },
   header: {
     alignItems: 'center',
-    marginTop: 32,
-    marginBottom: 12,
+    marginTop: 38,
+    marginBottom: 20,
   },
   title: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: 'bold',
-    color: '#007bff',
+    color: '#333',
     marginBottom: 8,
-    letterSpacing: 1,
   },
   card: {
     backgroundColor: '#fff',
-    borderRadius: 18,
-    padding: 20,
-    marginHorizontal: 18,
-    marginBottom: 18,
-    shadowColor: '#007bff',
-    shadowOpacity: 0.10,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 6,
+    borderRadius: 16,
+    padding: 16,
+    marginHorizontal: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
   },
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 12,
+  },
+  serviceIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
   },
   service: {
     fontWeight: 'bold',
     fontSize: 18,
-    color: '#222',
+    color: '#333',
+    flex: 1,
   },
   amountRow: {
     flexDirection: 'row',
@@ -229,9 +250,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   amount: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: 'bold',
-    color: '#007bff',
   },
   statusRow: {
     flexDirection: 'row',
@@ -239,31 +259,22 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   status: {
-    fontSize: 15,
-    fontWeight: 'bold',
+    fontSize: 14,
+    fontWeight: '600',
   },
   paymentButtonContainer: {
-    borderRadius: 16,
-    overflow: 'hidden',
-    shadowColor: '#4f8cff',
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 8,
-  },
-  paymentButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 18,
-    paddingHorizontal: 24,
-    backgroundColor: 'transparent',
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    marginTop: 4,
   },
   paymentButtonText: {
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 18,
-    letterSpacing: 1,
+    fontSize: 16,
     marginLeft: 8,
   },
   // Modal styles
@@ -276,13 +287,15 @@ const styles = StyleSheet.create({
   modalContent: {
     width: '90%',
     backgroundColor: '#fff',
-    borderRadius: 24,
+    borderRadius: 16,
     padding: 0,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
     shadowColor: '#000',
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 15,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
     maxHeight: '80%',
   },
   modalHeader: {
@@ -352,12 +365,12 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#f0f0f0',
+    borderColor: 'rgba(0, 0, 0, 0.08)',
     shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
   },
   methodIcon: {
     width: 48,

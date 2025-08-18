@@ -74,17 +74,36 @@ const PersonalInfoScreen = ({ navigation, route }) => {
   ]);
 
   const onSubmit = (data) => {
+    // Validate vehicle selection
+    if (vehicleOption === 'existing' && selectedVehicles.length === 0) {
+      alert('Vui lòng chọn ít nhất một xe từ danh sách xe của bạn.');
+      return;
+    }
+    
+    if (vehicleOption === 'new' && !recentAddedVehicle) {
+      alert('Vui lòng thêm thông tin xe mới hoặc chọn từ danh sách xe có sẵn.');
+      return;
+    }
+
     const personalInfo = {
       fullName: data?.fullName,
       email: data?.email,
       phone: data?.phone,
     }
     
+    // Determine final selected vehicles
+    let finalSelectedVehicles = [];
+    if (vehicleOption === 'existing') {
+      finalSelectedVehicles = selectedVehicles;
+    } else if (vehicleOption === 'new' && recentAddedVehicle) {
+      finalSelectedVehicles = [recentAddedVehicle];
+    }
+    
     navigation.navigate('DateTimeScreen', { 
       selectedServices, 
       personalInfo,
       vehicleOption,
-      selectedVehicles,
+      selectedVehicles: finalSelectedVehicles,
       packageId
     })
   }
@@ -318,11 +337,27 @@ const PersonalInfoScreen = ({ navigation, route }) => {
       {/* Next button */}
       <View style={styles.footer}>
         <TouchableOpacity
-          style={styles.nextButton}
+          style={[
+            styles.nextButton,
+            ((vehicleOption === 'existing' && selectedVehicles.length === 0) || 
+             (vehicleOption === 'new' && !recentAddedVehicle)) && styles.nextButtonDisabled
+          ]}
           onPress={handleSubmit(onSubmit)}
         >
-          <Text style={styles.nextButtonText}>Tiếp theo</Text>
+          <Text style={[
+            styles.nextButtonText,
+            ((vehicleOption === 'existing' && selectedVehicles.length === 0) || 
+             (vehicleOption === 'new' && !recentAddedVehicle)) && styles.nextButtonTextDisabled
+          ]}>
+            Tiếp theo
+          </Text>
         </TouchableOpacity>
+        {((vehicleOption === 'existing' && selectedVehicles.length === 0) || 
+          (vehicleOption === 'new' && !recentAddedVehicle)) && (
+          <Text style={styles.validationMessage}>
+            Vui lòng chọn xe trước khi tiếp tục
+          </Text>
+        )}
       </View>
 
       {/* Vehicle Selection Modal */}
@@ -748,10 +783,22 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
   },
+  nextButtonDisabled: {
+    backgroundColor: '#ccc',
+  },
   nextButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  nextButtonTextDisabled: {
+    color: '#999',
+  },
+  validationMessage: {
+    color: '#ff4444',
+    fontSize: 14,
+    textAlign: 'center',
+    marginTop: 8,
   },
   inputError: {
     color: "#ff0000ff",

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import AppConfig from '../utils/AppConfig';
 
 const initialMessages = [
   { id: '1', sender: 'bot', text: 'Xin chào! Tôi có thể giúp gì cho bạn?' },
@@ -8,7 +9,24 @@ const initialMessages = [
 ];
 
 const ChatbotScreen = () => {
-  const [messages, setMessages] = useState(initialMessages);
+  // Tạo initial messages với tên người dùng
+  const getUserName = () => {
+    if (AppConfig.USER_OBJ && AppConfig.USER_OBJ.fullName) {
+      return AppConfig.USER_OBJ.fullName;
+    }
+    if (AppConfig.USER_OBJ && AppConfig.USER_OBJ.name) {
+      return AppConfig.USER_OBJ.name;
+    }
+    return 'bạn';
+  };
+
+  const getInitialMessages = () => [
+    { id: '1', sender: 'bot', text: `Xin chào ${getUserName()}! Tôi có thể giúp gì cho bạn?` },
+    { id: '2', sender: 'user', text: 'Tôi muốn đặt lịch bảo dưỡng.' },
+    { id: '3', sender: 'bot', text: 'Bạn muốn đặt lịch vào ngày nào?' },
+  ];
+
+  const [messages, setMessages] = useState(getInitialMessages());
   const [input, setInput] = useState('');
 
   const handleSend = () => {
