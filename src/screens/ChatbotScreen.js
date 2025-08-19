@@ -1,6 +1,21 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { 
+  View, 
+  Text, 
+  TextInput, 
+  TouchableOpacity, 
+  ScrollView, 
+  StyleSheet, 
+  KeyboardAvoidingView, 
+  Platform,
+  SafeAreaView,
+  Animated,
+  Dimensions
+} from 'react-native';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import AppConfig from '../utils/AppConfig';
+
+const { width } = Dimensions.get('window');
 
 const initialMessages = [
   { id: '1', sender: 'bot', text: 'Xin chào! Tôi có thể giúp gì cho bạn?' },
@@ -21,57 +36,420 @@ const ChatbotScreen = () => {
   };
 
   const getInitialMessages = () => [
-    { id: '1', sender: 'bot', text: `Xin chào ${getUserName()}! Tôi có thể giúp gì cho bạn?` },
-    { id: '2', sender: 'user', text: 'Tôi muốn đặt lịch bảo dưỡng.' },
-    { id: '3', sender: 'bot', text: 'Bạn muốn đặt lịch vào ngày nào?' },
+    { 
+      id: '1', 
+      sender: 'bot', 
+      text: `Xin chào ${getUserName()}! Tôi là trợ lý ảo CarServ. Tôi có thể giúp bạn đặt lịch bảo dưỡng, tư vấn dịch vụ và trả lời các câu hỏi về xe. Bạn cần hỗ trợ gì không?`,
+      timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+    },
   ];
 
   const [messages, setMessages] = useState(getInitialMessages());
   const [input, setInput] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const scrollViewRef = useRef();
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  // Auto scroll to bottom when new message is added
+  useEffect(() => {
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollToEnd({ animated: true });
+    }
+  }, [messages]);
+
+  // Fade in animation for messages
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, []);
 
   const handleSend = () => {
     if (input.trim() === '') return;
-    setMessages([...messages, { id: Date.now().toString(), sender: 'user', text: input }]);
+    
+    const userMessage = { 
+      id: Date.now().toString(), 
+      sender: 'user', 
+      text: input.trim(),
+      timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+    };
+    
+    setMessages(prev => [...prev, userMessage]);
     setInput('');
+    setIsTyping(true);
+    
+    // Simulate bot response
+    setTimeout(() => {
+      const botResponses = [
+        "Tôi đã hiểu yêu cầu của bạn. Hãy để tôi kiểm tra thông tin...",
+        "Cảm ơn bạn đã liên hệ! Tôi sẽ hỗ trợ bạn ngay.",
+        "Đây là một câu hỏi hay! Để tôi tìm thông tin phù hợp nhất cho bạn.",
+        "Tôi có thể giúp bạn với vấn đề này. Bạn có thể cung cấp thêm chi tiết không?",
+      ];
+      
+      const randomResponse = botResponses[Math.floor(Math.random() * botResponses.length)];
+      const botMessage = {
+        id: (Date.now() + 1).toString(),
+        sender: 'bot',
+        text: randomResponse,
+        timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+      };
+      
+      setMessages(prev => [...prev, botMessage]);
+      setIsTyping(false);
+    }, 1500);
   };
 
+  const TypingIndicator = () => (
+    <Animated.View style={[styles.message, styles.botMsg, styles.typingIndicator]}>
+      <View style={styles.typingDots}>
+        <View style={[styles.dot, styles.dot1]} />
+        <View style={[styles.dot, styles.dot2]} />
+        <View style={[styles.dot, styles.dot3]} />
+      </View>
+      <Text style={styles.typingText}>CarServ đang nhập...</Text>
+    </Animated.View>
+  );
+
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <View style={styles.container}>
-        <Text style={styles.title}>Hỗ trợ khách hàng (Chatbot)</Text>
-        <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-          {messages.map((item) => (
-            <View key={item.id} style={[styles.message, item.sender === 'user' ? styles.userMsg : styles.botMsg]}>
-              <Text style={{ color: item.sender === 'user' ? '#fff' : '#333' }}>{item.text}</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <KeyboardAvoidingView 
+        style={styles.keyboardView} 
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <View style={styles.botAvatar}>
+              <MaterialIcons name="smart-toy" size={24} color="#fff" />
             </View>
-          ))}
-        </ScrollView>
-        <View style={styles.inputRow}>
-          <TextInput
-            style={styles.input}
-            value={input}
-            onChangeText={setInput}
-            placeholder="Nhập tin nhắn..."
-          />
-          <TouchableOpacity style={styles.sendBtn} onPress={handleSend}>
-            <Text style={styles.sendBtnText}>Gửi</Text>
+            <View style={styles.headerInfo}>
+              <Text style={styles.headerTitle}>CarServ Assistant</Text>
+              <View style={styles.statusContainer}>
+                <View style={styles.onlineIndicator} />
+                <Text style={styles.statusText}>Đang hoạt động</Text>
+              </View>
+            </View>
+          </View>
+          <TouchableOpacity style={styles.headerAction}>
+            <Ionicons name="ellipsis-vertical" size={20} color="#666" />
           </TouchableOpacity>
         </View>
-      </View>
-    </KeyboardAvoidingView>
+
+        {/* Chat Messages */}
+        <ScrollView 
+          ref={scrollViewRef}
+          style={styles.messagesContainer} 
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.messagesContent}
+        >
+          <Animated.View style={{ opacity: fadeAnim }}>
+            {messages.map((item, index) => (
+              <Animated.View 
+                key={item.id} 
+                style={[
+                  styles.messageWrapper,
+                  item.sender === 'user' ? styles.userMessageWrapper : styles.botMessageWrapper
+                ]}
+              >
+                {item.sender === 'bot' && (
+                  <View style={styles.botAvatarSmall}>
+                    <MaterialIcons name="smart-toy" size={16} color="#007bff" />
+                  </View>
+                )}
+                
+                <View style={[
+                  styles.messageBubble, 
+                  item.sender === 'user' ? styles.userBubble : styles.botBubble
+                ]}>
+                  <Text style={[
+                    styles.messageText,
+                    item.sender === 'user' ? styles.userText : styles.botText
+                  ]}>
+                    {item.text}
+                  </Text>
+                  {item.timestamp && (
+                    <Text style={[
+                      styles.timestamp,
+                      item.sender === 'user' ? styles.userTimestamp : styles.botTimestamp
+                    ]}>
+                      {item.timestamp}
+                    </Text>
+                  )}
+                </View>
+              </Animated.View>
+            ))}
+            
+            {isTyping && <TypingIndicator />}
+          </Animated.View>
+        </ScrollView>
+
+        {/* Input Area */}
+        <View style={styles.inputContainer}>
+          <View style={styles.inputWrapper}>
+            <TouchableOpacity style={styles.attachButton}>
+              <Ionicons name="add" size={24} color="#666" />
+            </TouchableOpacity>
+            
+            <TextInput
+              style={styles.textInput}
+              value={input}
+              onChangeText={setInput}
+              placeholder="Nhập tin nhắn..."
+              placeholderTextColor="#999"
+              multiline
+              maxLength={500}
+              onSubmitEditing={handleSend}
+              returnKeyType="send"
+            />
+            
+            <TouchableOpacity 
+              style={[styles.sendButton, input.trim() && styles.sendButtonActive]} 
+              onPress={handleSend}
+              disabled={!input.trim()}
+            >
+              <Ionicons 
+                name="send" 
+                size={20} 
+                color={input.trim() ? "#fff" : "#999"} 
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: '#fff' },
-  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 16, textAlign: 'center' },
-  message: { padding: 10, borderRadius: 8, marginBottom: 8, maxWidth: '80%' },
-  userMsg: { backgroundColor: '#007bff', alignSelf: 'flex-end' },
-  botMsg: { backgroundColor: '#f1f1f1', alignSelf: 'flex-start' },
-  inputRow: { flexDirection: 'row', alignItems: 'center', marginTop: 8 },
-  input: { flex: 1, borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 10, marginRight: 8 },
-  sendBtn: { backgroundColor: '#007bff', padding: 12, borderRadius: 8 },
-  sendBtnText: { color: '#fff', fontWeight: 'bold' },
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#f8f9fa',
+  },
+  keyboardView: {
+    flex: 1,
+  },
+  
+  // Header Styles
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e9ecef',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  botAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#007bff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  headerInfo: {
+    flex: 1,
+  },
+  headerTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#212529',
+    marginBottom: 2,
+  },
+  statusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  onlineIndicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#28a745',
+    marginRight: 6,
+  },
+  statusText: {
+    fontSize: 12,
+    color: '#6c757d',
+  },
+  headerAction: {
+    padding: 8,
+  },
+
+  // Messages Container
+  messagesContainer: {
+    flex: 1,
+    backgroundColor: '#f8f9fa',
+  },
+  messagesContent: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  
+  // Message Wrapper
+  messageWrapper: {
+    flexDirection: 'row',
+    marginBottom: 12,
+    alignItems: 'flex-end',
+  },
+  userMessageWrapper: {
+    justifyContent: 'flex-end',
+  },
+  botMessageWrapper: {
+    justifyContent: 'flex-start',
+  },
+  
+  // Bot Avatar
+  botAvatarSmall: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#e3f2fd',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+    marginBottom: 4,
+  },
+  
+  // Message Bubbles
+  messageBubble: {
+    maxWidth: width * 0.75,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  userBubble: {
+    backgroundColor: '#007bff',
+    borderBottomRightRadius: 6,
+    marginLeft: 50,
+  },
+  botBubble: {
+    backgroundColor: '#fff',
+    borderBottomLeftRadius: 6,
+    marginRight: 50,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+  },
+  
+  // Message Text
+  messageText: {
+    fontSize: 15,
+    lineHeight: 20,
+    marginBottom: 4,
+  },
+  userText: {
+    color: '#fff',
+    fontWeight: '500',
+  },
+  botText: {
+    color: '#212529',
+  },
+  
+  // Timestamp
+  timestamp: {
+    fontSize: 11,
+    marginTop: 4,
+  },
+  userTimestamp: {
+    color: 'rgba(255, 255, 255, 0.7)',
+    textAlign: 'right',
+  },
+  botTimestamp: {
+    color: '#6c757d',
+  },
+  
+  // Typing Indicator
+  typingIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginBottom: 8,
+  },
+  typingDots: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#6c757d',
+    marginHorizontal: 1,
+  },
+  typingText: {
+    fontSize: 12,
+    color: '#6c757d',
+    fontStyle: 'italic',
+  },
+  
+  // Input Container
+  inputContainer: {
+    backgroundColor: '#fff',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#e9ecef',
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    backgroundColor: '#f8f9fa',
+    borderRadius: 25,
+    paddingHorizontal: 4,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: '#dee2e6',
+  },
+  attachButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  textInput: {
+    flex: 1,
+    maxHeight: 100,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 16,
+    color: '#212529',
+    textAlignVertical: 'center',
+  },
+  sendButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#dee2e6',
+    marginLeft: 8,
+  },
+  sendButtonActive: {
+    backgroundColor: '#007bff',
+    transform: [{ scale: 1.1 }],
+  },
 });
 
 export default ChatbotScreen; 

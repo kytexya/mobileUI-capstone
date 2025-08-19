@@ -38,8 +38,7 @@ const PersonalInfoScreen = ({ navigation, route }) => {
     licensePlate: '',
     year: '',
     color: '',
-    brand: '',
-    engineType: ''
+    brand: ''
   });
 
   // Mock data cho danh sách xe của user
@@ -50,8 +49,7 @@ const PersonalInfoScreen = ({ navigation, route }) => {
       model: 'Xpander',
       licensePlate: '30A-12345',
       year: '2022',
-      color: 'Trắng',
-      engineType: '1.5L'
+      color: 'Trắng'
     },
     {
       id: 2,
@@ -59,8 +57,7 @@ const PersonalInfoScreen = ({ navigation, route }) => {
       model: 'Vios',
       licensePlate: '30B-67890',
       year: '2021',
-      color: 'Đen',
-      engineType: '1.5L'
+      color: 'Đen'
     },
     {
       id: 3,
@@ -68,8 +65,7 @@ const PersonalInfoScreen = ({ navigation, route }) => {
       model: 'City',
       licensePlate: '30C-11111',
       year: '2023',
-      color: 'Xanh',
-      engineType: '1.5L'
+      color: 'Xanh'
     }
   ]);
 
@@ -422,10 +418,9 @@ const PersonalInfoScreen = ({ navigation, route }) => {
                      <Text style={styles.vehicleModel}>
                        {vehicle.brand ? `${vehicle.brand} ${vehicle.model}` : vehicle.model}
                      </Text>
-                     <Text style={styles.vehicleDetails}>
-                       {vehicle.licensePlate} • {vehicle.year} • {vehicle.color}
-                       {vehicle.engineType && ` • ${vehicle.engineType}`}
-                     </Text>
+                                         <Text style={styles.vehicleDetails}>
+                      {vehicle.licensePlate} • {vehicle.year} • {vehicle.color}
+                    </Text>
                    </View>
                    <View style={[
                      styles.vehicleCheckbox,
@@ -541,24 +536,16 @@ const PersonalInfoScreen = ({ navigation, route }) => {
                  />
                </View>
 
-               <View style={styles.formField}>
-                 <Text style={styles.formLabel}>Loại động cơ</Text>
-                 <TextInput
-                   style={styles.formInput}
-                   placeholder="VD: 1.5L, 2.0L, Hybrid..."
-                   value={newVehicle.engineType}
-                   onChangeText={(text) => setNewVehicle(prev => ({...prev, engineType: text}))}
-                 />
-               </View>
+               
              </ScrollView>
 
              <View style={styles.modalFooter}>
                <TouchableOpacity
                  style={styles.cancelButton}
-                 onPress={() => {
-                   setShowAddVehicleModal(false);
-                   setNewVehicle({model: '', licensePlate: '', year: '', color: ''});
-                 }}
+                                 onPress={() => {
+                  setShowAddVehicleModal(false);
+                  setNewVehicle({brand: '', model: '', licensePlate: '', year: '', color: ''});
+                }}
                >
                  <Text style={styles.cancelButtonText}>Hủy</Text>
                </TouchableOpacity>
@@ -585,7 +572,7 @@ const PersonalInfoScreen = ({ navigation, route }) => {
                       setVehicleOption('new');
                       
                       setShowAddVehicleModal(false);
-                      setNewVehicle({brand: '', model: '', licensePlate: '', year: '', color: '', engineType: ''});
+                      setNewVehicle({brand: '', model: '', licensePlate: '', year: '', color: ''});
                       
                       console.log('Đã thêm xe mới vào danh sách:', vehicleToAdd);
                       console.log('Danh sách xe hiện tại:', [...userVehicles, vehicleToAdd]);
