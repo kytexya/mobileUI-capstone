@@ -26,20 +26,6 @@ const mockPayments = [
 
 const paymentMethods = [
   { 
-    key: 'bank', 
-    label: 'Thẻ ngân hàng', 
-    icon: 'credit-card',
-    description: 'Visa, Mastercard, JCB',
-    color: '#4f8cff'
-  },
-  { 
-    key: 'zalopay', 
-    label: 'ZaloPay', 
-    icon: 'qrcode-scan',
-    description: 'Ví điện tử ZaloPay',
-    color: '#2196f3'
-  },
-  { 
     key: 'vnpay', 
     label: 'VNPay', 
     icon: 'qrcode',

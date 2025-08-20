@@ -1,31 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image, ScrollView } from 'react-native';
 import { Ionicons, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
+import AppConfig from '../utils/AppConfig';
 
 const ProfileScreen = ({ navigation }) => {
   const [name, setName] = useState('Nguyễn Văn A');
   const [email, setEmail] = useState('nguyenvana@email.com');
   const [phone, setPhone] = useState('0123456789');
+  const [userVehicles, setUserVehicles] = useState(AppConfig.getVehicles());
 
-  // Mock data xe của người dùng
-  const userVehicles = [
-    {
-      id: 1,
-      brand: 'Toyota',
-      model: 'Camry',
-      licensePlate: '30A-12345',
-      year: '2022',
-      color: 'Trắng',
-    },
-    {
-      id: 2,
-      brand: 'Honda',
-      model: 'CRV',
-      licensePlate: '51B-67890',
-      year: '2021',
-      color: 'Đen',
-    }
-  ];
+  // Cập nhật danh sách xe khi component mount hoặc khi có thay đổi
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      setUserVehicles(AppConfig.getVehicles());
+    });
+
+    return unsubscribe;
+  }, [navigation]);
 
   // Mock data thống kê
   const userStats = {

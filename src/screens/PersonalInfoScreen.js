@@ -32,7 +32,6 @@ const PersonalInfoScreen = ({ navigation, route }) => {
   const [showVehicleModal, setShowVehicleModal] = useState(false);
   const [showAddVehicleModal, setShowAddVehicleModal] = useState(false);
   const [selectedVehicles, setSelectedVehicles] = useState([]); // Array để chọn nhiều xe
-  const [recentAddedVehicle, setRecentAddedVehicle] = useState(null); // Xe vừa thêm để hiển thị ở "Chọn xe mới"
   const [newVehicle, setNewVehicle] = useState({
     model: '',
     licensePlate: '',
@@ -41,43 +40,13 @@ const PersonalInfoScreen = ({ navigation, route }) => {
     brand: ''
   });
 
-  // Mock data cho danh sách xe của user
-  const [userVehicles, setUserVehicles] = useState([
-    {
-      id: 1,
-      brand: 'Mitsubishi',
-      model: 'Xpander',
-      licensePlate: '30A-12345',
-      year: '2022',
-      color: 'Trắng'
-    },
-    {
-      id: 2,
-      brand: 'Toyota',
-      model: 'Vios',
-      licensePlate: '30B-67890',
-      year: '2021',
-      color: 'Đen'
-    },
-    {
-      id: 3,
-      brand: 'Honda',
-      model: 'City',
-      licensePlate: '30C-11111',
-      year: '2023',
-      color: 'Xanh'
-    }
-  ]);
+  // Sử dụng danh sách xe từ AppConfig
+  const [userVehicles, setUserVehicles] = useState(AppConfig.getVehicles());
 
   const onSubmit = (data) => {
     // Validate vehicle selection
-    if (vehicleOption === 'existing' && selectedVehicles.length === 0) {
+    if (selectedVehicles.length === 0) {
       alert('Vui lòng chọn ít nhất một xe từ danh sách xe của bạn.');
-      return;
-    }
-    
-    if (vehicleOption === 'new' && !recentAddedVehicle) {
-      alert('Vui lòng thêm thông tin xe mới hoặc chọn từ danh sách xe có sẵn.');
       return;
     }
 
@@ -87,19 +56,11 @@ const PersonalInfoScreen = ({ navigation, route }) => {
       phone: data?.phone,
     }
     
-    // Determine final selected vehicles
-    let finalSelectedVehicles = [];
-    if (vehicleOption === 'existing') {
-      finalSelectedVehicles = selectedVehicles;
-    } else if (vehicleOption === 'new' && recentAddedVehicle) {
-      finalSelectedVehicles = [recentAddedVehicle];
-    }
-    
     navigation.navigate('DateTimeScreen', { 
       selectedServices, 
       personalInfo,
       vehicleOption,
-      selectedVehicles: finalSelectedVehicles,
+      selectedVehicles: selectedVehicles,
       packageId
     })
   }
@@ -242,54 +203,32 @@ const PersonalInfoScreen = ({ navigation, route }) => {
           {selectedVehicles && selectedVehicles.length > 0 && (
             <View style={styles.selectedVehiclesInfo}>
               <Text style={styles.selectedVehiclesTitle}>
-                Đặt lịch cho {selectedVehicles.length} xe:
+                Chọn xe trong kho:
               </Text>
-              {selectedVehicles.map((vehicle, index) => (
-                <View key={vehicle.id} style={styles.selectedVehicleItem}>
-                  <Text style={styles.selectedVehicleText}>
-                    {index + 1}. {vehicle.model} - {vehicle.licensePlate}
-                  </Text>
-                </View>
-              ))}
+              <View style={styles.selectedVehiclesHorizontal}>
+                {selectedVehicles.map((vehicle, index) => (
+                  <View key={vehicle.id} style={styles.selectedVehicleChip}>
+                    <Text style={styles.selectedVehicleChipText}>
+                      {vehicle.model} - {vehicle.licensePlate}
+                    </Text>
+                  </View>
+                ))}
+              </View>
             </View>
           )}
           
           <View style={styles.vehicleOption}>
-            {vehicleOption === 'existing' && selectedVehicles.length === 0 ? (
-              <TouchableOpacity
-                style={styles.radioContainer}
-                onPress={() => setVehicleOption('existing')}
-              >
-                <View style={[styles.radioButton, vehicleOption === 'existing' && styles.radioSelected]}>
-                  {vehicleOption === 'existing' && (
-                    <View style={styles.radioInner} />
-                  )}
-                </View>
-                <Text style={styles.radioLabel}>Lấy từ thông tin xe của bạn</Text>
-              </TouchableOpacity>
-                         ) : (
-               <TouchableOpacity
-                 style={styles.radioContainer}
-                 onPress={() => setVehicleOption('existing')}
-               >
-                 <View style={[styles.radioButton, vehicleOption === 'existing' && styles.radioSelected]}>
-                   {vehicleOption === 'existing' && (
-                     <View style={styles.radioInner} />
-                   )}
-                 </View>
-                 <View style={styles.vehicleInfoContainer}>
-                   {selectedVehicles.length > 0 ? (
-                     selectedVehicles.map((vehicle, index) => (
-                       <Text key={vehicle.id} style={styles.vehicleName}>
-                         {vehicle.model}
-                       </Text>
-                     ))
-                   ) : (
-                     <Text style={styles.radioLabel}>Lấy từ thông tin xe của bạn</Text>
-                   )}
-                 </View>
-               </TouchableOpacity>
-             )}
+            <TouchableOpacity
+              style={styles.radioContainer}
+              onPress={() => setVehicleOption('existing')}
+            >
+              <View style={[styles.radioButton, vehicleOption === 'existing' && styles.radioSelected]}>
+                {vehicleOption === 'existing' && (
+                  <View style={styles.radioInner} />
+                )}
+              </View>
+              <Text style={styles.radioLabel}>Lấy từ thông tin xe của bạn</Text>
+            </TouchableOpacity>
             <TouchableOpacity 
               style={styles.selectButton}
               onPress={() => setShowVehicleModal(true)}
@@ -298,7 +237,7 @@ const PersonalInfoScreen = ({ navigation, route }) => {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.vehicleOption}>
+                    <View style={styles.vehicleOption}>
             <TouchableOpacity
               style={styles.radioContainer}
               onPress={() => setVehicleOption('new')}
@@ -308,25 +247,20 @@ const PersonalInfoScreen = ({ navigation, route }) => {
                   <View style={styles.radioInner} />
                 )}
               </View>
-              <View style={styles.vehicleInfoContainer}>
-                {vehicleOption === 'new' && recentAddedVehicle ? (
-                  <>
-                    <Text style={styles.vehicleName}>{recentAddedVehicle.model}</Text>
-                  </>
-                ) : (
-                  <Text style={styles.radioLabel}>Chọn xe mới</Text>
-                )}
-              </View>
+              <Text style={styles.radioLabel}>Chọn xe mới</Text>
             </TouchableOpacity>
           </View>
           
-                     <TouchableOpacity 
-             style={styles.addButton}
-             onPress={() => setShowAddVehicleModal(true)}
-           >
-             <Ionicons name="add" size={16} color="#4CAF50" />
-             <Text style={styles.addButtonText}>+ Thêm một phương tiện mới</Text>
-           </TouchableOpacity>
+          {/* Chỉ hiển thị nút thêm xe khi chọn "Chọn xe mới" */}
+          {vehicleOption === 'new' && (
+            <TouchableOpacity 
+              style={styles.addButton}
+              onPress={() => setShowAddVehicleModal(true)}
+            >
+              <Ionicons name="add" size={16} color="#4CAF50" />
+              <Text style={styles.addButtonText}>+ Thêm một phương tiện mới</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </ScrollView>
 
@@ -335,21 +269,18 @@ const PersonalInfoScreen = ({ navigation, route }) => {
         <TouchableOpacity
           style={[
             styles.nextButton,
-            ((vehicleOption === 'existing' && selectedVehicles.length === 0) || 
-             (vehicleOption === 'new' && !recentAddedVehicle)) && styles.nextButtonDisabled
+            selectedVehicles.length === 0 && styles.nextButtonDisabled
           ]}
           onPress={handleSubmit(onSubmit)}
         >
           <Text style={[
             styles.nextButtonText,
-            ((vehicleOption === 'existing' && selectedVehicles.length === 0) || 
-             (vehicleOption === 'new' && !recentAddedVehicle)) && styles.nextButtonTextDisabled
+            selectedVehicles.length === 0 && styles.nextButtonTextDisabled
           ]}>
             Tiếp theo
           </Text>
         </TouchableOpacity>
-        {((vehicleOption === 'existing' && selectedVehicles.length === 0) || 
-          (vehicleOption === 'new' && !recentAddedVehicle)) && (
+        {selectedVehicles.length === 0 && (
           <Text style={styles.validationMessage}>
             Vui lòng chọn xe trước khi tiếp tục
           </Text>
@@ -556,26 +487,23 @@ const PersonalInfoScreen = ({ navigation, route }) => {
                  ]}
                                    onPress={() => {
                     if (newVehicle.brand && newVehicle.model && newVehicle.licensePlate && newVehicle.year && newVehicle.color) {
-                      // Thêm xe mới vào danh sách chính
-                      const vehicleToAdd = {
-                        id: Date.now(), // Tạo ID tạm thời
-                        ...newVehicle
-                      };
+                      // Thêm xe mới vào AppConfig
+                      const vehicleToAdd = AppConfig.addVehicle(newVehicle);
                       
-                      // Thêm vào danh sách xe chính (xuất hiện ở dưới cùng)
-                      setUserVehicles(prev => [...prev, vehicleToAdd]);
+                      // Cập nhật state local
+                      setUserVehicles(AppConfig.getVehicles());
 
-                      // Lưu xe vừa thêm để hiển thị ở mục "Chọn xe mới"
-                      setRecentAddedVehicle(vehicleToAdd);
+                      // Tự động chọn xe mới vừa thêm
+                      setSelectedVehicles(prev => [...prev, vehicleToAdd]);
 
-                      // Tự động chuyển sang chế độ "Chọn xe mới" và hiển thị xe vừa thêm
-                      setVehicleOption('new');
+                      // Chuyển sang chế độ "existing" để hiển thị xe đã chọn
+                      setVehicleOption('existing');
                       
                       setShowAddVehicleModal(false);
                       setNewVehicle({brand: '', model: '', licensePlate: '', year: '', color: ''});
                       
                       console.log('Đã thêm xe mới vào danh sách:', vehicleToAdd);
-                      console.log('Danh sách xe hiện tại:', [...userVehicles, vehicleToAdd]);
+                      console.log('Xe đã được tự động chọn:', vehicleToAdd);
                     }
                   }}
                  disabled={!newVehicle.brand || !newVehicle.model || !newVehicle.licensePlate || !newVehicle.year || !newVehicle.color}
@@ -665,12 +593,24 @@ const styles = StyleSheet.create({
     color: '#2e7d32',
     marginBottom: 8,
   },
-  selectedVehicleItem: {
+  selectedVehiclesHorizontal: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  selectedVehicleChip: {
+    backgroundColor: '#e0f2f7',
+    borderRadius: 16,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: '#1976d2',
     marginBottom: 4,
   },
-  selectedVehicleText: {
-    fontSize: 13,
-    color: '#2e7d32',
+  selectedVehicleChipText: {
+    fontSize: 12,
+    color: '#1976d2',
+    fontWeight: '500',
   },
   sectionTitle: {
     fontSize: 18,

@@ -45,6 +45,14 @@ const HomeStack = () => (
   </HomeStackNav.Navigator>
 );
 
+const ProfileStackNav = createStackNavigator();
+const ProfileStack = () => (
+  <ProfileStackNav.Navigator screenOptions={{ headerShown: false }}>
+    <ProfileStackNav.Screen name="ProfileScreen" component={ProfileScreen} />
+    <ProfileStackNav.Screen name="VehiclesScreen" component={VehiclesScreen} />
+  </ProfileStackNav.Navigator>
+);
+
 const MainTabs = () => (
   <Tab.Navigator
     initialRouteName="Trang chủ"
@@ -68,7 +76,7 @@ const MainTabs = () => (
     <Tab.Screen name="Trang chủ" component={HomeStack} />
     <Tab.Screen name="Hoạt động" component={ActivityScreen} />
     <Tab.Screen name="Thông báo" component={NotificationScreen} />
-    <Tab.Screen name="Tài khoản" component={ProfileScreen} />
+    <Tab.Screen name="Tài khoản" component={ProfileStack} />
   </Tab.Navigator>
 );
 

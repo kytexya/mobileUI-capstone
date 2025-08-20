@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,38 +11,22 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import AppConfig from '../utils/AppConfig';
 
 const VehiclesScreen = ({ navigation }) => {
   const [showAddVehicleModal, setShowAddVehicleModal] = useState(false);
-  const [vehicles, setVehicles] = useState([
-    {
-      id: 1,
-      brand: 'Toyota',
-      model: 'Camry',
-      licensePlate: '30A-12345',
-      year: '2022',
-      color: 'Trắng',
-      mileage: '25,000 km',
-      fuelType: 'Xăng',
-      status: 'Hoạt động',
-      lastService: '15/10/2024',
-      nextService: '15/01/2025',
-    },
-    {
-      id: 2,
-      brand: 'Honda',
-      model: 'CRV',
-      licensePlate: '51B-67890',
-      year: '2021',
-      color: 'Đen',
-      mileage: '32,000 km',
-      fuelType: 'Xăng',
-      status: 'Hoạt động',
-      lastService: '20/09/2024',
-      nextService: '20/12/2024',
-    }
-  ]);
+  const [vehicles, setVehicles] = useState(AppConfig.getVehicles());
+
+  // Cập nhật danh sách xe khi component mount hoặc khi có thay đổi
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      setVehicles(AppConfig.getVehicles());
+    });
+
+    return unsubscribe;
+  }, [navigation]);
   const [newVehicle, setNewVehicle] = useState({
+    brand: '',
     model: '',
     licensePlate: '',
     year: '',
@@ -62,7 +46,8 @@ const VehiclesScreen = ({ navigation }) => {
           text: 'Xóa',
           style: 'destructive',
           onPress: () => {
-            setVehicles(prev => prev.filter(vehicle => vehicle.id !== vehicleId));
+            AppConfig.removeVehicle(vehicleId);
+            setVehicles(AppConfig.getVehicles());
           },
         },
       ]
@@ -70,14 +55,11 @@ const VehiclesScreen = ({ navigation }) => {
   };
 
   const addVehicle = () => {
-    if (newVehicle.model && newVehicle.licensePlate && newVehicle.year && newVehicle.color) {
-      const vehicleToAdd = {
-        id: Date.now(),
-        ...newVehicle
-      };
-      setVehicles(prev => [...prev, vehicleToAdd]);
+    if (newVehicle.brand && newVehicle.model && newVehicle.licensePlate && newVehicle.year && newVehicle.color) {
+      AppConfig.addVehicle(newVehicle);
+      setVehicles(AppConfig.getVehicles());
       setShowAddVehicleModal(false);
-      setNewVehicle({model: '', licensePlate: '', year: '', color: ''});
+      setNewVehicle({brand: '', model: '', licensePlate: '', year: '', color: ''});
     }
   };
 
@@ -85,7 +67,12 @@ const VehiclesScreen = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerSubtitle}>DANH SÁCH XE</Text>
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Ionicons name="arrow-back" size={24} color="#1976d2" />
+        </TouchableOpacity>
         <View style={styles.headerTitleContainer}>
           <Ionicons name="car" size={24} color="#1976d2" />
           <Text style={styles.headerTitle}>Quản lý xe của bạn</Text>
@@ -183,10 +170,20 @@ const VehiclesScreen = ({ navigation }) => {
 
             <ScrollView style={styles.modalForm}>
               <View style={styles.formField}>
+                <Text style={styles.formLabel}>Hãng xe *</Text>
+                <TextInput
+                  style={styles.formInput}
+                  placeholder="VD: Toyota, Honda, Ford..."
+                  value={newVehicle.brand}
+                  onChangeText={(text) => setNewVehicle(prev => ({...prev, brand: text}))}
+                />
+              </View>
+
+              <View style={styles.formField}>
                 <Text style={styles.formLabel}>Tên xe *</Text>
                 <TextInput
                   style={styles.formInput}
-                  placeholder="VD: Toyota Vios, Honda City..."
+                  placeholder="VD: Vios, City, Ranger..."
                   value={newVehicle.model}
                   onChangeText={(text) => setNewVehicle(prev => ({...prev, model: text}))}
                 />
@@ -229,10 +226,10 @@ const VehiclesScreen = ({ navigation }) => {
               <TouchableOpacity
                 style={[
                   styles.saveButton,
-                  (!newVehicle.model || !newVehicle.licensePlate || !newVehicle.year || !newVehicle.color) && styles.saveButtonDisabled
+                  (!newVehicle.brand || !newVehicle.model || !newVehicle.licensePlate || !newVehicle.year || !newVehicle.color) && styles.saveButtonDisabled
                 ]}
                 onPress={addVehicle}
-                disabled={!newVehicle.model || !newVehicle.licensePlate || !newVehicle.year || !newVehicle.color}
+                disabled={!newVehicle.brand || !newVehicle.model || !newVehicle.licensePlate || !newVehicle.year || !newVehicle.color}
               >
                 <Text style={styles.saveButtonText}>Lưu</Text>
               </TouchableOpacity>
@@ -270,6 +267,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 6,
     elevation: 3,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backButton: {
+    marginRight: 16,
+    padding: 4,
   },
   headerSubtitle: {
     fontSize: 12,
