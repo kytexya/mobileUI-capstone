@@ -22,8 +22,8 @@ const LoginScreen = ({ navigation }) => {
     handleSubmit,
     formState: { errors },
   } = useForm({ mode: "onChange", defaultValues: {
-    // emailOrPhone: 'test3@gmail.com',
-    // password: '12345'
+    emailOrPhone: 'test4@gmail.com',
+    password: '12345'
   } });
 
   const onSubmit = (data) => {
@@ -35,7 +35,6 @@ const LoginScreen = ({ navigation }) => {
     axios.post(DOMAIN_URL + '/Home/Login', dataSubmit)
       .then(function (response) {
         const token = response.data;
-        console.log("token : ", token);
         AppConfig.ACCESS_TOKEN = token;
         handleGetUser(token,data?.emailOrPhone);
         navigation.replace("MainTabs");
@@ -54,10 +53,7 @@ const LoginScreen = ({ navigation }) => {
   };
 
   const handleGetUser = (token,email) => {
-    console.log("`/Account/by-mail/${email}` ",DOMAIN_URL + `/Account/by-mail/${email}`);
-    console.log("AppConfig.ACCESS_TOKEN ",token);
-    
-    
+
     axios.get(`${DOMAIN_URL}/Account/by-mail/${email}`,
       {
         headers: {
@@ -68,13 +64,10 @@ const LoginScreen = ({ navigation }) => {
     )
       .then(function (response) {
         const user = response.data;
-        console.log("user : ", user);
-        AppConfig.USER_ID = user.userId
+        AppConfig.USER_ID = user.userID
         AppConfig.USER_OBJ = user
       })
-      .catch(function (error) {
-        console.log("XXXXZ",error);
-        
+      .catch(function (error) {        
         Alert.alert(
           "Lỗi",
           "Lấy thông tin thất bại, vui lòng thử lại!",
@@ -185,7 +178,7 @@ const LoginScreen = ({ navigation }) => {
           </TouchableOpacity>
           
           {/* Nút để vào ứng dụng mà không cần đăng nhập */}
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={[styles.button, styles.skipButton]}
             onPress={() => {
               // Mock user data để test
@@ -203,7 +196,7 @@ const LoginScreen = ({ navigation }) => {
             activeOpacity={0.85}
           >
             <Text style={styles.skipButtonText}>Vào ứng dụng (Test)</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
           
           <TouchableOpacity
             onPress={() => navigation.navigate("RegisterScreen")}

@@ -25,11 +25,11 @@ const PersonalInfoScreen = ({ navigation, route }) => {
   } = useForm({
     mode: "onChange",
     defaultValues: {
-      fullName: AppConfig.USER_OBJ.fullName,
-      email: AppConfig.USER_OBJ.email,
-      phone: AppConfig.USER_OBJ.phoneNumber,
+      "fullName": AppConfig.USER_OBJ.fullName,
+      "email": AppConfig.USER_OBJ.email,
+      "phone": AppConfig.USER_OBJ.phoneNumber,
     },
-  });
+  });  
 
   const { selectedServices, packageId } = route.params;
   const [vehicleOption, setVehicleOption] = useState("existing"); // 'existing' or 'new'
@@ -43,24 +43,25 @@ const PersonalInfoScreen = ({ navigation, route }) => {
     color: "",
     brand: "",
   });
+  const [availableVehicles,setAvailableVehicles] = useState([])
   
   // Lấy danh sách xe có thể đặt lịch và xe đã được đặt lịch
-  const availableVehicles = AppConfig.getAvailableVehicles();
+  // const availableVehicles = AppConfig.getAvailableVehicles();
   const scheduledVehicles = AppConfig.getScheduledVehicles();
 
   // Mock data cho danh sách xe của user
-  const [userVehicles, setUserVehicles] = useState(AppConfig.getVehicles());
+  // const [userVehicles, setUserVehicles] = useState(AppConfig.getVehicles());
 
   const getVehicle = () => {
     axios
-      .get(`${DOMAIN_URL}/Vehicle`, {
+      .get(`${DOMAIN_URL}/Vehicle/customer/${AppConfig.USER_ID}`, {
         headers: {
           Authorization: `Bearer ${AppConfig.ACCESS_TOKEN}`,
           "Content-Type": "application/json",
         },
       })
       .then(function (response) {
-        setUserVehicles(response.data);
+        setAvailableVehicles(AppConfig.getAvailableVehicles(response.data));
       })
       .catch(function (error) {
         Alert.alert(
@@ -79,7 +80,7 @@ const PersonalInfoScreen = ({ navigation, route }) => {
 
   const onSubmit = (data) => {
     // Validate vehicle selection
-    if (selectedVehicles.length === 0) {
+    if (!selectedVehicle) {
       alert("Vui lòng chọn ít nhất một xe từ danh sách xe của bạn.");
       return;
     }
@@ -94,7 +95,7 @@ const PersonalInfoScreen = ({ navigation, route }) => {
       selectedServices,
       personalInfo,
       vehicleOption,
-      selectedVehicles: selectedVehicles,
+      selectedVehicle,
       packageId,
     });
   };
@@ -105,17 +106,49 @@ const PersonalInfoScreen = ({ navigation, route }) => {
       return;
     }
 
-    const addedVehicle = AppConfig.addVehicle(newVehicle);
-    setUserVehicles(AppConfig.getVehicles());
-    setSelectedVehicle(addedVehicle);
-    setNewVehicle({
-      model: '',
-      licensePlate: '',
-      year: '',
-      color: '',
-      brand: ''
-    });
-    setShowAddVehicleModal(false);
+    // const addedVehicle = AppConfig.addVehicle(newVehicle);
+
+    const dataSubmit = {
+      licensePlate: newVehicle.licensePlate,
+      make: newVehicle.color,
+      model: newVehicle.model,
+      year: newVehicle.year,
+      carTypeId: newVehicle.carTypeId ?? 1,
+    };
+
+    axios
+      .post(
+        `${DOMAIN_URL}/Vehicle/add?customerId=${AppConfig.USER_ID}`,
+        dataSubmit
+      )
+      .then(function (response) {
+        setSelectedVehicle(response.data);
+        setVehicleOption("new");
+        getVehicle();
+        setShowAddVehicleModal(false);
+        setNewVehicle({
+          brand: "",
+          model: "",
+          licensePlate: "",
+          year: "",
+          color: "",
+        });
+      })
+      .catch(function (error) {
+        Alert.alert(
+          "Lỗi",
+          "Đã xảy ra lỗi, vui lòng thử lại!",
+          [
+            {
+              text: "OK",
+              onPress: () => console.log("OK Pressed"),
+            },
+          ],
+          { cancelable: false }
+        );
+      })
+      .finally(function () {});
+    
   };
 
   return (
@@ -267,55 +300,6 @@ const PersonalInfoScreen = ({ navigation, route }) => {
           )}
 
           <View style={styles.vehicleOption}>
-            {vehicleOption === "existing" && selectedVehicles.length === 0 ? (
-              <TouchableOpacity
-                style={styles.radioContainer}
-                onPress={() => setVehicleOption("existing")}
-              >
-                <View
-                  style={[
-                    styles.radioButton,
-                    vehicleOption === "existing" && styles.radioSelected,
-                  ]}
-                >
-                  {vehicleOption === "existing" && (
-                    <View style={styles.radioInner} />
-                  )}
-                </View>
-                <Text style={styles.radioLabel}>
-                  Lấy từ thông tin xe của bạn
-                </Text>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                style={styles.radioContainer}
-                onPress={() => setVehicleOption("existing")}
-              >
-                <View
-                  style={[
-                    styles.radioButton,
-                    vehicleOption === "existing" && styles.radioSelected,
-                  ]}
-                >
-                  {vehicleOption === "existing" && (
-                    <View style={styles.radioInner} />
-                  )}
-                </View>
-                <View style={styles.vehicleInfoContainer}>
-                  {selectedVehicles.length > 0 ? (
-                    selectedVehicles.map((vehicle, index) => (
-                      <Text key={vehicle.vehicleId} style={styles.vehicleName}>
-                        {vehicle.model}
-                      </Text>
-                    ))
-                  ) : (
-                    <Text style={styles.radioLabel}>
-                      Lấy từ thông tin xe của bạn
-                    </Text>
-                  )}
-                </View>
-              </TouchableOpacity>
-            )}
             <TouchableOpacity
               style={styles.radioContainer}
               onPress={() => setVehicleOption('existing')}
@@ -422,10 +406,10 @@ const PersonalInfoScreen = ({ navigation, route }) => {
                 <ScrollView style={styles.vehicleList}>
                   {availableVehicles.map((vehicle) => (
                     <TouchableOpacity
-                      key={vehicle.id}
+                      key={vehicle.vehicleId}
                       style={[
                         styles.vehicleItem,
-                        selectedVehicle?.id === vehicle.id && styles.vehicleItemSelected
+                        selectedVehicle?.vehicleId === vehicle.vehicleId && styles.vehicleItemSelected
                       ]}
                       onPress={() => {
                         setSelectedVehicle(vehicle);
@@ -441,9 +425,9 @@ const PersonalInfoScreen = ({ navigation, route }) => {
                       </View>
                       <View style={[
                         styles.vehicleCheckbox,
-                        selectedVehicle?.id === vehicle.id && styles.vehicleCheckboxSelected
+                        selectedVehicle?.vehicleId === vehicle.vehicleId && styles.vehicleCheckboxSelected
                       ]}>
-                        {selectedVehicle?.id === vehicle.id && (
+                        {selectedVehicle?.vehicleId === vehicle.vehicleId && (
                           <Ionicons name="checkmark" size={16} color="white" />
                         )}
                       </View>
@@ -509,7 +493,6 @@ const PersonalInfoScreen = ({ navigation, route }) => {
                 onPress={() => {
                   if (selectedVehicle) {
                     setShowVehicleModal(false);
-                    console.log('Xe đã chọn:', selectedVehicle);
                   }
                 }}
                 disabled={!selectedVehicle}
@@ -599,100 +582,13 @@ const PersonalInfoScreen = ({ navigation, route }) => {
             <View style={styles.modalFooter}>
               <TouchableOpacity
                 style={styles.cancelButton}
-                onPress={() => {
-                  setShowAddVehicleModal(false);
-                  setNewVehicle({
-                    brand: "",
-                    model: "",
-                    licensePlate: "",
-                    year: "",
-                    color: "",
-                  });
-                }}
+                onPress={() => setShowAddVehicleModal(false)}
               >
                 <Text style={styles.cancelButtonText}>Hủy</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                // style={styles.confirmButton}
-                // onPress={handleAddNewVehicle}
-                onPress={() => {
-                  if (
-                    newVehicle.brand &&
-                    newVehicle.model &&
-                    newVehicle.licensePlate &&
-                    newVehicle.year &&
-                    newVehicle.color
-                  ) {
-                    // Thêm xe mới vào danh sách chính
-                    const vehicleToAdd = {
-                      vehicleId: Date.now(), // Tạo ID tạm thời
-                      ...newVehicle,
-                    };
-
-                    // Thêm vào danh sách xe chính (xuất hiện ở dưới cùng)
-                    // setUserVehicles(prev => [...prev, vehicleToAdd]);
-
-                    // Lưu xe vừa thêm để hiển thị ở mục "Chọn xe mới"
-                    // setRecentAddedVehicle(vehicleToAdd);
-
-                    // Tự động chuyển sang chế độ "Chọn xe mới" và hiển thị xe vừa thêm
-                    // setVehicleOption('new');
-
-                    // setShowAddVehicleModal(false);
-                    // setNewVehicle({brand: '', model: '', licensePlate: '', year: '', color: ''});
-
-                    // console.log('Đã thêm xe mới vào danh sách:', vehicleToAdd);
-                    // console.log('Danh sách xe hiện tại:', [...userVehicles, vehicleToAdd]);
-
-                    const dataSubmit = {
-                      licensePlate: newVehicle.licensePlate,
-                      make: newVehicle.color,
-                      model: newVehicle.model,
-                      year: newVehicle.year,
-                      carTypeId: 1,
-                    };
-
-                    axios
-                      .post(
-                        `${DOMAIN_URL}/Vehicle/add?customerId=${AppConfig.USER_ID}`,
-                        dataSubmit
-                      )
-                      .then(function (response) {
-                        setRecentAddedVehicle(response.data);
-                        setVehicleOption("new");
-                        getVehicle();
-                        setShowAddVehicleModal(false);
-                        setNewVehicle({
-                          brand: "",
-                          model: "",
-                          licensePlate: "",
-                          year: "",
-                          color: "",
-                        });
-                      })
-                      .catch(function (error) {
-                        Alert.alert(
-                          "Lỗi",
-                          "Đã xảy ra lỗi, vui lòng thử lại!",
-                          [
-                            {
-                              text: "OK",
-                              onPress: () => console.log("OK Pressed"),
-                            },
-                          ],
-                          { cancelable: false }
-                        );
-                      })
-                      .finally(function () {});
-                  }
-                }}
-                disabled={
-                  !newVehicle.brand ||
-                  !newVehicle.model ||
-                  !newVehicle.licensePlate ||
-                  !newVehicle.year ||
-                  !newVehicle.color
-                }
+                style={styles.confirmButton}
+                onPress={handleAddNewVehicle}
               >
                 <Text style={styles.confirmButtonText}>Thêm xe</Text>
               </TouchableOpacity>
@@ -707,7 +603,7 @@ const PersonalInfoScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
   },
   content: {
     flex: 1,
@@ -715,8 +611,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: "bold",
-    color: "#333",
+    fontWeight: 'bold',
+    color: '#333',
     marginVertical: 20,
   },
   section: {
@@ -732,10 +628,10 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   inputWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: '#ddd',
     borderRadius: 8,
     paddingHorizontal: 12,
     backgroundColor: '#f8f9fa',
@@ -744,7 +640,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 12,
     fontSize: 16,
-    color: "#333",
+    color: '#333',
   },
   editButton: {
     padding: 8,
@@ -785,8 +681,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   selectedVehiclesHorizontal: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
   },
   selectedVehicleChip: {
@@ -811,8 +707,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   radioContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     flex: 1,
   },
   radioButton: {
@@ -869,24 +765,24 @@ const styles = StyleSheet.create({
   footer: {
     padding: 16,
     borderTopWidth: 1,
-    borderTopColor: "#f0f0f0",
+    borderTopColor: '#f0f0f0',
   },
   nextButton: {
     backgroundColor: '#4CAF50',
     paddingVertical: 16,
     borderRadius: 8,
-    alignItems: "center",
+    alignItems: 'center',
   },
   nextButtonDisabled: {
-    backgroundColor: "#ccc",
+    backgroundColor: '#ccc',
   },
   nextButtonText: {
-    color: "#fff",
+    color: '#fff',
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   nextButtonTextDisabled: {
-    color: "#999",
+    color: '#999',
   },
   validationMessage: {
     color: '#dc3545',
@@ -897,33 +793,33 @@ const styles = StyleSheet.create({
   // Modal styles
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
     borderRadius: 16,
-    width: "90%",
-    maxHeight: "80%",
-    shadowColor: "#000",
+    width: '90%',
+    maxHeight: '80%',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 8,
     elevation: 8,
   },
   modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
+    borderBottomColor: '#e0e0e0',
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: "bold",
-    color: "#333",
+    fontWeight: 'bold',
+    color: '#333',
   },
   closeButton: {
     padding: 4,
@@ -982,8 +878,8 @@ const styles = StyleSheet.create({
   },
   vehicleModel: {
     fontSize: 16,
-    fontWeight: "600",
-    color: "#333",
+    fontWeight: '600',
+    color: '#333',
     marginBottom: 4,
   },
   vehicleModelDisabled: {
@@ -994,7 +890,7 @@ const styles = StyleSheet.create({
   },
   vehicleDetails: {
     fontSize: 14,
-    color: "#666",
+    color: '#666',
   },
   vehicleDetailsDisabled: {
     fontSize: 14,
@@ -1047,25 +943,25 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   modalFooter: {
-    flexDirection: "row",
+    flexDirection: 'row',
     padding: 20,
     borderTopWidth: 1,
-    borderTopColor: "#e0e0e0",
+    borderTopColor: '#e0e0e0',
   },
   cancelButton: {
     flex: 1,
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: '#ddd',
     borderRadius: 8,
     marginRight: 8,
-    alignItems: "center",
+    alignItems: 'center',
   },
   cancelButtonText: {
-    color: "#666",
+    color: '#666',
     fontSize: 16,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   confirmButton: {
     flex: 1,
@@ -1074,13 +970,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#4CAF50',
     borderRadius: 8,
     marginLeft: 8,
-    alignItems: "center",
+    alignItems: 'center',
   },
   confirmButtonDisabled: {
-    backgroundColor: "#ccc",
+    backgroundColor: '#ccc',
   },
   confirmButtonText: {
-    color: "#fff",
+    color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -1093,13 +989,13 @@ const styles = StyleSheet.create({
   },
   formLabel: {
     fontSize: 14,
-    fontWeight: "600",
-    color: "#333",
+    fontWeight: '600',
+    color: '#333',
     marginBottom: 8,
   },
   formInput: {
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: '#ddd',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 12,

@@ -80,7 +80,6 @@ const VehiclesScreen = ({navigation}) => {
               },
             })
             .then(function (response) {
-              console.log("response ", response);
               getVehicle();
               Alert.alert(
                 "Thành công !",
@@ -90,7 +89,6 @@ const VehiclesScreen = ({navigation}) => {
               );
             })
             .catch(function (error) {
-              console.log("error ", error);
               Alert.alert(
                 "Lỗi",
                 "Đã xảy ra lỗi, vui lòng thử lại!",
@@ -125,7 +123,7 @@ const VehiclesScreen = ({navigation}) => {
       make: newVehicle.color,
       model: newVehicle.model,
       year: newVehicle.year,
-      carTypeId: 1,
+      carTypeId: newVehicle?.carTypeId ?? 1,
     };
 
     axios
@@ -150,7 +148,7 @@ const VehiclesScreen = ({navigation}) => {
 
   const getVehicle = () => {
     axios
-      .get(`${DOMAIN_URL}/Vehicle`, {
+      .get(`${DOMAIN_URL}/Vehicle/customer/${AppConfig.USER_ID}`, {
         headers: {
           Authorization: `Bearer ${AppConfig.ACCESS_TOKEN}`,
           "Content-Type": "application/json",
@@ -192,7 +190,7 @@ const VehiclesScreen = ({navigation}) => {
 
       {/* Vehicle List */}
       <ScrollView style={styles.content}>
-        {vehicles.map((vehicle) => (
+        {vehicles?.length > 0 && vehicles.map((vehicle) => (
           <View key={vehicle.vehicleId} style={styles.vehicleCard}>
             {/* Header with car info and status */}
             <View style={styles.vehicleHeader}>

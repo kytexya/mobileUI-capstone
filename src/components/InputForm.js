@@ -8,7 +8,8 @@ export default function InputForm(props) {
     messageValidate = "Vui lòng nhập thông tin !",
     placeholder = "",
     validate = () => {},
-    secureTextEntry = false
+    secureTextEntry = false,
+    prevIcon
   } = props;
 
   const {
@@ -27,10 +28,11 @@ export default function InputForm(props) {
       render={({ field: { onChange, onBlur, value } }) => (
         <View style={styles.container}>
           <View
-            style={[styles.inputContainer]}
+            style={[styles.inputContainer, errors?.[name] && styles.errorField]}
           >
+            {prevIcon && prevIcon}
             <TextInput
-              style={[styles.input, errors?.[name] && styles.errorField]}
+              style={[styles.input]}
               placeholder={placeholder}
               value={value}
               onBlur={onBlur}
@@ -62,6 +64,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     width: "100%",
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+    borderRadius: 12,
+    backgroundColor: "#f8f9fa",
+    paddingLeft: 16,
+    paddingRight: 16,
     // backgroundColor: "#f8f9fa",
     // borderRadius: 14,
     // borderWidth: 1,
@@ -71,12 +79,9 @@ const styles = StyleSheet.create({
   },
   input: {
     width: "100%",
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-    borderRadius: 12,
-    padding: 16,
+    paddingTop: 16,
+    paddingBottom: 16,    
     marginBottom: 0,
-    backgroundColor: "#f8f9fa",
     fontSize: 16,
     color: "#222",
   },

@@ -18,13 +18,14 @@ const BookingFlowScreen = ({ navigation }) => {
   const [selectedServices, setSelectedServices] = useState([]);
   const [selectedComboId, setSelectedComboId] = useState(null);
   const [serviceCombos, setServiceCombos] = useState([]);
+  const [serviceCategories1, setServiceCategories] = useState([]);
 
   const serviceCombos_test = [
     {
       packageId: "1",
       name: "Combo Bảo Dưỡng Cơ Bản",
       description: "Thay dầu + lọc + kiểm tra tổng thể",
-      originalPrice: "560.000đ",
+      originalPrice: "560.000",
       price: 450,
       discount: 20,
       services: [1, 2, 3, 5, 6],
@@ -34,7 +35,7 @@ const BookingFlowScreen = ({ navigation }) => {
       packageId: "2",
       name: "Combo Bảo Dưỡng Toàn Diện",
       description: "Bảo dưỡng + vệ sinh + chăm sóc",
-      originalPrice: "1.200.000đ",
+      originalPrice: "1.200.000",
       price: 950,
       discount: 25,
       services: [1, 2, 3, 4, 5, 6, 13, 17],
@@ -44,7 +45,7 @@ const BookingFlowScreen = ({ navigation }) => {
       packageId: "3",
       name: "Combo Vệ Sinh Cao Cấp",
       description: "Rửa xe + đánh bóng + phủ ceramic",
-      originalPrice: "1.100.000đ",
+      originalPrice: "1.100.000",
       price: 850,
       discount: 23,
       services: [14, 15, 16, 17],
@@ -57,61 +58,42 @@ const BookingFlowScreen = ({ navigation }) => {
       id: 1,
       title: "Gói dịch vụ bảo dưỡng định kỳ",
       services: [
-        { id: 1, name: "Thay dầu động cơ", price: "150.000đ" },
-        { id: 2, name: "Thay lọc dầu", price: "50.000đ" },
-        { id: 3, name: "Thay lọc gió động cơ", price: "80.000đ" },
-        { id: 4, name: "Thay lọc gió điều hòa", price: "60.000đ" },
-        { id: 5, name: "Kiểm tra hệ thống phanh", price: "100.000đ" },
-        { id: 6, name: "Kiểm tra hệ thống điện", price: "120.000đ" },
+        { id: 1, serviceId: 1, name: "Thay dầu động cơ", price: "150.000" },
+        { id: 2, serviceId: 2, name: "Thay lọc dầu", price: "50.000" },
+        // { id: 3, name: "Thay lọc gió động cơ", price: "80.000đ" },
+        // { id: 4, name: "Thay lọc gió điều hòa", price: "60.000đ" },
+        // { id: 5, name: "Kiểm tra hệ thống phanh", price: "100.000đ" },
+        // { id: 6, name: "Kiểm tra hệ thống điện", price: "120.000đ" },
       ],
     },
     {
       id: 2,
       title: "Gói dịch vụ sửa chữa",
       services: [
-        { id: 7, name: "Sửa chữa động cơ", price: "500.000đ" },
-        { id: 8, name: "Sửa chữa hộp số", price: "800.000đ" },
-        { id: 9, name: "Sửa chữa hệ thống phanh", price: "300.000đ" },
-        { id: 10, name: "Sửa chữa hệ thống điện", price: "250.000đ" },
-        { id: 11, name: "Sửa chữa điều hòa", price: "400.000đ" },
-        { id: 12, name: "Sửa chữa hệ thống treo", price: "350.000đ" },
+        { id: 7, serviceId: 7, name: "Sửa chữa động cơ", price: "500.000" },
+        { id: 8, serviceId: 8, name: "Sửa chữa hộp số", price: "800.000" },
+        // { id: 9, name: "Sửa chữa hệ thống phanh", price: "300.000đ" },
+        // { id: 10, name: "Sửa chữa hệ thống điện", price: "250.000đ" },
+        // { id: 11, name: "Sửa chữa điều hòa", price: "400.000đ" },
+        // { id: 12, name: "Sửa chữa hệ thống treo", price: "350.000đ" },
       ],
     },
     {
       id: 3,
       title: "Gói dịch vụ vệ sinh & chăm sóc",
       services: [
-        { id: 13, name: "Rửa xe cơ bản", price: "50.000đ" },
-        { id: 14, name: "Rửa xe cao cấp", price: "100.000đ" },
-        { id: 15, name: "Đánh bóng sơn xe", price: "200.000đ" },
-        { id: 16, name: "Phủ ceramic bảo vệ", price: "800.000đ" },
-        { id: 17, name: "Vệ sinh nội thất", price: "150.000đ" },
-        { id: 18, name: "Vệ sinh động cơ", price: "120.000đ" },
+        { id: 13, serviceId: 13, name: "Rửa xe cơ bản", price: "50.000" },
+        { id: 14, serviceId: 14, name: "Rửa xe cao cấp", price: "100.000" },
+        // { id: 15, name: "Đánh bóng sơn xe", price: "200.000đ" },
+        // { id: 16, name: "Phủ ceramic bảo vệ", price: "800.000đ" },
+        // { id: 17, name: "Vệ sinh nội thất", price: "150.000đ" },
+        // { id: 18, name: "Vệ sinh động cơ", price: "120.000đ" },
       ],
     },
   ];
 
   useEffect(() => {
-
-    axios
-      .get(`${DOMAIN_URL}/services/get-all-service-packages`, {
-        headers: {
-          Authorization: `Bearer ${AppConfig.ACCESS_TOKEN}`,
-          "Content-Type": "application/json",
-        },
-      })
-      .then(function (response) {
-        setServiceCombos(response.data.packages)
-      })
-      .catch(function (error) {
-        Alert.alert(
-          "Lỗi",
-          "Đã xảy ra lỗi, vui lòng thử lại!",
-          [{ text: "OK", onPress: () => console.log("OK Pressed") }],
-          { cancelable: false }
-        );
-      })
-      .finally(function () {});
+    getCombo();
   }, []);
 
   const toggleService = (serviceId) => {
@@ -156,7 +138,8 @@ const BookingFlowScreen = ({ navigation }) => {
     } else {
       // Nếu chọn combo khác, thay thế bằng combo mới
       setSelectedComboId(combo.packageId);
-      setSelectedServices(combo.services);
+      const service = combo.services.map(item => item.serviceId);
+      setSelectedServices(service);
     }
   };
 
@@ -164,14 +147,57 @@ const BookingFlowScreen = ({ navigation }) => {
     return selectedComboId === combo.packageId;
   };
 
-
   const calcDiscount = (combo) => {
     if (combo?.discount > 0) {
-      const priceDiscount = combo?.price * (combo?.discount / 100)
-      return combo?.price  - priceDiscount
+      const priceDiscount = combo?.price * (combo?.discount / 100);
+      return combo?.price - priceDiscount;
     }
-    return combo?.price ?? 0
+    return combo?.price ?? 0;
+  };
+
+  const getCombo = () => {
+    axios
+      .get(`${DOMAIN_URL}/services/get-all-service-packages`, {
+        headers: {
+          Authorization: `Bearer ${AppConfig.ACCESS_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      })
+      .then(function (response) {
+        setServiceCombos(response.data.packages);
+      })
+      .catch(function (error) {
+        Alert.alert(
+          "Lỗi",
+          "Đã xảy ra lỗi, vui lòng thử lại!",
+          [{ text: "OK", onPress: () => console.log("OK Pressed") }],
+          { cancelable: false }
+        );
+      })
+      .finally(function () {});
   }
+
+  const getAllService = () => {
+    axios
+      .get(`${DOMAIN_URL}/services/get-all-services`, {
+        headers: {
+          Authorization: `Bearer ${AppConfig.ACCESS_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      })
+      .then(function (response) {
+        setServiceCategories(response.data.services);
+      })
+      .catch(function (error) {
+        Alert.alert(
+          "Lỗi",
+          "Đã xảy ra lỗi, vui lòng thử lại!",
+          [{ text: "OK", onPress: () => console.log("OK Pressed") }],
+          { cancelable: false }
+        );
+      })
+      .finally(function () {});
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -214,15 +240,15 @@ const BookingFlowScreen = ({ navigation }) => {
 
               <View style={styles.comboPricing}>
                 <View style={styles.priceRow}>
-                  <Text style={styles.originalPrice}>
-                    {combo.price}$
-                  </Text>
+                  <Text style={styles.originalPrice}>{combo.price} vnd</Text>
                   <Text style={styles.discountPrice}>
-                    {calcDiscount(combo)}$
+                    {calcDiscount(combo)} vnd
                   </Text>
                 </View>
                 <View style={styles.discountBadge}>
-                  <Text style={styles.discountText}>Giảm {combo.discount ?? '0'}%</Text>
+                  <Text style={styles.discountText}>
+                    Giảm {combo.discount ?? "0"}%
+                  </Text>
                 </View>
               </View>
             </TouchableOpacity>
@@ -290,7 +316,7 @@ const BookingFlowScreen = ({ navigation }) => {
                             styles.serviceItemSelected,
                           isInCombo && styles.comboServiceItem,
                         ]}
-                        onPress={() => toggleService(service.id)}
+                        onPress={() => toggleService(service.serviceId)}
                       >
                         <View style={styles.serviceInfo}>
                           <Text
@@ -306,7 +332,7 @@ const BookingFlowScreen = ({ navigation }) => {
                             )}
                           </Text>
                           <Text style={styles.servicePrice}>
-                            {service.price}
+                            {service.price} vnd
                           </Text>
                         </View>
                         <View
@@ -340,12 +366,12 @@ const BookingFlowScreen = ({ navigation }) => {
             styles.nextButton,
             selectedServices.length > 0 && styles.nextButtonActive,
           ]}
-          onPress={() =>
+          onPress={() => {            
             navigation.navigate("PersonalInfoScreen", {
               selectedServices,
               packageId: selectedComboId,
-            })
-          }
+            });
+          }}
           disabled={selectedServices.length === 0}
         >
           <Text style={styles.nextButtonText}>Tiếp theo</Text>

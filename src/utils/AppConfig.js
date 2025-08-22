@@ -3,7 +3,7 @@ export default class AppConfig {
 
     static USER_ID = '';
 
-    static USER_OBJ = '';
+    static USER_OBJ = {};
 
     // Quản lý xe tập trung
     static VEHICLES = [
@@ -100,8 +100,8 @@ export default class AppConfig {
     }
 
     // Lấy danh sách xe có thể đặt lịch (chưa được đặt)
-    static getAvailableVehicles() {
-        return this.VEHICLES.filter(vehicle => !this.SCHEDULED_VEHICLES.has(vehicle.id));
+    static getAvailableVehicles(vehicleList = []) {
+        return vehicleList.filter(vehicle => !this.SCHEDULED_VEHICLES.has(vehicle.vehicleId));
     }
 
     // Lấy danh sách xe đã được đặt lịch
