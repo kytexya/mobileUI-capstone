@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -9,65 +9,176 @@ import {
   TextInput,
   Modal,
   Alert,
-} from 'react-native';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import AppConfig from '../utils/AppConfig';
+} from "react-native";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import axios from "axios";
+import AppConfig from "../utils/AppConfig";
+import { DOMAIN_URL } from "../utils/Constant";
 
-const VehiclesScreen = ({ navigation }) => {
+const VehiclesScreen = ({navigation}) => {
   const [showAddVehicleModal, setShowAddVehicleModal] = useState(false);
-  const [vehicles, setVehicles] = useState(AppConfig.getVehicles());
-
-  // Cập nhật danh sách xe khi component mount hoặc khi có thay đổi
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      setVehicles(AppConfig.getVehicles());
-    });
-
-    return unsubscribe;
-  }, [navigation]);
+  const [vehicles, setVehicles] = useState([
+    // {
+    //   id: 1,
+    //   brand: "Toyota",
+    //   model: "Camry",
+    //   licensePlate: "30A-12345",
+    //   year: "2022",
+    //   color: "Trắng",
+    //   mileage: "25,000 km",
+    //   fuelType: "Xăng",
+    //   status: "Hoạt động",
+    //   lastService: "15/10/2024",
+    //   nextService: "15/01/2025",
+    // },
+    // {
+    //   id: 2,
+    //   brand: "Honda",
+    //   model: "CRV",
+    //   licensePlate: "51B-67890",
+    //   year: "2021",
+    //   color: "Đen",
+    //   mileage: "32,000 km",
+    //   fuelType: "Xăng",
+    //   status: "Hoạt động",
+    //   lastService: "20/09/2024",
+    //   nextService: "20/12/2024",
+    // },
+  ]);
   const [newVehicle, setNewVehicle] = useState({
-    brand: '',
-    model: '',
-    licensePlate: '',
-    year: '',
-    color: ''
+    model: "",
+    licensePlate: "",
+    year: "",
+    color: "",
   });
 
   const deleteVehicle = (vehicleId) => {
-    Alert.alert(
-      'Xác nhận xóa',
-      'Bạn có chắc chắn muốn xóa xe này?',
-      [
-        {
-          text: 'Hủy',
-          style: 'cancel',
+    console.log("vehicleId ", vehicleId);
+
+    Alert.alert("Xác nhận xóa", "Bạn có chắc chắn muốn xóa xe này?", [
+      {
+        text: "Hủy",
+        style: "cancel",
+      },
+      {
+        text: "Xóa",
+        style: "destructive",
+        onPress: () => {
+          // setVehicles((prev) =>
+          //   prev.filter((vehicle) => vehicle.id !== vehicleId)
+          // );
+
+          // Call api delete vehicle
+          // const dataSubmit = {
+          //   vehicleId: vehicleId
+          // }
+          axios
+            .delete(`${DOMAIN_URL}/Vehicle/remove/${vehicleId}`, {
+              headers: {
+                Authorization: `Bearer ${AppConfig.ACCESS_TOKEN}`,
+                "Content-Type": "application/json",
+              },
+            })
+            .then(function (response) {
+              console.log("response ", response);
+              getVehicle();
+              Alert.alert(
+                "Thành công !",
+                "Đã xóa thành công !",
+                [{ text: "OK", onPress: () => console.log("OK Pressed") }],
+                { cancelable: false }
+              );
+            })
+            .catch(function (error) {
+              console.log("error ", error);
+              Alert.alert(
+                "Lỗi",
+                "Đã xảy ra lỗi, vui lòng thử lại!",
+                [{ text: "OK", onPress: () => console.log("OK Pressed") }],
+                { cancelable: false }
+              );
+            })
+            .finally(function () {});
         },
-        {
-          text: 'Xóa',
-          style: 'destructive',
-          onPress: () => {
-            AppConfig.removeVehicle(vehicleId);
-            setVehicles(AppConfig.getVehicles());
-          },
-        },
-      ]
-    );
+      },
+    ]);
   };
 
   const addVehicle = () => {
-    if (newVehicle.brand && newVehicle.model && newVehicle.licensePlate && newVehicle.year && newVehicle.color) {
-      AppConfig.addVehicle(newVehicle);
-      setVehicles(AppConfig.getVehicles());
+    if (
+      newVehicle.model &&
+      newVehicle.licensePlate &&
+      newVehicle.year &&
+      newVehicle.color
+    ) {
+      const vehicleToAdd = {
+        id: Date.now(),
+        ...newVehicle,
+      };
+      setVehicles((prev) => [...prev, vehicleToAdd]);
       setShowAddVehicleModal(false);
-      setNewVehicle({brand: '', model: '', licensePlate: '', year: '', color: ''});
+      setNewVehicle({ model: "", licensePlate: "", year: "", color: "" });
     }
+
+    const dataSubmit = {
+      licensePlate: newVehicle.licensePlate,
+      make: newVehicle.color,
+      model: newVehicle.model,
+      year: newVehicle.year,
+      carTypeId: 1,
+    };
+
+    axios
+      .post(
+        `${DOMAIN_URL}/Vehicle/add?customerId=${AppConfig.USER_ID}`,
+        dataSubmit
+      )
+      .then(function (response) {
+        getVehicle();
+        setShowAddVehicleModal(false);
+      })
+      .catch(function (error) {
+        Alert.alert(
+          "Lỗi",
+          "Đã xảy ra lỗi, vui lòng thử lại!",
+          [{ text: "OK", onPress: () => console.log("OK Pressed") }],
+          { cancelable: false }
+        );
+      })
+      .finally(function () {});
   };
+
+  const getVehicle = () => {
+    axios
+      .get(`${DOMAIN_URL}/Vehicle`, {
+        headers: {
+          Authorization: `Bearer ${AppConfig.ACCESS_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      })
+      .then(function (response) {
+        setVehicles(response.data);
+      })
+      .catch(function (error) {
+        Alert.alert(
+          "Lỗi",
+          "Đã xảy ra lỗi, vui lòng thử lại!",
+          [{ text: "OK", onPress: () => console.log("OK Pressed") }],
+          { cancelable: false }
+        );
+      })
+      .finally(function () {});
+  };
+
+  useEffect(() => {
+    getVehicle();
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
@@ -82,34 +193,70 @@ const VehiclesScreen = ({ navigation }) => {
       {/* Vehicle List */}
       <ScrollView style={styles.content}>
         {vehicles.map((vehicle) => (
-          <View key={vehicle.id} style={styles.vehicleCard}>
+          <View key={vehicle.vehicleId} style={styles.vehicleCard}>
             {/* Header with car info and status */}
             <View style={styles.vehicleHeader}>
               <View style={styles.vehicleMainInfo}>
                 <View style={styles.vehicleIcon}>
-                  <MaterialCommunityIcons name="car" size={24} color="#1976d2" />
+                  <MaterialCommunityIcons
+                    name="car"
+                    size={24}
+                    color="#1976d2"
+                  />
                 </View>
                 <View style={styles.vehicleText}>
-                  <Text style={styles.vehicleModel}>{vehicle.brand} {vehicle.model}</Text>
-                  <Text style={styles.vehicleLicense}>{vehicle.licensePlate}</Text>
+                  <Text style={styles.vehicleModel}>
+                    {vehicle.brand} {vehicle.model}
+                  </Text>
+                  <Text style={styles.vehicleLicense}>
+                    {vehicle.licensePlate}
+                  </Text>
                 </View>
               </View>
               <View style={styles.vehicleActions}>
-                <View style={[styles.statusBadge, { backgroundColor: vehicle.status === 'Hoạt động' ? '#E8F5E8' : '#FFF3E0' }]}>
-                  <MaterialCommunityIcons 
-                    name={vehicle.status === 'Hoạt động' ? 'check-circle' : 'alert-circle'} 
-                    size={12} 
-                    color={vehicle.status === 'Hoạt động' ? '#4CAF50' : '#FF9800'} 
+                <View
+                  style={[
+                    styles.statusBadge,
+                    {
+                      backgroundColor:
+                        vehicle.status === "Hoạt động" ? "#E8F5E8" : "#FFF3E0",
+                    },
+                  ]}
+                >
+                  <MaterialCommunityIcons
+                    name={
+                      vehicle.status === "Hoạt động"
+                        ? "check-circle"
+                        : "alert-circle"
+                    }
+                    size={12}
+                    color={
+                      vehicle.status === "Hoạt động" ? "#4CAF50" : "#FF9800"
+                    }
                   />
-                  <Text style={[styles.statusText, { color: vehicle.status === 'Hoạt động' ? '#4CAF50' : '#FF9800' }]}>
+                  <Text
+                    style={[
+                      styles.statusText,
+                      {
+                        color:
+                          vehicle.status === "Hoạt động"
+                            ? "#4CAF50"
+                            : "#FF9800",
+                      },
+                    ]}
+                  >
                     {vehicle.status}
                   </Text>
                 </View>
                 <TouchableOpacity
                   style={styles.deleteButton}
-                  onPress={() => deleteVehicle(vehicle.id)}
+                  onPress={() => deleteVehicle(vehicle.vehicleId)}
                 >
-                  <MaterialCommunityIcons name="delete" size={18} color="white" />
+                  <MaterialCommunityIcons
+                    name="delete"
+                    size={18}
+                    color="white"
+                  />
                 </TouchableOpacity>
               </View>
             </View>
@@ -117,24 +264,40 @@ const VehiclesScreen = ({ navigation }) => {
             {/* Vehicle specs */}
             <View style={styles.vehicleSpecs}>
               <View style={styles.specBadge}>
-                <MaterialCommunityIcons name="calendar" size={14} color="#1976d2" />
+                <MaterialCommunityIcons
+                  name="calendar"
+                  size={14}
+                  color="#1976d2"
+                />
                 <Text style={styles.specText}>{vehicle.year}</Text>
               </View>
               <View style={styles.specBadge}>
-                <MaterialCommunityIcons name="palette" size={14} color="#FF6B35" />
-                <Text style={styles.specText}>{vehicle.color}</Text>
+                <MaterialCommunityIcons
+                  name="palette"
+                  size={14}
+                  color="#FF6B35"
+                />
+                <Text style={styles.specText}>{vehicle.make}</Text>
               </View>
             </View>
 
             {/* Service info */}
             <View style={styles.serviceInfo}>
               <View style={styles.serviceItem}>
-                <MaterialCommunityIcons name="wrench" size={14} color="#4CAF50" />
+                <MaterialCommunityIcons
+                  name="wrench"
+                  size={14}
+                  color="#4CAF50"
+                />
                 <Text style={styles.serviceLabel}>Bảo dưỡng cuối:</Text>
                 <Text style={styles.serviceDate}>{vehicle.lastService}</Text>
               </View>
               <View style={styles.serviceItem}>
-                <MaterialCommunityIcons name="calendar-clock" size={14} color="#FF9800" />
+                <MaterialCommunityIcons
+                  name="calendar-clock"
+                  size={14}
+                  color="#FF9800"
+                />
                 <Text style={styles.serviceLabel}>Bảo dưỡng tiếp:</Text>
                 <Text style={styles.serviceDate}>{vehicle.nextService}</Text>
               </View>
@@ -175,7 +338,9 @@ const VehiclesScreen = ({ navigation }) => {
                   style={styles.formInput}
                   placeholder="VD: Toyota, Honda, Ford..."
                   value={newVehicle.brand}
-                  onChangeText={(text) => setNewVehicle(prev => ({...prev, brand: text}))}
+                  onChangeText={(text) =>
+                    setNewVehicle((prev) => ({ ...prev, brand: text }))
+                  }
                 />
               </View>
 
@@ -185,7 +350,9 @@ const VehiclesScreen = ({ navigation }) => {
                   style={styles.formInput}
                   placeholder="VD: Vios, City, Ranger..."
                   value={newVehicle.model}
-                  onChangeText={(text) => setNewVehicle(prev => ({...prev, model: text}))}
+                  onChangeText={(text) =>
+                    setNewVehicle((prev) => ({ ...prev, model: text }))
+                  }
                 />
               </View>
 
@@ -195,7 +362,12 @@ const VehiclesScreen = ({ navigation }) => {
                   style={styles.formInput}
                   placeholder="VD: 30A-12345"
                   value={newVehicle.licensePlate}
-                  onChangeText={(text) => setNewVehicle(prev => ({...prev, licensePlate: text.toUpperCase()}))}
+                  onChangeText={(text) =>
+                    setNewVehicle((prev) => ({
+                      ...prev,
+                      licensePlate: text.toUpperCase(),
+                    }))
+                  }
                   autoCapitalize="characters"
                 />
               </View>
@@ -206,7 +378,9 @@ const VehiclesScreen = ({ navigation }) => {
                   style={styles.formInput}
                   placeholder="VD: 2022"
                   value={newVehicle.year}
-                  onChangeText={(text) => setNewVehicle(prev => ({...prev, year: text}))}
+                  onChangeText={(text) =>
+                    setNewVehicle((prev) => ({ ...prev, year: text }))
+                  }
                   keyboardType="numeric"
                 />
               </View>
@@ -217,7 +391,9 @@ const VehiclesScreen = ({ navigation }) => {
                   style={styles.formInput}
                   placeholder="VD: Trắng, Đen, Xanh..."
                   value={newVehicle.color}
-                  onChangeText={(text) => setNewVehicle(prev => ({...prev, color: text}))}
+                  onChangeText={(text) =>
+                    setNewVehicle((prev) => ({ ...prev, color: text }))
+                  }
                 />
               </View>
             </ScrollView>
@@ -226,10 +402,19 @@ const VehiclesScreen = ({ navigation }) => {
               <TouchableOpacity
                 style={[
                   styles.saveButton,
-                  (!newVehicle.brand || !newVehicle.model || !newVehicle.licensePlate || !newVehicle.year || !newVehicle.color) && styles.saveButtonDisabled
+                  (!newVehicle.model ||
+                    !newVehicle.licensePlate ||
+                    !newVehicle.year ||
+                    !newVehicle.color) &&
+                    styles.saveButtonDisabled,
                 ]}
                 onPress={addVehicle}
-                disabled={!newVehicle.brand || !newVehicle.model || !newVehicle.licensePlate || !newVehicle.year || !newVehicle.color}
+                disabled={
+                  !newVehicle.model ||
+                  !newVehicle.licensePlate ||
+                  !newVehicle.year ||
+                  !newVehicle.color
+                }
               >
                 <Text style={styles.saveButtonText}>Lưu</Text>
               </TouchableOpacity>
@@ -238,7 +423,12 @@ const VehiclesScreen = ({ navigation }) => {
                 style={styles.cancelButton}
                 onPress={() => {
                   setShowAddVehicleModal(false);
-                  setNewVehicle({model: '', licensePlate: '', year: '', color: ''});
+                  setNewVehicle({
+                    model: "",
+                    licensePlate: "",
+                    year: "",
+                    color: "",
+                  });
                 }}
               >
                 <Text style={styles.cancelButtonText}>Hủy</Text>
@@ -254,21 +444,21 @@ const VehiclesScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f6f8fa',
+    backgroundColor: "#f6f8fa",
   },
   header: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0, 0, 0, 0.08)',
-    shadowColor: '#000',
+    borderBottomColor: "rgba(0, 0, 0, 0.08)",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 6,
     elevation: 3,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   backButton: {
     marginRight: 16,
@@ -276,17 +466,17 @@ const styles = StyleSheet.create({
   },
   headerSubtitle: {
     fontSize: 12,
-    color: '#666',
+    color: "#666",
     marginBottom: 4,
   },
   headerTitleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   headerTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
     marginLeft: 8,
   },
   content: {
@@ -294,13 +484,13 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   vehicleCard: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.08)',
-    shadowColor: '#000',
+    borderColor: "rgba(0, 0, 0, 0.08)",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 6,
@@ -308,23 +498,23 @@ const styles = StyleSheet.create({
   },
   // New detailed card styles
   vehicleHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
     marginBottom: 12,
   },
   vehicleMainInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     flex: 1,
   },
   vehicleIcon: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#E3F2FD',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#E3F2FD",
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: 12,
   },
   vehicleText: {
@@ -332,21 +522,21 @@ const styles = StyleSheet.create({
   },
   vehicleModel: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
     marginBottom: 4,
   },
   vehicleLicense: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#1976d2',
+    fontWeight: "600",
+    color: "#1976d2",
   },
   vehicleActions: {
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
   },
   statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
@@ -354,62 +544,62 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
     marginLeft: 4,
   },
   vehicleSpecs: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
+    flexDirection: "row",
+    justifyContent: "flex-start",
     marginBottom: 12,
   },
   specBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F8F9FA',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F8F9FA",
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 16,
     marginRight: 8,
     borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.05)',
+    borderColor: "rgba(0, 0, 0, 0.05)",
   },
   specText: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
     marginLeft: 5,
   },
   serviceInfo: {
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(0, 0, 0, 0.05)',
+    borderTopColor: "rgba(0, 0, 0, 0.05)",
   },
   serviceItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 6,
   },
   serviceLabel: {
     fontSize: 12,
-    color: '#666',
+    color: "#666",
     marginLeft: 6,
     flex: 1,
   },
   serviceDate: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
   },
   deleteButton: {
-    backgroundColor: '#ff4444',
+    backgroundColor: "#ff4444",
     width: 40,
     height: 40,
     borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.08)',
-    shadowColor: '#000',
+    borderColor: "rgba(0, 0, 0, 0.08)",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.08,
     shadowRadius: 3,
@@ -417,126 +607,126 @@ const styles = StyleSheet.create({
   },
   footer: {
     padding: 16,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderTopWidth: 1,
-    borderTopColor: 'rgba(0, 0, 0, 0.08)',
-    shadowColor: '#000',
+    borderTopColor: "rgba(0, 0, 0, 0.08)",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.08,
     shadowRadius: 6,
     elevation: 3,
   },
   addButton: {
-    backgroundColor: '#1976d2',
+    backgroundColor: "#1976d2",
     borderRadius: 12,
     paddingVertical: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.08)',
-    shadowColor: '#000',
+    borderColor: "rgba(0, 0, 0, 0.08)",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 6,
     elevation: 3,
   },
   addButtonText: {
-    color: 'white',
+    color: "white",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     marginLeft: 8,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalContent: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderRadius: 16,
-    width: '85%',
+    width: "85%",
     padding: 24,
-    alignItems: 'center',
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.08)',
-    shadowColor: '#000',
+    borderColor: "rgba(0, 0, 0, 0.08)",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 6,
     elevation: 3,
   },
   modalHeader: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 24,
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
     marginTop: 8,
   },
   modalForm: {
-    width: '100%',
+    width: "100%",
   },
   formField: {
     marginBottom: 16,
   },
   formLabel: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
     marginBottom: 8,
   },
   formInput: {
     borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.08)',
+    borderColor: "rgba(0, 0, 0, 0.08)",
     borderRadius: 12,
     padding: 12,
     fontSize: 16,
-    backgroundColor: '#f8f9fa',
-    color: '#333',
+    backgroundColor: "#f8f9fa",
+    color: "#333",
   },
   modalFooter: {
-    width: '100%',
+    width: "100%",
     marginTop: 16,
   },
   saveButton: {
-    backgroundColor: '#1976d2',
+    backgroundColor: "#1976d2",
     borderRadius: 12,
     paddingVertical: 14,
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.08)',
-    shadowColor: '#000',
+    borderColor: "rgba(0, 0, 0, 0.08)",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 6,
     elevation: 3,
   },
   saveButtonDisabled: {
-    backgroundColor: '#ccc',
+    backgroundColor: "#ccc",
   },
   saveButtonText: {
-    color: 'white',
+    color: "white",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   cancelButton: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: 12,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 68, 68, 0.2)',
-    backgroundColor: 'rgba(255, 68, 68, 0.05)',
+    borderColor: "rgba(255, 68, 68, 0.2)",
+    backgroundColor: "rgba(255, 68, 68, 0.05)",
   },
   cancelButtonText: {
-    color: '#ff4444',
+    color: "#ff4444",
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
   },
 });
 
-export default VehiclesScreen; 
+export default VehiclesScreen;

@@ -186,6 +186,44 @@ const ConfirmationScreen = ({ navigation, route }) => {
         });
       */
     }, 2000); // 2 seconds delay to simulate API call
+
+
+    // new
+    const dataSubmit = {
+      vehicleId: vehicleOption.vehicleId,
+      packageId: packageId,
+      serviceIds: selectedServices,
+      promotionId: null,
+      appointmentDate: `2025-08-${selectedDate}T${selectedTime}:28.598Z`
+    }
+
+    console.log("dataSubmit ",dataSubmit);
+    console.log("vehicleOption ",vehicleOption);
+    
+    
+
+    // axios.post(DOMAIN_URL + `/Appointment/schedule?customerId=${AppConfig.USER_ID}`,
+    //   dataSubmit,
+    //   {
+    //     headers: {
+    //       Authorization: `Bearer ${AppConfig.ACCESS_TOKEN}`,
+    //       'Content-Type': 'application/json',
+    //     },
+    //   }
+    // )
+    //   .then(function (response) {
+    //     console.log("response ",response);
+        
+    //     navigation.navigate('BookingSuccessScreen');
+    //   })
+    //   .catch(function (error) {
+    //     console.log(error);
+    //   })
+    //   .finally(function () {
+    //   });
+    
+    // Navigate to success screen or back to home
+    // navigation.navigate('BookingSuccessScreen');
   };
 
   return (

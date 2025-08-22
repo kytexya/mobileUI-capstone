@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { DOMAIN_URL } from '../utils/Constant';
+import AppConfig from '../utils/AppConfig';
+import axios from 'axios';
 
 const mockNotifications = [
   { id: '1', type: 'reminder', title: 'Nhắc nhở bảo dưỡng', content: 'Xe Toyota Camry đến hạn bảo dưỡng.', date: '2024-06-01' },
@@ -26,7 +29,35 @@ const getIcon = (type) => {
   );
 };
 
+const getNotification = () => {
+    axios
+      .get(`${DOMAIN_URL}/Notification/user/${AppConfig.USER_ID}`, {
+        headers: {
+          Authorization: `Bearer ${AppConfig.ACCESS_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      })
+      .then(function (response) {
+        // setUserVehicles(response.data);
+        console.log("res ", response.data);
+        
+      })
+      .catch(function (error) {
+        Alert.alert(
+          "Lỗi",
+          "Đã xảy ra lỗi, vui lòng thử lại!",
+          [{ text: "OK", onPress: () => console.log("OK Pressed") }],
+          { cancelable: false }
+        );
+      })
+      .finally(function () {});
+  };
+
 const NotificationScreen = () => {
+  
+    useEffect(() => {
+      getNotification()
+    },[])
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <Text style={styles.title}>Thông báo</Text>
