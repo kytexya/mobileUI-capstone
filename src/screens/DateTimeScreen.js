@@ -9,6 +9,8 @@ import {
   Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import axios from 'axios';
+import AppConfig from '../utils/AppConfig';
 
 const DateTimeScreen = ({ navigation, route }) => {
   const { selectedServices, personalInfo, vehicleOption, selectedVehicle, packageId } = route.params;
@@ -18,6 +20,7 @@ const DateTimeScreen = ({ navigation, route }) => {
   const [showMechanicModal, setShowMechanicModal] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(8); // Tháng hiện tại (8 = Tháng 8)
   const [currentYear, setCurrentYear] = useState(2025);
+  const [mechanics1, setMechanics] = useState([])
 
   // Mock data cho danh sách nhân viên
   const mechanics = [
@@ -115,6 +118,45 @@ const DateTimeScreen = ({ navigation, route }) => {
     }
     setSelectedDate(null); // Reset selected date when changing month
   };
+
+    const getMechanics = () => {
+    axios
+      .get(`${DOMAIN_URL}/Account/service-staff`, {
+        headers: {
+          Authorization: `Bearer ${AppConfig.ACCESS_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      })
+      .then(function (response) {
+        setMechanics(response.data);
+      })
+      .catch(function (error) {
+        Alert.alert(
+          "Lỗi",
+          "Đã xảy ra lỗi, vui lòng thử lại!",
+          [{ text: "OK", onPress: () => console.log("OK Pressed") }],
+          { cancelable: false }
+        );
+      })
+      .finally(function () {});
+  };
+
+  const handleContinute = () => {    
+    navigation.navigate('ConfirmationScreen', {
+      selectedServices,
+      personalInfo,
+      vehicleOption,
+      selectedVehicle,
+      selectedDate: {
+        date: selectedDate < 10 ? `0${selectedDate}` : selectedDate,
+        month: currentMonth < 10 ? `0${currentMonth}` : currentMonth,
+        year: currentYear
+      },
+      selectedTime,
+      selectedMechanic,
+      packageId
+    })
+  }
 
   const weekDays = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
 
@@ -267,16 +309,9 @@ const DateTimeScreen = ({ navigation, route }) => {
             styles.nextButton,
             (!selectedDate || !selectedTime) && styles.nextButtonDisabled
           ]}
-          onPress={() => navigation.navigate('ConfirmationScreen', {
-            selectedServices,
-            personalInfo,
-            vehicleOption,
-            selectedVehicle,
-            selectedDate,
-            selectedTime,
-            selectedMechanic,
-            packageId
-          })}
+          onPress={() => {
+            handleContinute()
+          }}
           disabled={!selectedDate || !selectedTime}
         >
           <Text style={[

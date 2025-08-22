@@ -17,11 +17,20 @@ import {
 import axios from "axios";
 import { DOMAIN_URL } from "../utils/Constant";
 import AppConfig from "../utils/AppConfig";
+import { FormProvider, useForm } from "react-hook-form";
+import InputForm from "../components/InputForm";
+import { emailRegex, phoneRegex } from "../utils/validator";
 
 const ProfileScreen = ({ navigation }) => {
-  const [name, setName] = useState(AppConfig.USER_OBJ.fullName);
-  const [email, setEmail] = useState(AppConfig.USER_OBJ.email);
-  const [phone, setPhone] = useState(AppConfig.USER_OBJ.phoneNumber);
+  const methods = useForm({
+    defaultValues: {
+      'name': AppConfig.USER_OBJ.fullName,
+      'email': AppConfig.USER_OBJ.email,
+      'phone': AppConfig.USER_OBJ.phoneNumber,
+    }
+  });
+  const [user, setUser] = useState(AppConfig.USER_OBJ);
+
   const [userVehicles, setUserVehicles] = useState([]);
 
   // Mock data xe của người dùng
@@ -46,7 +55,7 @@ const ProfileScreen = ({ navigation }) => {
 
   const getVehicle = () => {
     axios
-      .get(`${DOMAIN_URL}/Vehicle`, {
+      .get(`${DOMAIN_URL}/Vehicle/customer/${AppConfig.USER_ID}`, {
         headers: {
           Authorization: `Bearer ${AppConfig.ACCESS_TOKEN}`,
           "Content-Type": "application/json",
@@ -89,6 +98,71 @@ const ProfileScreen = ({ navigation }) => {
     ]);
   };
 
+  const onSubmit = (data) => {
+    const dataSubmit = {
+      fullName: data.name,
+      email: data.email,
+      phoneNumber: data.phone,
+      address: "",
+    };    
+    
+    axios
+      .put(`${DOMAIN_URL}/Account/update-profile/${AppConfig.USER_ID}`,
+        dataSubmit, 
+        {
+        headers: {
+          Authorization: `Bearer ${AppConfig.ACCESS_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      })
+      .then(function (response) {
+        handleGetUser();
+        Alert.alert(
+          "Thành công",
+          "Đã cập nhật thông tin !",
+          [{ text: "OK", onPress: () => console.log("OK Pressed") }],
+          { cancelable: false }
+        );
+      })
+      .catch(function (error) {
+        Alert.alert(
+          "Lỗi",
+          "Cập nhật thất bại, vui lòng thử lại!",
+          [{ text: "OK", onPress: () => console.log("OK Pressed") }],
+          { cancelable: false }
+        );
+      })
+      .finally(function () {});
+  };
+
+  const handleGetUser = () => {
+    axios.get(`${DOMAIN_URL}/Account/by-mail/${AppConfig.USER_OBJ.email}`,
+      {
+        headers: {
+          Authorization: `Bearer ${AppConfig.ACCESS_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    )
+      .then(function (response) {
+        const user = response.data;
+        AppConfig.USER_ID = user.userID
+        AppConfig.USER_OBJ = user;
+        setUser(user);
+      })
+      .catch(function (error) {        
+        Alert.alert(
+          "Lỗi",
+          "Lấy thông tin thất bại, vui lòng thử lại!",
+          [
+            { text: "OK", onPress: () => console.log("OK Pressed") }
+          ],
+          { cancelable: false }
+        );
+      })
+      .finally(function () {});
+  }
+
   return (
     <ScrollView
       style={styles.container}
@@ -98,8 +172,8 @@ const ProfileScreen = ({ navigation }) => {
         <View style={styles.avatarCircle}>
           <FontAwesome5 name="user-alt" size={38} color="#1976d2" />
         </View>
-        <Text style={styles.name}>{name}</Text>
-        <Text style={styles.email}>{email}</Text>
+        <Text style={styles.name}>{user.fullName}</Text>
+        <Text style={styles.email}>{user.email}</Text>
       </View>
 
       {/* Thống kê người dùng */}
@@ -174,51 +248,57 @@ const ProfileScreen = ({ navigation }) => {
       {/* Form chỉnh sửa thông tin */}
       <View style={styles.formCard}>
         <Text style={styles.cardTitle}>Thông tin cá nhân</Text>
-        <View style={styles.inputRow}>
-          <Ionicons
-            name="person-outline"
-            size={20}
-            color="#1976d2"
-            style={styles.inputIcon}
-          />
-          <TextInput
-            style={styles.input}
-            value={name}
-            onChangeText={setName}
+        <FormProvider {...methods}>
+          <InputForm
+            name="name"
             placeholder="Họ và tên"
+            messageValidate="Vui lòng nhập họ và tên !"
+            prevIcon={
+              <Ionicons
+                name="person-outline"
+                size={20}
+                color="#1976d2"
+                style={styles.inputIcon}
+              />
+            }
           />
-        </View>
-        <View style={styles.inputRow}>
-          <Ionicons
-            name="mail-outline"
-            size={20}
-            color="#1976d2"
-            style={styles.inputIcon}
-          />
-          <TextInput
-            style={styles.input}
-            value={email}
-            onChangeText={setEmail}
+          <InputForm
+            name="email"
             placeholder="Email"
-            keyboardType="email-address"
+            messageValidate="Vui lòng nhập email !"
+            validate={(value) =>
+              emailRegex.test(value) || "Email không hợp lệ !"
+            }
+            prevIcon={
+              <Ionicons
+                name="mail-outline"
+                size={20}
+                color="#1976d2"
+                style={styles.inputIcon}
+              />
+            }
           />
-        </View>
-        <View style={styles.inputRow}>
-          <Ionicons
-            name="call-outline"
-            size={20}
-            color="#1976d2"
-            style={styles.inputIcon}
-          />
-          <TextInput
-            style={styles.input}
-            value={phone}
-            onChangeText={setPhone}
+          <InputForm
+            name="phone"
             placeholder="Số điện thoại"
-            keyboardType="phone-pad"
+            messageValidate="Vui lòng nhập số điện thoại !"
+            validate={(value) =>
+              phoneRegex.test(value) || "Số điện thoại không hợp lệ !"
+            }
+            prevIcon={
+              <Ionicons
+                name="call-outline"
+                size={20}
+                color="#1976d2"
+                style={styles.inputIcon}
+              />
+            }
           />
-        </View>
-        <TouchableOpacity style={styles.button}>
+        </FormProvider>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={methods.handleSubmit(onSubmit)}
+        >
           <Text style={styles.buttonText}>Lưu thay đổi</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>

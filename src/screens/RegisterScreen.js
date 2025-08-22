@@ -33,31 +33,24 @@ const RegisterScreen = ({ navigation }) => {
       email: data?.email,
       phoneNumber: data?.phone,
       password: data.password,
-      address: ''
-    }
-    console.log("dataSubmit ",dataSubmit);
-    
-    axios.post(`${DOMAIN_URL}/Home/Signup`, dataSubmit)
+      address: "",
+    };
+
+    axios
+      .post(`${DOMAIN_URL}/Home/Signup`, dataSubmit)
       .then(function (response) {
-        console.log("response : ", response);
         Alert.alert(
           "Thành Công",
           "Đã đăng ký thành công !",
-          [
-            { text: "OK", onPress: () => navigation.navigate("LoginScreen") }
-          ],
+          [{ text: "OK", onPress: () => navigation.navigate("LoginScreen") }],
           { cancelable: false }
         );
       })
       .catch(function (error) {
-        console.log("err ", error);
-        
         Alert.alert(
           "Lỗi",
           "Đã xảy ra lỗi, vui lòng thử lại!",
-          [
-            { text: "OK", onPress: () => {} }
-          ],
+          [{ text: "OK", onPress: () => {} }],
           { cancelable: false }
         );
       })
@@ -67,11 +60,11 @@ const RegisterScreen = ({ navigation }) => {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: "#f4f6fb" }}
-      behavior={Platform.OS === "ios" ? "padding" : 'padding'}
+      behavior={Platform.OS === "ios" ? "padding" : "padding"}
     >
       <FormProvider {...methods}>
         <View style={styles.container}>
-          <Text style={styles.title}>Đăng ký</Text>r
+          <Text style={styles.title}>Đăng ký</Text>
           <InputForm
             name="name"
             placeholder="Họ và tên"
