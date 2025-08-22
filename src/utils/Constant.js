@@ -1,1 +1,1 @@
-export const DOMAIN_URL = ""
+export const DOMAIN_URL = "https://3ac1245c88cd.ngrok-free.app/api"

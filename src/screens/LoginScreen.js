@@ -22,8 +22,8 @@ const LoginScreen = ({ navigation }) => {
     handleSubmit,
     formState: { errors },
   } = useForm({ mode: "onChange", defaultValues: {
-    // emailOrPhone: 'luongle@carserv.com',
-    // password: '735@'
+    // emailOrPhone: 'test3@gmail.com',
+    // password: '12345'
   } });
 
   const onSubmit = (data) => {

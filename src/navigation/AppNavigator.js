@@ -111,6 +111,7 @@ const AppNavigator = () => (
     <Stack.Screen name="LoginScreen" component={LoginScreen} options={{ headerShown: false }} />
     <Stack.Screen name="RegisterScreen" component={RegisterScreen} options={{ title: 'Đăng ký', ...defaultHeaderOptions }} />
     <Stack.Screen name="MainTabs" component={MainTabs} options={{ headerShown: false }} />
+    {/* <Stack.Screen name="VehiclesScreen" component={VehiclesScreen} /> */}
     {/* Nếu có các màn chi tiết, thêm ở đây */}
     {/* <Stack.Screen name="ChatbotScreen" component={ChatbotScreen} options={{ title: 'Chatbot hỗ trợ', ...defaultHeaderOptions }} /> */}
   </Stack.Navigator>

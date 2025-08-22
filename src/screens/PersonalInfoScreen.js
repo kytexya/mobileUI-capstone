@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -8,48 +8,79 @@ import {
   SafeAreaView,
   TextInput,
   Modal,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import ProgressBar from '../components/ProgressBar';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import ProgressBar from "../components/ProgressBar";
 import { useForm, Controller } from "react-hook-form";
-import { emailRegex, phoneRegex } from '../utils/validator';
-import AppConfig from '../utils/AppConfig';
+import { emailRegex, phoneRegex } from "../utils/validator";
+import AppConfig from "../utils/AppConfig";
+import { DOMAIN_URL } from "../utils/Constant";
+import axios from "axios";
 
 const PersonalInfoScreen = ({ navigation, route }) => {
   const {
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm({ mode: "onChange", defaultValues: {
-    fullName: AppConfig.USER_OBJ.fullName,
-    email: AppConfig.USER_OBJ.email,
-    phone: AppConfig.USER_OBJ.phoneNumber,
-  } });
+  } = useForm({
+    mode: "onChange",
+    defaultValues: {
+      fullName: AppConfig.USER_OBJ.fullName,
+      email: AppConfig.USER_OBJ.email,
+      phone: AppConfig.USER_OBJ.phoneNumber,
+    },
+  });
 
   const { selectedServices, packageId } = route.params;
-  const [vehicleOption, setVehicleOption] = useState('existing'); // 'existing' or 'new'
+  const [vehicleOption, setVehicleOption] = useState("existing"); // 'existing' or 'new'
   const [showVehicleModal, setShowVehicleModal] = useState(false);
   const [showAddVehicleModal, setShowAddVehicleModal] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState(null); // Chỉ chọn 1 xe
   const [newVehicle, setNewVehicle] = useState({
-    model: '',
-    licensePlate: '',
-    year: '',
-    color: '',
-    brand: ''
+    model: "",
+    licensePlate: "",
+    year: "",
+    color: "",
+    brand: "",
   });
-
-  // Sử dụng danh sách xe từ AppConfig
-  const [userVehicles, setUserVehicles] = useState(AppConfig.getVehicles());
   
   // Lấy danh sách xe có thể đặt lịch và xe đã được đặt lịch
   const availableVehicles = AppConfig.getAvailableVehicles();
   const scheduledVehicles = AppConfig.getScheduledVehicles();
 
+  // Mock data cho danh sách xe của user
+  const [userVehicles, setUserVehicles] = useState(AppConfig.getVehicles());
+
+  const getVehicle = () => {
+    axios
+      .get(`${DOMAIN_URL}/Vehicle`, {
+        headers: {
+          Authorization: `Bearer ${AppConfig.ACCESS_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      })
+      .then(function (response) {
+        setUserVehicles(response.data);
+      })
+      .catch(function (error) {
+        Alert.alert(
+          "Lỗi",
+          "Đã xảy ra lỗi, vui lòng thử lại!",
+          [{ text: "OK", onPress: () => console.log("OK Pressed") }],
+          { cancelable: false }
+        );
+      })
+      .finally(function () {});
+  };
+
+  useEffect(() => {
+    getVehicle();
+  }, []);
+
   const onSubmit = (data) => {
     // Validate vehicle selection
-    if (!selectedVehicle) {
-      alert('Vui lòng chọn một xe từ danh sách xe của bạn.');
+    if (selectedVehicles.length === 0) {
+      alert("Vui lòng chọn ít nhất một xe từ danh sách xe của bạn.");
       return;
     }
 
@@ -57,16 +88,16 @@ const PersonalInfoScreen = ({ navigation, route }) => {
       fullName: data?.fullName,
       email: data?.email,
       phone: data?.phone,
-    }
-    
-    navigation.navigate('DateTimeScreen', { 
-      selectedServices, 
+    };
+
+    navigation.navigate("DateTimeScreen", {
+      selectedServices,
       personalInfo,
       vehicleOption,
-      selectedVehicle: selectedVehicle,
-      packageId
-    })
-  }
+      selectedVehicles: selectedVehicles,
+      packageId,
+    });
+  };
 
   const handleAddNewVehicle = () => {
     if (!newVehicle.brand || !newVehicle.model || !newVehicle.licensePlate || !newVehicle.year || !newVehicle.color) {
@@ -89,10 +120,7 @@ const PersonalInfoScreen = ({ navigation, route }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ProgressBar 
-        currentStep={2} 
-        onBackPress={() => navigation.goBack()} 
-      />
+      <ProgressBar currentStep={2} onBackPress={() => navigation.goBack()} />
 
       <ScrollView style={styles.content}>
         <Text style={styles.title}>Thông Tin Cá Nhân</Text>
@@ -101,122 +129,120 @@ const PersonalInfoScreen = ({ navigation, route }) => {
         <View style={styles.section}>
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Họ & tên</Text>
-              <Controller
-                control={control}
-                name="fullName"
-                rules={{
-                  required: "Vui lòng nhập họ và tên !",
-                }}
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <View>
-                    <View
-                      style={[
-                        styles.inputWrapper,
-                        errors.fullName && styles.errorField,
-                      ]}
-                    >
-                      <TextInput
-                        style={styles.input}
-                        placeholder="Nhập họ và tên"
-                        value={value}
-                        onBlur={onBlur}
-                        onChangeText={onChange}
-                      />
-                      <TouchableOpacity style={styles.editButton}>
-                        <Ionicons name="pencil" size={16} color="#1976d2" />
-                      </TouchableOpacity>
-                    </View>
-                    {errors.fullName && (
-                      <Text style={styles.inputError}>
-                        {errors.fullName.message}
-                      </Text>
-                    )}
+            <Controller
+              control={control}
+              name="fullName"
+              rules={{
+                required: "Vui lòng nhập họ và tên !",
+              }}
+              render={({ field: { onChange, onBlur, value } }) => (
+                <View>
+                  <View
+                    style={[
+                      styles.inputWrapper,
+                      errors.fullName && styles.errorField,
+                    ]}
+                  >
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Nhập họ và tên"
+                      value={value}
+                      onBlur={onBlur}
+                      onChangeText={onChange}
+                    />
+                    <TouchableOpacity style={styles.editButton}>
+                      <Ionicons name="pencil" size={16} color="#1976d2" />
+                    </TouchableOpacity>
                   </View>
-                )}
-              />
-           </View>
+                  {errors.fullName && (
+                    <Text style={styles.inputError}>
+                      {errors.fullName.message}
+                    </Text>
+                  )}
+                </View>
+              )}
+            />
+          </View>
 
-           <View style={styles.inputContainer}>
-             <Text style={styles.label}>Email</Text>
-             <Controller
-                control={control}
-                name="email"
-                rules={{
-                  required: "Email không hợp lệ !",
-                  validate: (value) =>
-                    emailRegex.test(value) ||
-                    "Email không hợp lệ !",
-                }}
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <View>
-                    <View
-                      style={[
-                        styles.inputWrapper,
-                        errors.email && styles.errorField,
-                      ]}
-                    >
-                      <TextInput
-                        style={styles.input}
-                        placeholder="Nhập email"
-                        value={value}
-                        onBlur={onBlur}
-                        onChangeText={onChange}
-                        keyboardType="email-address"
-                      />
-                      <TouchableOpacity style={styles.editButton}>
-                        <Ionicons name="pencil" size={16} color="#1976d2" />
-                      </TouchableOpacity>
-                    </View>
-                    {errors.email && (
-                      <Text style={styles.inputError}>
-                        {errors.email.message}
-                      </Text>
-                    )}
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Email</Text>
+            <Controller
+              control={control}
+              name="email"
+              rules={{
+                required: "Email không hợp lệ !",
+                validate: (value) =>
+                  emailRegex.test(value) || "Email không hợp lệ !",
+              }}
+              render={({ field: { onChange, onBlur, value } }) => (
+                <View>
+                  <View
+                    style={[
+                      styles.inputWrapper,
+                      errors.email && styles.errorField,
+                    ]}
+                  >
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Nhập email"
+                      value={value}
+                      onBlur={onBlur}
+                      onChangeText={onChange}
+                      keyboardType="email-address"
+                    />
+                    <TouchableOpacity style={styles.editButton}>
+                      <Ionicons name="pencil" size={16} color="#1976d2" />
+                    </TouchableOpacity>
                   </View>
-                )}
-              />
-           </View>
+                  {errors.email && (
+                    <Text style={styles.inputError}>
+                      {errors.email.message}
+                    </Text>
+                  )}
+                </View>
+              )}
+            />
+          </View>
 
-           <View style={styles.inputContainer}>
-             <Text style={styles.label}>Số điện thoại</Text>
-             <Controller
-                control={control}
-                name="phone"
-                rules={{
-                  required: "Số điện thoại không hợp lệ !",
-                  validate: (value) =>
-                    phoneRegex.test(value) ||
-                    "Số điện thoại không hợp lệ !",
-                }}
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <View>
-                    <View
-                      style={[
-                        styles.inputWrapper,
-                        errors.phone && styles.errorField,
-                      ]}
-                    >
-                      <TextInput
-                        style={styles.input}
-                        placeholder="Nhập số điện thoại"
-                        value={value}
-                        onBlur={onBlur}
-                        onChangeText={onChange}
-                        keyboardType="phone-pad"
-                      />
-                      <TouchableOpacity style={styles.editButton}>
-                        <Ionicons name="pencil" size={16} color="#1976d2" />
-                      </TouchableOpacity>
-                    </View>
-                    {errors.phone && (
-                      <Text style={styles.inputError}>
-                        {errors.phone.message}
-                      </Text>
-                    )}
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Số điện thoại</Text>
+            <Controller
+              control={control}
+              name="phone"
+              rules={{
+                required: "Email không hợp lệ !",
+                validate: (value) =>
+                  phoneRegex.test(value) || "Số điện thoại không hợp lệ !",
+              }}
+              render={({ field: { onChange, onBlur, value } }) => (
+                <View>
+                  <View
+                    style={[
+                      styles.inputWrapper,
+                      errors.phone && styles.errorField,
+                    ]}
+                  >
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Nhập số điện thoại"
+                      value={value}
+                      onBlur={onBlur}
+                      onChangeText={onChange}
+                      keyboardType="phone-pad"
+                    />
+                    <TouchableOpacity style={styles.editButton}>
+                      <Ionicons name="pencil" size={16} color="#1976d2" />
+                    </TouchableOpacity>
                   </View>
-                )}
-              />
-           </View>
+                  {errors.phone && (
+                    <Text style={styles.inputError}>
+                      {errors.phone.message}
+                    </Text>
+                  )}
+                </View>
+              )}
+            />
+          </View>
         </View>
 
         {/* Vehicle Information */}
@@ -239,8 +265,57 @@ const PersonalInfoScreen = ({ navigation, route }) => {
               </View>
             </View>
           )}
-          
+
           <View style={styles.vehicleOption}>
+            {vehicleOption === "existing" && selectedVehicles.length === 0 ? (
+              <TouchableOpacity
+                style={styles.radioContainer}
+                onPress={() => setVehicleOption("existing")}
+              >
+                <View
+                  style={[
+                    styles.radioButton,
+                    vehicleOption === "existing" && styles.radioSelected,
+                  ]}
+                >
+                  {vehicleOption === "existing" && (
+                    <View style={styles.radioInner} />
+                  )}
+                </View>
+                <Text style={styles.radioLabel}>
+                  Lấy từ thông tin xe của bạn
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={styles.radioContainer}
+                onPress={() => setVehicleOption("existing")}
+              >
+                <View
+                  style={[
+                    styles.radioButton,
+                    vehicleOption === "existing" && styles.radioSelected,
+                  ]}
+                >
+                  {vehicleOption === "existing" && (
+                    <View style={styles.radioInner} />
+                  )}
+                </View>
+                <View style={styles.vehicleInfoContainer}>
+                  {selectedVehicles.length > 0 ? (
+                    selectedVehicles.map((vehicle, index) => (
+                      <Text key={vehicle.vehicleId} style={styles.vehicleName}>
+                        {vehicle.model}
+                      </Text>
+                    ))
+                  ) : (
+                    <Text style={styles.radioLabel}>
+                      Lấy từ thông tin xe của bạn
+                    </Text>
+                  )}
+                </View>
+              </TouchableOpacity>
+            )}
             <TouchableOpacity
               style={styles.radioContainer}
               onPress={() => setVehicleOption('existing')}
@@ -263,12 +338,15 @@ const PersonalInfoScreen = ({ navigation, route }) => {
           <View style={styles.vehicleOption}>
             <TouchableOpacity
               style={styles.radioContainer}
-              onPress={() => setVehicleOption('new')}
+              onPress={() => setVehicleOption("new")}
             >
-              <View style={[styles.radioButton, vehicleOption === 'new' && styles.radioSelected]}>
-                {vehicleOption === 'new' && (
-                  <View style={styles.radioInner} />
-                )}
+              <View
+                style={[
+                  styles.radioButton,
+                  vehicleOption === "new" && styles.radioSelected,
+                ]}
+              >
+                {vehicleOption === "new" && <View style={styles.radioInner} />}
               </View>
               <Text style={styles.radioLabel}>Thêm xe mới</Text>
             </TouchableOpacity>
@@ -281,7 +359,9 @@ const PersonalInfoScreen = ({ navigation, route }) => {
               onPress={() => setShowAddVehicleModal(true)}
             >
               <Ionicons name="add" size={16} color="#4CAF50" />
-              <Text style={styles.addButtonText}>+ Thêm một phương tiện mới</Text>
+              <Text style={styles.addButtonText}>
+                + Thêm một phương tiện mới
+              </Text>
             </TouchableOpacity>
           )}
         </View>
@@ -519,13 +599,100 @@ const PersonalInfoScreen = ({ navigation, route }) => {
             <View style={styles.modalFooter}>
               <TouchableOpacity
                 style={styles.cancelButton}
-                onPress={() => setShowAddVehicleModal(false)}
+                onPress={() => {
+                  setShowAddVehicleModal(false);
+                  setNewVehicle({
+                    brand: "",
+                    model: "",
+                    licensePlate: "",
+                    year: "",
+                    color: "",
+                  });
+                }}
               >
                 <Text style={styles.cancelButtonText}>Hủy</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.confirmButton}
-                onPress={handleAddNewVehicle}
+                // style={styles.confirmButton}
+                // onPress={handleAddNewVehicle}
+                onPress={() => {
+                  if (
+                    newVehicle.brand &&
+                    newVehicle.model &&
+                    newVehicle.licensePlate &&
+                    newVehicle.year &&
+                    newVehicle.color
+                  ) {
+                    // Thêm xe mới vào danh sách chính
+                    const vehicleToAdd = {
+                      vehicleId: Date.now(), // Tạo ID tạm thời
+                      ...newVehicle,
+                    };
+
+                    // Thêm vào danh sách xe chính (xuất hiện ở dưới cùng)
+                    // setUserVehicles(prev => [...prev, vehicleToAdd]);
+
+                    // Lưu xe vừa thêm để hiển thị ở mục "Chọn xe mới"
+                    // setRecentAddedVehicle(vehicleToAdd);
+
+                    // Tự động chuyển sang chế độ "Chọn xe mới" và hiển thị xe vừa thêm
+                    // setVehicleOption('new');
+
+                    // setShowAddVehicleModal(false);
+                    // setNewVehicle({brand: '', model: '', licensePlate: '', year: '', color: ''});
+
+                    // console.log('Đã thêm xe mới vào danh sách:', vehicleToAdd);
+                    // console.log('Danh sách xe hiện tại:', [...userVehicles, vehicleToAdd]);
+
+                    const dataSubmit = {
+                      licensePlate: newVehicle.licensePlate,
+                      make: newVehicle.color,
+                      model: newVehicle.model,
+                      year: newVehicle.year,
+                      carTypeId: 1,
+                    };
+
+                    axios
+                      .post(
+                        `${DOMAIN_URL}/Vehicle/add?customerId=${AppConfig.USER_ID}`,
+                        dataSubmit
+                      )
+                      .then(function (response) {
+                        setRecentAddedVehicle(response.data);
+                        setVehicleOption("new");
+                        getVehicle();
+                        setShowAddVehicleModal(false);
+                        setNewVehicle({
+                          brand: "",
+                          model: "",
+                          licensePlate: "",
+                          year: "",
+                          color: "",
+                        });
+                      })
+                      .catch(function (error) {
+                        Alert.alert(
+                          "Lỗi",
+                          "Đã xảy ra lỗi, vui lòng thử lại!",
+                          [
+                            {
+                              text: "OK",
+                              onPress: () => console.log("OK Pressed"),
+                            },
+                          ],
+                          { cancelable: false }
+                        );
+                      })
+                      .finally(function () {});
+                  }
+                }}
+                disabled={
+                  !newVehicle.brand ||
+                  !newVehicle.model ||
+                  !newVehicle.licensePlate ||
+                  !newVehicle.year ||
+                  !newVehicle.color
+                }
               >
                 <Text style={styles.confirmButtonText}>Thêm xe</Text>
               </TouchableOpacity>
@@ -540,7 +707,7 @@ const PersonalInfoScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   content: {
     flex: 1,
@@ -548,8 +715,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
     marginVertical: 20,
   },
   section: {
@@ -565,10 +732,10 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 8,
     paddingHorizontal: 12,
     backgroundColor: '#f8f9fa',
@@ -577,7 +744,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 12,
     fontSize: 16,
-    color: '#333',
+    color: "#333",
   },
   editButton: {
     padding: 8,
@@ -618,8 +785,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   selectedVehiclesHorizontal: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 8,
   },
   selectedVehicleChip: {
@@ -644,8 +811,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   radioContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     flex: 1,
   },
   radioButton: {
@@ -702,24 +869,24 @@ const styles = StyleSheet.create({
   footer: {
     padding: 16,
     borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
+    borderTopColor: "#f0f0f0",
   },
   nextButton: {
     backgroundColor: '#4CAF50',
     paddingVertical: 16,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: "center",
   },
   nextButtonDisabled: {
-    backgroundColor: '#ccc',
+    backgroundColor: "#ccc",
   },
   nextButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   nextButtonTextDisabled: {
-    color: '#999',
+    color: "#999",
   },
   validationMessage: {
     color: '#dc3545',
@@ -730,33 +897,33 @@ const styles = StyleSheet.create({
   // Modal styles
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 16,
-    width: '90%',
-    maxHeight: '80%',
-    shadowColor: '#000',
+    width: "90%",
+    maxHeight: "80%",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 8,
     elevation: 8,
   },
   modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: "#e0e0e0",
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
   },
   closeButton: {
     padding: 4,
@@ -815,8 +982,8 @@ const styles = StyleSheet.create({
   },
   vehicleModel: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
     marginBottom: 4,
   },
   vehicleModelDisabled: {
@@ -827,7 +994,7 @@ const styles = StyleSheet.create({
   },
   vehicleDetails: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
   },
   vehicleDetailsDisabled: {
     fontSize: 14,
@@ -880,25 +1047,25 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   modalFooter: {
-    flexDirection: 'row',
+    flexDirection: "row",
     padding: 20,
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
+    borderTopColor: "#e0e0e0",
   },
   cancelButton: {
     flex: 1,
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 8,
     marginRight: 8,
-    alignItems: 'center',
+    alignItems: "center",
   },
   cancelButtonText: {
-    color: '#666',
+    color: "#666",
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   confirmButton: {
     flex: 1,
@@ -907,13 +1074,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#4CAF50',
     borderRadius: 8,
     marginLeft: 8,
-    alignItems: 'center',
+    alignItems: "center",
   },
   confirmButtonDisabled: {
-    backgroundColor: '#ccc',
+    backgroundColor: "#ccc",
   },
   confirmButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
     fontWeight: '600',
   },
@@ -926,13 +1093,13 @@ const styles = StyleSheet.create({
   },
   formLabel: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
     marginBottom: 8,
   },
   formInput: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 12,
