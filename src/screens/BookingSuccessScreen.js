@@ -74,6 +74,22 @@ const BookingSuccessScreen = ({ navigation }) => {
               Liên hệ chúng tôi qua hotline: 1900-xxxx
             </Text>
           </View>
+
+          {/* New Booking Option */}
+          <View style={styles.newBookingCard}>
+            <Text style={styles.newBookingTitle}>Muốn sửa xe khác?</Text>
+            <Text style={styles.newBookingText}>
+              Bây giờ bạn có thể tạo lịch mới cho xe khác để đảm bảo chất lượng dịch vụ tốt nhất
+            </Text>
+            <TouchableOpacity 
+              style={styles.newBookingButton}
+              onPress={() => {
+                navigation.navigate('BookingFlowScreen');
+              }}
+            >
+              <Text style={styles.newBookingButtonText}>Tạo lịch mới</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
 
@@ -206,6 +222,38 @@ const styles = StyleSheet.create({
   contactText: {
     fontSize: 14,
     color: '#856404',
+  },
+  newBookingCard: {
+    backgroundColor: '#e3f2fd',
+    borderRadius: 8,
+    padding: 16,
+    marginTop: 16,
+    borderWidth: 1,
+    borderColor: '#1976d2',
+  },
+  newBookingTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1976d2',
+    marginBottom: 8,
+  },
+  newBookingText: {
+    fontSize: 14,
+    color: '#1976d2',
+    marginBottom: 12,
+    lineHeight: 20,
+  },
+  newBookingButton: {
+    backgroundColor: '#1976d2',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 6,
+    alignSelf: 'flex-start',
+  },
+  newBookingButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
   },
   footer: {
     padding: 16,

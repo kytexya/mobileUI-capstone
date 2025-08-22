@@ -11,7 +11,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 
 const DateTimeScreen = ({ navigation, route }) => {
-  const { selectedServices, personalInfo, vehicleOption, selectedVehicles, packageId } = route.params;
+  const { selectedServices, personalInfo, vehicleOption, selectedVehicle, packageId } = route.params;
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
   const [selectedMechanic, setSelectedMechanic] = useState('none');
@@ -271,7 +271,7 @@ const DateTimeScreen = ({ navigation, route }) => {
             selectedServices,
             personalInfo,
             vehicleOption,
-            selectedVehicles,
+            selectedVehicle,
             selectedDate,
             selectedTime,
             selectedMechanic,

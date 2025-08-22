@@ -16,7 +16,6 @@ import { emailRegex, phoneRegex } from '../utils/validator';
 import AppConfig from '../utils/AppConfig';
 
 const PersonalInfoScreen = ({ navigation, route }) => {
-
   const {
     control,
     handleSubmit,
@@ -31,7 +30,7 @@ const PersonalInfoScreen = ({ navigation, route }) => {
   const [vehicleOption, setVehicleOption] = useState('existing'); // 'existing' or 'new'
   const [showVehicleModal, setShowVehicleModal] = useState(false);
   const [showAddVehicleModal, setShowAddVehicleModal] = useState(false);
-  const [selectedVehicles, setSelectedVehicles] = useState([]); // Array để chọn nhiều xe
+  const [selectedVehicle, setSelectedVehicle] = useState(null); // Chỉ chọn 1 xe
   const [newVehicle, setNewVehicle] = useState({
     model: '',
     licensePlate: '',
@@ -42,11 +41,15 @@ const PersonalInfoScreen = ({ navigation, route }) => {
 
   // Sử dụng danh sách xe từ AppConfig
   const [userVehicles, setUserVehicles] = useState(AppConfig.getVehicles());
+  
+  // Lấy danh sách xe có thể đặt lịch và xe đã được đặt lịch
+  const availableVehicles = AppConfig.getAvailableVehicles();
+  const scheduledVehicles = AppConfig.getScheduledVehicles();
 
   const onSubmit = (data) => {
     // Validate vehicle selection
-    if (selectedVehicles.length === 0) {
-      alert('Vui lòng chọn ít nhất một xe từ danh sách xe của bạn.');
+    if (!selectedVehicle) {
+      alert('Vui lòng chọn một xe từ danh sách xe của bạn.');
       return;
     }
 
@@ -60,10 +63,29 @@ const PersonalInfoScreen = ({ navigation, route }) => {
       selectedServices, 
       personalInfo,
       vehicleOption,
-      selectedVehicles: selectedVehicles,
+      selectedVehicle: selectedVehicle,
       packageId
     })
   }
+
+  const handleAddNewVehicle = () => {
+    if (!newVehicle.brand || !newVehicle.model || !newVehicle.licensePlate || !newVehicle.year || !newVehicle.color) {
+      alert('Vui lòng điền đầy đủ thông tin xe.');
+      return;
+    }
+
+    const addedVehicle = AppConfig.addVehicle(newVehicle);
+    setUserVehicles(AppConfig.getVehicles());
+    setSelectedVehicle(addedVehicle);
+    setNewVehicle({
+      model: '',
+      licensePlate: '',
+      year: '',
+      color: '',
+      brand: ''
+    });
+    setShowAddVehicleModal(false);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -157,11 +179,11 @@ const PersonalInfoScreen = ({ navigation, route }) => {
 
            <View style={styles.inputContainer}>
              <Text style={styles.label}>Số điện thoại</Text>
-            <Controller
+             <Controller
                 control={control}
                 name="phone"
                 rules={{
-                  required: "Email không hợp lệ !",
+                  required: "Số điện thoại không hợp lệ !",
                   validate: (value) =>
                     phoneRegex.test(value) ||
                     "Số điện thoại không hợp lệ !",
@@ -194,25 +216,26 @@ const PersonalInfoScreen = ({ navigation, route }) => {
                   </View>
                 )}
               />
-          </View>
+           </View>
         </View>
 
         {/* Vehicle Information */}
         <View style={styles.vehicleSection}>
           <Text style={styles.sectionTitle}>Thông tin xe</Text>
-          {selectedVehicles && selectedVehicles.length > 0 && (
+          <Text style={styles.vehicleNote}>
+            💡 Mỗi lịch chỉ có thể chọn 1 xe để đảm bảo chất lượng dịch vụ tốt nhất. Sau khi xác nhận đặt lịch thành công, bạn có thể tạo lịch mới cho xe khác.
+          </Text>
+          {selectedVehicle && (
             <View style={styles.selectedVehiclesInfo}>
               <Text style={styles.selectedVehiclesTitle}>
-                Chọn xe trong kho:
+                Xe đã chọn:
               </Text>
               <View style={styles.selectedVehiclesHorizontal}>
-                {selectedVehicles.map((vehicle, index) => (
-                  <View key={vehicle.id} style={styles.selectedVehicleChip}>
-                    <Text style={styles.selectedVehicleChipText}>
-                      {vehicle.model} - {vehicle.licensePlate}
-                    </Text>
-                  </View>
-                ))}
+                <View style={styles.selectedVehicleChip}>
+                  <Text style={styles.selectedVehicleChipText}>
+                    {selectedVehicle.model} - {selectedVehicle.licensePlate}
+                  </Text>
+                </View>
               </View>
             </View>
           )}
@@ -227,7 +250,7 @@ const PersonalInfoScreen = ({ navigation, route }) => {
                   <View style={styles.radioInner} />
                 )}
               </View>
-              <Text style={styles.radioLabel}>Lấy từ thông tin xe của bạn</Text>
+              <Text style={styles.radioLabel}>Chọn xe từ danh sách </Text>
             </TouchableOpacity>
             <TouchableOpacity 
               style={styles.selectButton}
@@ -237,7 +260,7 @@ const PersonalInfoScreen = ({ navigation, route }) => {
             </TouchableOpacity>
           </View>
 
-                    <View style={styles.vehicleOption}>
+          <View style={styles.vehicleOption}>
             <TouchableOpacity
               style={styles.radioContainer}
               onPress={() => setVehicleOption('new')}
@@ -247,11 +270,11 @@ const PersonalInfoScreen = ({ navigation, route }) => {
                   <View style={styles.radioInner} />
                 )}
               </View>
-              <Text style={styles.radioLabel}>Chọn xe mới</Text>
+              <Text style={styles.radioLabel}>Thêm xe mới</Text>
             </TouchableOpacity>
           </View>
           
-          {/* Chỉ hiển thị nút thêm xe khi chọn "Chọn xe mới" */}
+          {/* Chỉ hiển thị nút thêm xe khi chọn "Thêm xe mới" */}
           {vehicleOption === 'new' && (
             <TouchableOpacity 
               style={styles.addButton}
@@ -269,18 +292,18 @@ const PersonalInfoScreen = ({ navigation, route }) => {
         <TouchableOpacity
           style={[
             styles.nextButton,
-            selectedVehicles.length === 0 && styles.nextButtonDisabled
+            !selectedVehicle && styles.nextButtonDisabled
           ]}
           onPress={handleSubmit(onSubmit)}
         >
           <Text style={[
             styles.nextButtonText,
-            selectedVehicles.length === 0 && styles.nextButtonTextDisabled
+            !selectedVehicle && styles.nextButtonTextDisabled
           ]}>
             Tiếp theo
           </Text>
         </TouchableOpacity>
-        {selectedVehicles.length === 0 && (
+        {!selectedVehicle && (
           <Text style={styles.validationMessage}>
             Vui lòng chọn xe trước khi tiếp tục
           </Text>
@@ -296,74 +319,100 @@ const PersonalInfoScreen = ({ navigation, route }) => {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-                         <View style={styles.modalHeader}>
-               <Text style={styles.modalTitle}>Chọn xe của bạn</Text>
-               <TouchableOpacity 
-                 onPress={() => setShowVehicleModal(false)}
-                 style={styles.closeButton}
-               >
-                 <Ionicons name="close" size={24} color="#666" />
-               </TouchableOpacity>
-             </View>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Chọn xe của bạn</Text>
+              <TouchableOpacity 
+                onPress={() => setShowVehicleModal(false)}
+                style={styles.closeButton}
+              >
+                <Ionicons name="close" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.modalNote}>
+              <Text style={styles.modalNoteText}>
+                💡 Chỉ chọn 1 xe cho mỗi lịch. Sau khi xác nhận đặt lịch thành công, bạn có thể tạo lịch mới cho xe khác.
+              </Text>
+            </View>
 
-             {/* Select All / Deselect All buttons */}
-             <View style={styles.selectAllContainer}>
-               <TouchableOpacity
-                 style={styles.selectAllButton}
-                 onPress={() => {
-                   if (selectedVehicles.length === userVehicles.length) {
-                     // Bỏ chọn tất cả
-                     setSelectedVehicles([]);
-                   } else {
-                     // Chọn tất cả
-                     setSelectedVehicles([...userVehicles]);
-                   }
-                 }}
-               >
-                 <Text style={styles.selectAllText}>
-                   {selectedVehicles.length === userVehicles.length ? 'Bỏ chọn tất cả' : 'Chọn tất cả'}
-                 </Text>
-               </TouchableOpacity>
-             </View>
+            {/* Available Vehicles Section */}
+            {availableVehicles.length > 0 && (
+              <View style={styles.vehicleSection}>
+                <Text style={styles.vehicleSectionTitle}>Xe có thể đặt lịch</Text>
+                <ScrollView style={styles.vehicleList}>
+                  {availableVehicles.map((vehicle) => (
+                    <TouchableOpacity
+                      key={vehicle.id}
+                      style={[
+                        styles.vehicleItem,
+                        selectedVehicle?.id === vehicle.id && styles.vehicleItemSelected
+                      ]}
+                      onPress={() => {
+                        setSelectedVehicle(vehicle);
+                      }}
+                    >
+                      <View style={styles.vehicleInfo}>
+                        <Text style={styles.vehicleModel}>
+                          {vehicle.brand ? `${vehicle.brand} ${vehicle.model}` : vehicle.model}
+                        </Text>
+                        <Text style={styles.vehicleDetails}>
+                          {vehicle.licensePlate} • {vehicle.year} • {vehicle.color}
+                        </Text>
+                      </View>
+                      <View style={[
+                        styles.vehicleCheckbox,
+                        selectedVehicle?.id === vehicle.id && styles.vehicleCheckboxSelected
+                      ]}>
+                        {selectedVehicle?.id === vehicle.id && (
+                          <Ionicons name="checkmark" size={16} color="white" />
+                        )}
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
 
-                         <ScrollView style={styles.vehicleList}>
-               {userVehicles.map((vehicle) => (
-                 <TouchableOpacity
-                   key={vehicle.id}
-                   style={[
-                     styles.vehicleItem,
-                     selectedVehicles.some(v => v.id === vehicle.id) && styles.vehicleItemSelected
-                   ]}
-                   onPress={() => {
-                     const isSelected = selectedVehicles.some(v => v.id === vehicle.id);
-                     if (isSelected) {
-                       // Bỏ chọn xe
-                       setSelectedVehicles(prev => prev.filter(v => v.id !== vehicle.id));
-                     } else {
-                       // Chọn xe
-                       setSelectedVehicles(prev => [...prev, vehicle]);
-                     }
-                   }}
-                 >
-                   <View style={styles.vehicleInfo}>
-                     <Text style={styles.vehicleModel}>
-                       {vehicle.brand ? `${vehicle.brand} ${vehicle.model}` : vehicle.model}
-                     </Text>
-                                         <Text style={styles.vehicleDetails}>
-                      {vehicle.licensePlate} • {vehicle.year} • {vehicle.color}
-                    </Text>
-                   </View>
-                   <View style={[
-                     styles.vehicleCheckbox,
-                     selectedVehicles.some(v => v.id === vehicle.id) && styles.vehicleCheckboxSelected
-                   ]}>
-                     {selectedVehicles.some(v => v.id === vehicle.id) && (
-                       <Ionicons name="checkmark" size={16} color="white" />
-                     )}
-                   </View>
-                 </TouchableOpacity>
-               ))}
-             </ScrollView>
+            {/* Scheduled Vehicles Section */}
+            {scheduledVehicles.length > 0 && (
+              <View style={styles.vehicleSection}>
+                <Text style={styles.vehicleSectionTitle}>Xe đã được đặt lịch</Text>
+                <ScrollView style={styles.vehicleList}>
+                  {scheduledVehicles.map((vehicle) => (
+                    <View
+                      key={vehicle.id}
+                      style={styles.vehicleItemDisabled}
+                    >
+                      <View style={styles.vehicleInfo}>
+                        <Text style={styles.vehicleModelDisabled}>
+                          {vehicle.brand ? `${vehicle.brand} ${vehicle.model}` : vehicle.model}
+                        </Text>
+                        <Text style={styles.vehicleDetailsDisabled}>
+                          {vehicle.licensePlate} • {vehicle.year} • {vehicle.color}
+                        </Text>
+                        <Text style={styles.scheduledNote}>
+                          ⏰ Đã được đặt lịch
+                        </Text>
+                      </View>
+                      <View style={styles.vehicleCheckboxDisabled}>
+                        <Ionicons name="time" size={16} color="#999" />
+                      </View>
+                    </View>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+
+            {/* No Available Vehicles Message */}
+            {availableVehicles.length === 0 && (
+              <View style={styles.noVehiclesContainer}>
+                <Ionicons name="car-outline" size={48} color="#ccc" />
+                <Text style={styles.noVehiclesTitle}>Không có xe nào có thể đặt lịch</Text>
+                <Text style={styles.noVehiclesText}>
+                  Tất cả xe của bạn đã được đặt lịch. Vui lòng hủy lịch cũ hoặc thêm xe mới.
+                </Text>
+              </View>
+            )}
 
             <View style={styles.modalFooter}>
               <TouchableOpacity
@@ -372,150 +421,120 @@ const PersonalInfoScreen = ({ navigation, route }) => {
               >
                 <Text style={styles.cancelButtonText}>Hủy</Text>
               </TouchableOpacity>
-                             <TouchableOpacity
-                 style={[
-                   styles.confirmButton,
-                   selectedVehicles.length === 0 && styles.confirmButtonDisabled
-                 ]}
-                 onPress={() => {
-                   if (selectedVehicles.length > 0) {
-                     setShowVehicleModal(false);
-                     // Có thể cập nhật UI để hiển thị xe đã chọn
-                     console.log('Xe đã chọn:', selectedVehicles);
-                   }
-                 }}
-                 disabled={selectedVehicles.length === 0}
-               >
-                 <Text style={styles.confirmButtonText}>
-                   Xác nhận ({selectedVehicles.length} xe)
-                 </Text>
-               </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.confirmButton,
+                  !selectedVehicle && styles.confirmButtonDisabled
+                ]}
+                onPress={() => {
+                  if (selectedVehicle) {
+                    setShowVehicleModal(false);
+                    console.log('Xe đã chọn:', selectedVehicle);
+                  }
+                }}
+                disabled={!selectedVehicle}
+              >
+                <Text style={styles.confirmButtonText}>
+                  Xác nhận
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
-                 </View>
-       </Modal>
+        </View>
+      </Modal>
 
-       {/* Add New Vehicle Modal */}
-       <Modal
-         visible={showAddVehicleModal}
-         transparent
-         animationType="slide"
-         onRequestClose={() => setShowAddVehicleModal(false)}
-       >
-         <View style={styles.modalOverlay}>
-           <View style={styles.modalContent}>
-             <View style={styles.modalHeader}>
-               <Text style={styles.modalTitle}>Thêm phương tiện mới</Text>
-               <TouchableOpacity 
-                 onPress={() => setShowAddVehicleModal(false)}
-                 style={styles.closeButton}
-               >
-                 <Ionicons name="close" size={24} color="#666" />
-               </TouchableOpacity>
-             </View>
+      {/* Add New Vehicle Modal */}
+      <Modal
+        visible={showAddVehicleModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowAddVehicleModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Thêm phương tiện mới</Text>
+              <TouchableOpacity 
+                onPress={() => setShowAddVehicleModal(false)}
+                style={styles.closeButton}
+              >
+                <Ionicons name="close" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
 
-             <ScrollView style={styles.addVehicleForm}>
-               <View style={styles.formField}>
-                 <Text style={styles.formLabel}>Hãng xe *</Text>
-                 <TextInput
-                   style={styles.formInput}
-                   placeholder="VD: Toyota, Honda, Ford..."
-                   value={newVehicle.brand}
-                   onChangeText={(text) => setNewVehicle(prev => ({...prev, brand: text}))}
-                 />
-               </View>
+            <ScrollView style={styles.addVehicleForm}>
+              <View style={styles.formField}>
+                <Text style={styles.formLabel}>Hãng xe *</Text>
+                <TextInput
+                  style={styles.formInput}
+                  placeholder="VD: Toyota, Honda, Ford..."
+                  value={newVehicle.brand}
+                  onChangeText={(text) => setNewVehicle(prev => ({...prev, brand: text}))}
+                />
+              </View>
 
-               <View style={styles.formField}>
-                 <Text style={styles.formLabel}>Tên xe *</Text>
-                 <TextInput
-                   style={styles.formInput}
-                   placeholder="VD: Vios, City, Ranger..."
-                   value={newVehicle.model}
-                   onChangeText={(text) => setNewVehicle(prev => ({...prev, model: text}))}
-                 />
-               </View>
+              <View style={styles.formField}>
+                <Text style={styles.formLabel}>Tên xe *</Text>
+                <TextInput
+                  style={styles.formInput}
+                  placeholder="VD: Vios, City, Ranger..."
+                  value={newVehicle.model}
+                  onChangeText={(text) => setNewVehicle(prev => ({...prev, model: text}))}
+                />
+              </View>
 
-               <View style={styles.formField}>
-                 <Text style={styles.formLabel}>Biển số xe *</Text>
-                 <TextInput
-                   style={styles.formInput}
-                   placeholder="VD: 30A-12345"
-                   value={newVehicle.licensePlate}
-                   onChangeText={(text) => setNewVehicle(prev => ({...prev, licensePlate: text}))}
-                   autoCapitalize="characters"
-                 />
-               </View>
+              <View style={styles.formField}>
+                <Text style={styles.formLabel}>Biển số xe *</Text>
+                <TextInput
+                  style={styles.formInput}
+                  placeholder="VD: 30A-12345"
+                  value={newVehicle.licensePlate}
+                  onChangeText={(text) => setNewVehicle(prev => ({...prev, licensePlate: text}))}
+                  autoCapitalize="characters"
+                />
+              </View>
 
-               <View style={styles.formField}>
-                 <Text style={styles.formLabel}>Năm sản xuất *</Text>
-                 <TextInput
-                   style={styles.formInput}
-                   placeholder="VD: 2022"
-                   value={newVehicle.year}
-                   onChangeText={(text) => setNewVehicle(prev => ({...prev, year: text}))}
-                   keyboardType="numeric"
-                 />
-               </View>
+              <View style={styles.formField}>
+                <Text style={styles.formLabel}>Năm sản xuất *</Text>
+                <TextInput
+                  style={styles.formInput}
+                  placeholder="VD: 2022"
+                  value={newVehicle.year}
+                  onChangeText={(text) => setNewVehicle(prev => ({...prev, year: text}))}
+                  keyboardType="numeric"
+                />
+              </View>
 
-               <View style={styles.formField}>
-                 <Text style={styles.formLabel}>Màu sắc *</Text>
-                 <TextInput
-                   style={styles.formInput}
-                   placeholder="VD: Trắng, Đen, Xanh..."
-                   value={newVehicle.color}
-                   onChangeText={(text) => setNewVehicle(prev => ({...prev, color: text}))}
-                 />
-               </View>
+              <View style={styles.formField}>
+                <Text style={styles.formLabel}>Màu xe *</Text>
+                <TextInput
+                  style={styles.formInput}
+                  placeholder="VD: Trắng, Đen, Xanh..."
+                  value={newVehicle.color}
+                  onChangeText={(text) => setNewVehicle(prev => ({...prev, color: text}))}
+                />
+              </View>
+            </ScrollView>
 
-               
-             </ScrollView>
-
-             <View style={styles.modalFooter}>
-               <TouchableOpacity
-                 style={styles.cancelButton}
-                                 onPress={() => {
-                  setShowAddVehicleModal(false);
-                  setNewVehicle({brand: '', model: '', licensePlate: '', year: '', color: ''});
-                }}
-               >
-                 <Text style={styles.cancelButtonText}>Hủy</Text>
-               </TouchableOpacity>
-               <TouchableOpacity
-                 style={[
-                   styles.confirmButton,
-                   (!newVehicle.brand || !newVehicle.model || !newVehicle.licensePlate || !newVehicle.year || !newVehicle.color) && styles.confirmButtonDisabled
-                 ]}
-                                   onPress={() => {
-                    if (newVehicle.brand && newVehicle.model && newVehicle.licensePlate && newVehicle.year && newVehicle.color) {
-                      // Thêm xe mới vào AppConfig
-                      const vehicleToAdd = AppConfig.addVehicle(newVehicle);
-                      
-                      // Cập nhật state local
-                      setUserVehicles(AppConfig.getVehicles());
-
-                      // Tự động chọn xe mới vừa thêm
-                      setSelectedVehicles(prev => [...prev, vehicleToAdd]);
-
-                      // Chuyển sang chế độ "existing" để hiển thị xe đã chọn
-                      setVehicleOption('existing');
-                      
-                      setShowAddVehicleModal(false);
-                      setNewVehicle({brand: '', model: '', licensePlate: '', year: '', color: ''});
-                      
-                      console.log('Đã thêm xe mới vào danh sách:', vehicleToAdd);
-                      console.log('Xe đã được tự động chọn:', vehicleToAdd);
-                    }
-                  }}
-                 disabled={!newVehicle.brand || !newVehicle.model || !newVehicle.licensePlate || !newVehicle.year || !newVehicle.color}
-               >
-                 <Text style={styles.confirmButtonText}>Thêm xe</Text>
-               </TouchableOpacity>
-             </View>
-           </View>
-         </View>
-       </Modal>
-     </SafeAreaView>
-   );
+            <View style={styles.modalFooter}>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => setShowAddVehicleModal(false)}
+              >
+                <Text style={styles.cancelButtonText}>Hủy</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.confirmButton}
+                onPress={handleAddNewVehicle}
+              >
+                <Text style={styles.confirmButtonText}>Thêm xe</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </SafeAreaView>
+  );
 };
 
 const styles = StyleSheet.create({
@@ -540,7 +559,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   label: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
     color: '#333',
     marginBottom: 8,
@@ -551,46 +570,51 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 8,
+    paddingHorizontal: 12,
     backgroundColor: '#f8f9fa',
-  },
-  errorField: {
-    borderWidth: 1,
-    borderColor: '#ff0000ff',
   },
   input: {
     flex: 1,
-    padding: 12,
+    paddingVertical: 12,
     fontSize: 16,
     color: '#333',
   },
   editButton: {
-    padding: 12,
+    padding: 8,
+  },
+  errorField: {
+    borderColor: '#dc3545',
+  },
+  inputError: {
+    color: '#dc3545',
+    fontSize: 12,
+    marginTop: 4,
   },
   vehicleSection: {
-    borderWidth: 2,
-    borderColor: '#1976d2',
-    borderRadius: 20,
-    padding: 20,
-    backgroundColor: '#f0f8ff',
     marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 12,
+  },
+  vehicleNote: {
+    fontSize: 12,
+    color: '#666',
+    backgroundColor: '#e3f2fd',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    lineHeight: 18,
   },
   selectedVehiclesInfo: {
-    backgroundColor: '#e8f5e8',
-    borderRadius: 8,
-    padding: 12,
     marginBottom: 16,
-    borderLeftWidth: 4,
-    borderLeftColor: '#4caf50',
   },
   selectedVehiclesTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#2e7d32',
+    color: '#333',
     marginBottom: 8,
   },
   selectedVehiclesHorizontal: {
@@ -599,31 +623,25 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   selectedVehicleChip: {
-    backgroundColor: '#e0f2f7',
-    borderRadius: 16,
-    paddingVertical: 6,
+    backgroundColor: '#4CAF50',
     paddingHorizontal: 12,
-    borderWidth: 1,
-    borderColor: '#1976d2',
-    marginBottom: 4,
+    paddingVertical: 6,
+    borderRadius: 16,
   },
   selectedVehicleChipText: {
+    color: 'white',
     fontSize: 12,
-    color: '#1976d2',
-    fontWeight: '500',
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 20,
+    fontWeight: '600',
   },
   vehicleOption: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 20,
-    paddingVertical: 8,
+    marginBottom: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
   },
   radioContainer: {
     flexDirection: 'row',
@@ -631,72 +649,54 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   radioButton: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     borderWidth: 2,
     borderColor: '#ddd',
+    marginRight: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
   },
   radioSelected: {
-    borderColor: '#1976d2',
-    backgroundColor: '#1976d2',
+    borderColor: '#4CAF50',
   },
   radioInner: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: 'white',
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#4CAF50',
   },
   radioLabel: {
     fontSize: 16,
     color: '#333',
-    flex: 1,
-    fontWeight: '500',
-  },
-  vehicleInfoContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    marginLeft: 0,
-  },
-  vehicleName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginLeft: 0,
   },
   selectButton: {
     backgroundColor: '#1976d2',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 8,
-    minWidth: 80,
-    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 6,
   },
   selectButtonText: {
     color: 'white',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
   },
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#1976d2',
-    backgroundColor: 'white',
-    paddingHorizontal: 20,
+    justifyContent: 'center',
+    backgroundColor: '#e8f5e8',
     paddingVertical: 12,
     borderRadius: 8,
-    width: '100%',
-    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#4CAF50',
     marginTop: 8,
   },
   addButtonText: {
-    color: '#1976d2',
-    fontSize: 16,
-    fontWeight: '500',
+    color: '#4CAF50',
+    fontSize: 14,
+    fontWeight: '600',
     marginLeft: 8,
   },
   footer: {
@@ -705,7 +705,7 @@ const styles = StyleSheet.create({
     borderTopColor: '#f0f0f0',
   },
   nextButton: {
-    backgroundColor: '#1976d2',
+    backgroundColor: '#4CAF50',
     paddingVertical: 16,
     borderRadius: 8,
     alignItems: 'center',
@@ -722,13 +722,10 @@ const styles = StyleSheet.create({
     color: '#999',
   },
   validationMessage: {
-    color: '#ff4444',
-    fontSize: 14,
+    color: '#dc3545',
+    fontSize: 12,
     textAlign: 'center',
     marginTop: 8,
-  },
-  inputError: {
-    color: "#ff0000ff",
   },
   // Modal styles
   modalOverlay: {
@@ -764,41 +761,54 @@ const styles = StyleSheet.create({
   closeButton: {
     padding: 4,
   },
-  selectAllContainer: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+  modalNote: {
+    padding: 16,
+    backgroundColor: '#e3f2fd',
+    marginHorizontal: 20,
+    marginTop: 16,
+    borderRadius: 8,
   },
-  selectAllButton: {
-    alignSelf: 'flex-start',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    backgroundColor: '#f0f8ff',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#1976d2',
-  },
-  selectAllText: {
+  modalNoteText: {
+    fontSize: 12,
     color: '#1976d2',
-    fontSize: 14,
-    fontWeight: '500',
+    lineHeight: 18,
+  },
+  vehicleSection: {
+    marginHorizontal: 20,
+    marginTop: 16,
+  },
+  vehicleSectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 12,
   },
   vehicleList: {
-    maxHeight: 300,
+    maxHeight: 200,
   },
   vehicleItem: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+    marginBottom: 8,
   },
   vehicleItemSelected: {
-    backgroundColor: '#f0f8ff',
-    borderLeftWidth: 3,
-    borderLeftColor: '#1976d2',
+    backgroundColor: '#e8f5e8',
+    borderWidth: 1,
+    borderColor: '#4CAF50',
+  },
+  vehicleItemDisabled: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 8,
+    marginBottom: 8,
+    opacity: 0.6,
   },
   vehicleInfo: {
     flex: 1,
@@ -809,9 +819,24 @@ const styles = StyleSheet.create({
     color: '#333',
     marginBottom: 4,
   },
+  vehicleModelDisabled: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#999',
+    marginBottom: 4,
+  },
   vehicleDetails: {
     fontSize: 14,
     color: '#666',
+  },
+  vehicleDetailsDisabled: {
+    fontSize: 14,
+    color: '#ccc',
+  },
+  scheduledNote: {
+    fontSize: 12,
+    color: '#ff9800',
+    marginTop: 4,
   },
   vehicleCheckbox: {
     width: 24,
@@ -821,11 +846,38 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
   },
   vehicleCheckboxSelected: {
-    backgroundColor: '#1976d2',
-    borderColor: '#1976d2',
+    backgroundColor: '#4CAF50',
+    borderColor: '#4CAF50',
+  },
+  vehicleCheckboxDisabled: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#ccc',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+  },
+  noVehiclesContainer: {
+    alignItems: 'center',
+    padding: 32,
+    marginHorizontal: 20,
+  },
+  noVehiclesTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#666',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  noVehiclesText: {
+    fontSize: 14,
+    color: '#999',
+    textAlign: 'center',
+    lineHeight: 20,
   },
   modalFooter: {
     flexDirection: 'row',
@@ -852,7 +904,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 12,
     paddingHorizontal: 16,
-    backgroundColor: '#1976d2',
+    backgroundColor: '#4CAF50',
     borderRadius: 8,
     marginLeft: 8,
     alignItems: 'center',
@@ -863,15 +915,14 @@ const styles = StyleSheet.create({
   confirmButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: '600',
   },
-  // Add vehicle form styles
   addVehicleForm: {
-    padding: 20,
+    paddingHorizontal: 20,
     maxHeight: 400,
   },
   formField: {
-    marginBottom: 20,
+    marginBottom: 16,
   },
   formLabel: {
     fontSize: 14,
@@ -883,10 +934,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 8,
-    padding: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
     fontSize: 16,
-    backgroundColor: '#f8f9fa',
-    color: '#333',
+    backgroundColor: '#fff',
   },
 });
 

@@ -80,4 +80,45 @@ export default class AppConfig {
             this.VEHICLES[index] = { ...this.VEHICLES[index], ...updatedData };
         }
     }
+
+    // Quản lý xe đã được đặt lịch
+    static SCHEDULED_VEHICLES = new Set();
+
+    // Đánh dấu xe đã được đặt lịch
+    static markVehicleAsScheduled(vehicleId) {
+        this.SCHEDULED_VEHICLES.add(vehicleId);
+    }
+
+    // Bỏ đánh dấu xe đã được đặt lịch (khi hủy lịch)
+    static unmarkVehicleAsScheduled(vehicleId) {
+        this.SCHEDULED_VEHICLES.delete(vehicleId);
+    }
+
+    // Kiểm tra xe đã được đặt lịch chưa
+    static isVehicleScheduled(vehicleId) {
+        return this.SCHEDULED_VEHICLES.has(vehicleId);
+    }
+
+    // Lấy danh sách xe có thể đặt lịch (chưa được đặt)
+    static getAvailableVehicles() {
+        return this.VEHICLES.filter(vehicle => !this.SCHEDULED_VEHICLES.has(vehicle.id));
+    }
+
+    // Lấy danh sách xe đã được đặt lịch
+    static getScheduledVehicles() {
+        return this.VEHICLES.filter(vehicle => this.SCHEDULED_VEHICLES.has(vehicle.id));
+    }
+
+    // Test function - đánh dấu một số xe đã được đặt lịch để test
+    static testMarkScheduledVehicles() {
+        // Đánh dấu xe đầu tiên đã được đặt lịch
+        this.markVehicleAsScheduled(1);
+        console.log('Đã đánh dấu xe ID 1 (Mitsubishi Xpander) đã được đặt lịch');
+    }
+
+    // Reset tất cả xe về trạng thái chưa đặt lịch
+    static resetAllVehicles() {
+        this.SCHEDULED_VEHICLES.clear();
+        console.log('Đã reset tất cả xe về trạng thái chưa đặt lịch');
+    }
 }

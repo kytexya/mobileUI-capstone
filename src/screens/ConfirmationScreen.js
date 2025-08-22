@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,8 @@ import {
   ScrollView,
   TouchableOpacity,
   SafeAreaView,
+  Modal,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
@@ -13,6 +15,10 @@ import AppConfig from '../utils/AppConfig';
 import { DOMAIN_URL } from '../utils/Constant';
 
 const ConfirmationScreen = ({ navigation, route }) => {
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [testMode, setTestMode] = useState('success'); // 'success' or 'error'
+  
   const { 
     selectedServices, 
     personalInfo, 
@@ -21,7 +27,7 @@ const ConfirmationScreen = ({ navigation, route }) => {
     selectedTime, 
     selectedMechanic,
     packageId,
-    selectedVehicles
+    selectedVehicle
   } = route.params;
 
   const serviceCategories = [
@@ -112,63 +118,74 @@ const ConfirmationScreen = ({ navigation, route }) => {
   };
 
   const selectedServiceDetails = getSelectedServiceDetails();
-  const vehicleCount = selectedVehicles ? selectedVehicles.length : 1;
+  const vehicleCount = selectedVehicle ? 1 : 0;
   
   // Tính giá dựa trên combo hoặc dịch vụ riêng lẻ
   const totalPrice = selectedServiceDetails.reduce((sum, service) => {
-    if (service.isCombo) {
-      // Nếu là combo, lấy giá combo
-      const price = parseInt(service.price.replace(/[^\d]/g, ''));
-      return sum + (price * vehicleCount);
-    } else {
-      // Nếu là dịch vụ riêng lẻ, tính như cũ
-      const price = parseInt(service.price.replace(/[^\d]/g, ''));
-      return sum + (price * vehicleCount);
-    }
+    const price = parseInt(service.price.replace(/[^\d]/g, ''));
+    return sum + price;
   }, 0);
 
   const handleConfirmBooking = () => {
-    // Here you would typically send the booking data to your backend
-    // console.log('Booking confirmed:', {
-    //   selectedServices,
-    //   personalInfo,
-    //   vehicleOption,
-    //   selectedDate,
-    //   selectedTime,
-    //   selectedMechanic,
-    //   totalPrice
-    // });
+    setShowConfirmModal(true);
+  };
 
-    const dataSubmit = {
-      vehicleId: 1,
-      packageId: packageId,
-      serviceIds: selectedServices,
-      promotionId: null,
-      appointmentDate: `2025-08-${selectedDate}T${selectedTime}:28.598Z`
-    }    
+  const handleFinalConfirm = () => {
+    setIsLoading(true);
+    setShowConfirmModal(false);
 
-    axios.post(DOMAIN_URL + `/Appointment/schedule?customerId=${AppConfig.USER_ID}`,
-      dataSubmit,
-      {
-        headers: {
-          Authorization: `Bearer ${AppConfig.ACCESS_TOKEN}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    )
-      .then(function (response) {
-        console.log("response ",response);
-        
+    // Simulate API call delay
+    setTimeout(() => {
+      setIsLoading(false);
+      
+      // For testing - simulate different scenarios
+      if (testMode === 'success') {
+        // Đánh dấu xe đã được đặt lịch
+        AppConfig.markVehicleAsScheduled(selectedVehicle.id);
         navigation.navigate('BookingSuccessScreen');
-      })
-      .catch(function (error) {
-        console.log(error);
-      })
-      .finally(function () {
-      });
-    
-    // Navigate to success screen or back to home
-    // navigation.navigate('BookingSuccessScreen');
+      } else {
+        Alert.alert(
+          'Lỗi',
+          'Có lỗi xảy ra khi đặt lịch. Vui lòng thử lại.',
+          [{ text: 'OK' }]
+        );
+      }
+      
+      // Uncomment below code when you have real API
+      /*
+      const dataSubmit = {
+        vehicleId: selectedVehicle.id,
+        packageId: packageId,
+        serviceIds: selectedServices,
+        promotionId: null,
+        appointmentDate: `2025-08-${selectedDate}T${selectedTime}:28.598Z`
+      }    
+
+      axios.post(DOMAIN_URL + `/Appointment/schedule?customerId=${AppConfig.USER_ID}`,
+        dataSubmit,
+        {
+          headers: {
+            Authorization: `Bearer ${AppConfig.ACCESS_TOKEN}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      )
+        .then(function (response) {
+          console.log("response ",response);
+          setIsLoading(false);
+          navigation.navigate('BookingSuccessScreen');
+        })
+        .catch(function (error) {
+          console.log(error);
+          setIsLoading(false);
+          Alert.alert(
+            'Lỗi',
+            'Có lỗi xảy ra khi đặt lịch. Vui lòng thử lại.',
+            [{ text: 'OK' }]
+          );
+        });
+      */
+    }, 2000); // 2 seconds delay to simulate API call
   };
 
   return (
@@ -216,28 +233,23 @@ const ConfirmationScreen = ({ navigation, route }) => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Thông tin xe</Text>
           <View style={styles.infoCard}>
-            {selectedVehicles && selectedVehicles.length > 0 ? (
-              <>
-                {selectedVehicles.map((vehicle, index) => (
-                  <View key={vehicle.id} style={styles.vehicleRow}>
-                    <View style={styles.vehicleInfo}>
-                      <Ionicons name="car" size={16} color="#1976d2" />
-                      <View style={styles.vehicleDetails}>
-                        <Text style={styles.vehicleName}>{vehicle.model}</Text>
-                        <Text style={styles.vehicleSubInfo}>
-                          {vehicle.licensePlate} • {vehicle.year} • {vehicle.color}
-                        </Text>
-                      </View>
-                    </View>
+            {selectedVehicle ? (
+              <View style={styles.vehicleRow}>
+                <View style={styles.vehicleInfo}>
+                  <Ionicons name="car" size={16} color="#1976d2" />
+                  <View style={styles.vehicleDetails}>
+                    <Text style={styles.vehicleName}>{selectedVehicle.model}</Text>
+                    <Text style={styles.vehicleSubInfo}>
+                      {selectedVehicle.licensePlate} • {selectedVehicle.year} • {selectedVehicle.color}
+                    </Text>
                   </View>
-                ))}
-                
-              </>
+                </View>
+              </View>
             ) : (
               <View style={styles.infoRow}>
                 <Ionicons name="car" size={16} color="#1976d2" />
                 <Text style={styles.infoText}>
-                  {vehicleOption === 'existing' ? 'Lấy từ thông tin xe của bạn' : 'Chọn xe mới'}
+                  {vehicleOption === 'existing' ? 'Chọn xe từ danh sách của bạn' : 'Thêm xe mới'}
                 </Text>
               </View>
             )}
@@ -261,31 +273,8 @@ const ConfirmationScreen = ({ navigation, route }) => {
                    </View>
                    <View style={styles.priceContainer}>
                      <Text style={styles.servicePrice}>
-                       {service.isCombo ? (
-                         // Nếu là combo, hiển thị giá combo
-                         <>
-                           <Text style={styles.comboPrice}>{service.price}</Text>
-                           {vehicleCount > 1 && (
-                             <Text style={styles.multiplier}> x{vehicleCount}</Text>
-                           )}
-                         </>
-                       ) : (
-                         // Nếu là dịch vụ riêng lẻ, hiển thị x3 khi có nhiều xe
-                         vehicleCount > 1 ? (
-                           <>
-                             <Text>{service.price} </Text>
-                             <Text style={styles.multiplier}>x{vehicleCount}</Text>
-                           </>
-                         ) : (
-                           service.price
-                         )
-                       )}
+                       {service.price}
                      </Text>
-                     {vehicleCount > 1 && (
-                       <Text style={styles.totalServicePrice}>
-                         = {totalServicePrice.toLocaleString()}đ
-                       </Text>
-                     )}
                    </View>
                  </View>
                );
@@ -326,24 +315,153 @@ const ConfirmationScreen = ({ navigation, route }) => {
               • Vui lòng đến đúng giờ đã đặt lịch{'\n'}
               • Hủy lịch trước ít nhất 2 giờ{'\n'}
               • Mang theo giấy tờ xe khi đến{'\n'}
-              • Thanh toán tại cửa hàng sau khi hoàn thành dịch vụ
+              • Thanh toán tại cửa hàng sau khi hoàn thành dịch vụ{'\n'}
+              • Mỗi lịch chỉ dành cho 1 xe để đảm bảo chất lượng
             </Text>
           </View>
         </View>
+
+        {/* Booking Process Info */}
+        <View style={styles.section}>
+          <View style={styles.processCard}>
+            <Text style={styles.processTitle}>Quy trình đặt lịch</Text>
+            <Text style={styles.processText}>
+              • Sau khi xác nhận đặt lịch thành công, bạn có thể tạo lịch mới cho xe khác{'\n'}
+              • Mỗi lịch sẽ được xử lý riêng biệt để tránh kẹt giờ{'\n'}
+              • Hệ thống sẽ đảm bảo thời gian phù hợp cho từng xe
+            </Text>
+          </View>
+        </View>
+
+
       </ScrollView>
 
-      {/* Confirm button */}
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={styles.confirmButton}
-          onPress={handleConfirmBooking}
-        >
-          <Text style={styles.confirmButtonText}>Xác Nhận Đặt Lịch</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
-  );
-};
+             {/* Confirm button */}
+       <View style={styles.footer}>
+         <TouchableOpacity
+           style={[
+             styles.confirmButton,
+             isLoading && styles.confirmButtonDisabled
+           ]}
+           onPress={handleConfirmBooking}
+           disabled={isLoading}
+         >
+           <Text style={[
+             styles.confirmButtonText,
+             isLoading && styles.confirmButtonTextDisabled
+           ]}>
+             {isLoading ? 'Đang xử lý...' : 'Xác Nhận Đặt Lịch'}
+           </Text>
+         </TouchableOpacity>
+       </View>
+
+       {/* Final Confirmation Modal */}
+       <Modal
+         visible={showConfirmModal}
+         transparent
+         animationType="fade"
+         onRequestClose={() => setShowConfirmModal(false)}
+       >
+         <View style={styles.modalOverlay}>
+           <View style={styles.modalContent}>
+             <View style={styles.modalHeader}>
+               <Text style={styles.modalTitle}>Xác nhận đặt lịch</Text>
+               <TouchableOpacity 
+                 onPress={() => setShowConfirmModal(false)}
+                 style={styles.closeButton}
+               >
+                 <Ionicons name="close" size={24} color="#666" />
+               </TouchableOpacity>
+             </View>
+
+                           <View style={styles.modalBody}>
+                <View style={styles.confirmIcon}>
+                  <Ionicons name="checkmark-circle" size={60} color="#4CAF50" />
+                </View>
+                
+                <Text style={styles.confirmMessage}>
+                  Bạn có chắc chắn muốn đặt lịch này?
+                </Text>
+
+                {/* Test Mode Toggle - Only for development */}
+                <View style={styles.testModeContainer}>
+                  <Text style={styles.testModeLabel}>Test Mode:</Text>
+                  <View style={styles.testModeButtons}>
+                    <TouchableOpacity
+                      style={[
+                        styles.testModeButton,
+                        testMode === 'success' && styles.testModeButtonActive
+                      ]}
+                      onPress={() => setTestMode('success')}
+                    >
+                      <Text style={[
+                        styles.testModeButtonText,
+                        testMode === 'success' && styles.testModeButtonTextActive
+                      ]}>
+                        Success
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[
+                        styles.testModeButton,
+                        testMode === 'error' && styles.testModeButtonActive
+                      ]}
+                      onPress={() => setTestMode('error')}
+                    >
+                      <Text style={[
+                        styles.testModeButtonText,
+                        testMode === 'error' && styles.testModeButtonTextActive
+                      ]}>
+                        Error
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+               
+               <View style={styles.confirmDetails}>
+                 <View style={styles.confirmDetailRow}>
+                   <Ionicons name="car" size={16} color="#1976d2" />
+                   <Text style={styles.confirmDetailText}>
+                     {selectedVehicle?.model} - {selectedVehicle?.licensePlate}
+                   </Text>
+                 </View>
+                 
+                 <View style={styles.confirmDetailRow}>
+                   <Ionicons name="calendar" size={16} color="#1976d2" />
+                   <Text style={styles.confirmDetailText}>
+                     Ngày {selectedDate} tháng 8 năm 2025 lúc {selectedTime}
+                   </Text>
+                 </View>
+                 
+                 <View style={styles.confirmDetailRow}>
+                   <Ionicons name="card" size={16} color="#1976d2" />
+                   <Text style={styles.confirmDetailText}>
+                     Tổng tiền: {totalPrice.toLocaleString()}đ
+                   </Text>
+                 </View>
+               </View>
+             </View>
+
+             <View style={styles.modalFooter}>
+               <TouchableOpacity
+                 style={styles.cancelButton}
+                 onPress={() => setShowConfirmModal(false)}
+               >
+                 <Text style={styles.cancelButtonText}>Hủy</Text>
+               </TouchableOpacity>
+               <TouchableOpacity
+                 style={styles.finalConfirmButton}
+                 onPress={handleFinalConfirm}
+               >
+                 <Text style={styles.finalConfirmButtonText}>Xác nhận</Text>
+               </TouchableOpacity>
+             </View>
+           </View>
+         </View>
+       </Modal>
+     </SafeAreaView>
+   );
+ };
 
 const styles = StyleSheet.create({
   container: {
@@ -560,6 +678,55 @@ const styles = StyleSheet.create({
     color: '#856404',
     lineHeight: 18,
   },
+  processCard: {
+    backgroundColor: '#e3f2fd',
+    borderRadius: 8,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#1976d2',
+  },
+  processTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1976d2',
+    marginBottom: 8,
+  },
+  processText: {
+    fontSize: 12,
+    color: '#1976d2',
+    lineHeight: 18,
+  },
+  newBookingCard: {
+    backgroundColor: '#e8f5e8',
+    borderRadius: 8,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#4caf50',
+  },
+  newBookingTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#2e7d32',
+    marginBottom: 8,
+  },
+  newBookingText: {
+    fontSize: 12,
+    color: '#2e7d32',
+    lineHeight: 18,
+    marginBottom: 12,
+  },
+  newBookingButton: {
+    backgroundColor: '#4caf50',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 6,
+    alignSelf: 'flex-start',
+  },
+  newBookingButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
   footer: {
     padding: 16,
     borderTopWidth: 1,
@@ -575,6 +742,153 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  confirmButtonDisabled: {
+    backgroundColor: '#ccc',
+  },
+  confirmButtonTextDisabled: {
+    color: '#999',
+  },
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    width: '90%',
+    maxWidth: 400,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  closeButton: {
+    padding: 4,
+  },
+  modalBody: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  confirmIcon: {
+    marginBottom: 16,
+  },
+  confirmMessage: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  testModeContainer: {
+    width: '100%',
+    marginBottom: 20,
+    padding: 12,
+    backgroundColor: '#f0f8ff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#1976d2',
+  },
+  testModeLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#1976d2',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  testModeButtons: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  testModeButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#1976d2',
+    backgroundColor: '#fff',
+  },
+  testModeButtonActive: {
+    backgroundColor: '#1976d2',
+  },
+  testModeButtonText: {
+    fontSize: 12,
+    color: '#1976d2',
+    fontWeight: '500',
+  },
+  testModeButtonTextActive: {
+    color: '#fff',
+  },
+  confirmDetails: {
+    width: '100%',
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 20,
+  },
+  confirmDetailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  confirmDetailText: {
+    fontSize: 14,
+    color: '#333',
+    marginLeft: 8,
+    flex: 1,
+  },
+  modalFooter: {
+    flexDirection: 'row',
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+  },
+  cancelButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    marginRight: 8,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    color: '#666',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  finalConfirmButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: '#4CAF50',
+    borderRadius: 8,
+    marginLeft: 8,
+    alignItems: 'center',
+  },
+  finalConfirmButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 
