@@ -14,9 +14,11 @@ import InputForm from "../components/InputForm";
 import { emailRegex, phoneRegex } from "../utils/validator";
 import axios from "axios";
 import { DOMAIN_URL } from "../utils/Constant";
+import { Loading } from "../components/Loading";
 
 const RegisterScreen = ({ navigation }) => {
   const methods = useForm();
+  const [loading, setLoading] = useState(false);
 
   const onSubmit = (data) => {
     if (data?.password != data?.passwordConfirm) {
@@ -27,7 +29,7 @@ const RegisterScreen = ({ navigation }) => {
         message: "Mật khẩu không trùng khớp !",
       });
     }
-
+    setLoading(true);
     const dataSubmit = {
       fullName: data?.name,
       email: data?.email,
@@ -54,7 +56,9 @@ const RegisterScreen = ({ navigation }) => {
           { cancelable: false }
         );
       })
-      .finally(function () {});
+      .finally(function () {
+        setLoading(false);
+      });
   };
 
   return (
@@ -109,6 +113,7 @@ const RegisterScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
       </FormProvider>
+      <Loading show={loading} />
     </KeyboardAvoidingView>
   );
 };

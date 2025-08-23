@@ -5,6 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { DOMAIN_URL } from "../utils/Constant";
 import AppConfig from "../utils/AppConfig";
 import axios from "axios";
+import { Loading } from "../components/Loading";
 
 const mockNotifications = [
   {
@@ -45,12 +46,14 @@ const getIcon = (type) => {
 
 const NotificationScreen = () => {
   const [notifi, setNotifi] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     getNotification();
   }, []);
 
   const getNotification = () => {
+    setLoading(true);
     axios
       .get(`${DOMAIN_URL}/Notification/user/${AppConfig.USER_ID}`, {
         headers: {
@@ -70,7 +73,9 @@ const NotificationScreen = () => {
           { cancelable: false }
         );
       })
-      .finally(function () {});
+      .finally(function () {
+        setLoading(false);
+      });
   };
 
   const formatDate = (_date) => {
@@ -81,43 +86,46 @@ const NotificationScreen = () => {
     const formatted = `${pad(date.getHours())}:${pad(date.getMinutes())} ${pad(
       date.getDate()
     )}/${pad(date.getMonth() + 1)}/${date.getFullYear()}`;
-    return formatted
+    return formatted;
   };
   return (
     <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
-      <Text style={styles.title}>Thông báo</Text>
-      <ScrollView
-        contentContainerStyle={{ paddingBottom: 24, marginTop: 18 }}
-        showsVerticalScrollIndicator={false}
-      >
-        {notifi.map((item) => (
-          <View key={item.notificationId} style={styles.card}>
-            <View style={styles.cardHeader}>
-              {getIcon(item.type)}
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={[
-                    styles.titleText,
-                    item.type === "promo"
-                      ? { color: "#e91e63" }
-                      : { color: "#1976d2" },
-                  ]}
-                >
-                  {item.title}
-                </Text>
-                <Text style={styles.content}>{item.message}</Text>
+      <View style={{ padding: 16 }}>
+        <Text style={styles.title}>Thông báo</Text>
+        <ScrollView
+          contentContainerStyle={{ paddingBottom: 24, marginTop: 18 }}
+          showsVerticalScrollIndicator={false}
+        >
+          {notifi.map((item) => (
+            <View key={item.notificationId} style={styles.card}>
+              <View style={styles.cardHeader}>
+                {getIcon(item.type)}
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={[
+                      styles.titleText,
+                      item.type === "promo"
+                        ? { color: "#e91e63" }
+                        : { color: "#1976d2" },
+                    ]}
+                  >
+                    {item.title}
+                  </Text>
+                  <Text style={styles.content}>{item.message}</Text>
+                </View>
+                <Text style={styles.date}>{formatDate(item.sentAt)}</Text>
               </View>
-              <Text style={styles.date}>{formatDate(item.sentAt)}</Text>
             </View>
-          </View>
-        ))}
-      </ScrollView>
+          ))}
+        </ScrollView>
+      </View>
+      <Loading show={loading} />
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: "#f4f6fb" },
+  container: { flex: 1, backgroundColor: "#f4f6fb" },
   card: {
     backgroundColor: "#fff",
     borderRadius: 18,
