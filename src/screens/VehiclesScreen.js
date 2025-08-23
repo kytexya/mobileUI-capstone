@@ -14,37 +14,12 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import axios from "axios";
 import AppConfig from "../utils/AppConfig";
 import { DOMAIN_URL } from "../utils/Constant";
+import { Loading } from "../components/Loading";
 
 const VehiclesScreen = ({navigation}) => {
   const [showAddVehicleModal, setShowAddVehicleModal] = useState(false);
-  const [vehicles, setVehicles] = useState([
-    // {
-    //   id: 1,
-    //   brand: "Toyota",
-    //   model: "Camry",
-    //   licensePlate: "30A-12345",
-    //   year: "2022",
-    //   color: "Trắng",
-    //   mileage: "25,000 km",
-    //   fuelType: "Xăng",
-    //   status: "Hoạt động",
-    //   lastService: "15/10/2024",
-    //   nextService: "15/01/2025",
-    // },
-    // {
-    //   id: 2,
-    //   brand: "Honda",
-    //   model: "CRV",
-    //   licensePlate: "51B-67890",
-    //   year: "2021",
-    //   color: "Đen",
-    //   mileage: "32,000 km",
-    //   fuelType: "Xăng",
-    //   status: "Hoạt động",
-    //   lastService: "20/09/2024",
-    //   nextService: "20/12/2024",
-    // },
-  ]);
+  const [vehicles, setVehicles] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [newVehicle, setNewVehicle] = useState({
     model: "",
     licensePlate: "",
@@ -53,8 +28,6 @@ const VehiclesScreen = ({navigation}) => {
   });
 
   const deleteVehicle = (vehicleId) => {
-    console.log("vehicleId ", vehicleId);
-
     Alert.alert("Xác nhận xóa", "Bạn có chắc chắn muốn xóa xe này?", [
       {
         text: "Hủy",
@@ -64,14 +37,7 @@ const VehiclesScreen = ({navigation}) => {
         text: "Xóa",
         style: "destructive",
         onPress: () => {
-          // setVehicles((prev) =>
-          //   prev.filter((vehicle) => vehicle.id !== vehicleId)
-          // );
-
-          // Call api delete vehicle
-          // const dataSubmit = {
-          //   vehicleId: vehicleId
-          // }
+          setLoading(true);
           axios
             .delete(`${DOMAIN_URL}/Vehicle/remove/${vehicleId}`, {
               headers: {
@@ -89,6 +55,7 @@ const VehiclesScreen = ({navigation}) => {
               );
             })
             .catch(function (error) {
+              setLoading(false)
               Alert.alert(
                 "Lỗi",
                 "Đã xảy ra lỗi, vui lòng thử lại!",
@@ -96,13 +63,16 @@ const VehiclesScreen = ({navigation}) => {
                 { cancelable: false }
               );
             })
-            .finally(function () {});
+            .finally(function () {
+              setLoading(false)
+            });
         },
       },
     ]);
   };
 
   const addVehicle = () => {
+    setLoading(true);
     if (
       newVehicle.model &&
       newVehicle.licensePlate &&
@@ -132,10 +102,11 @@ const VehiclesScreen = ({navigation}) => {
         dataSubmit
       )
       .then(function (response) {
-        getVehicle();
         setShowAddVehicleModal(false);
+        getVehicle();
       })
       .catch(function (error) {
+        setLoading(false)
         Alert.alert(
           "Lỗi",
           "Đã xảy ra lỗi, vui lòng thử lại!",
@@ -143,10 +114,14 @@ const VehiclesScreen = ({navigation}) => {
           { cancelable: false }
         );
       })
-      .finally(function () {});
+      .finally(function () {
+      });
   };
 
   const getVehicle = () => {
+    if (!loading) {
+      setLoading(true);
+    }
     axios
       .get(`${DOMAIN_URL}/Vehicle/customer/${AppConfig.USER_ID}`, {
         headers: {
@@ -165,7 +140,9 @@ const VehiclesScreen = ({navigation}) => {
           { cancelable: false }
         );
       })
-      .finally(function () {});
+      .finally(function () {
+        setLoading(false);
+      });
   };
 
   useEffect(() => {
@@ -435,6 +412,7 @@ const VehiclesScreen = ({navigation}) => {
           </View>
         </View>
       </Modal>
+      <Loading show={loading} />
     </SafeAreaView>
   );
 };

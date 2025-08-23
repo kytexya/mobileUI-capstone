@@ -15,6 +15,8 @@ import axios from 'axios';
 import { emailRegex, phoneRegex } from "../utils/validator";
 import AppConfig from "../utils/AppConfig";
 import { DOMAIN_URL } from "../utils/Constant";
+import { useState } from "react";
+import { Loading } from "../components/Loading";
 
 const LoginScreen = ({ navigation }) => {
   const {
@@ -25,9 +27,10 @@ const LoginScreen = ({ navigation }) => {
     emailOrPhone: 'test4@gmail.com',
     password: '12345'
   } });
+  const [loading, setLoading] = useState(false);
 
   const onSubmit = (data) => {
-
+    setLoading(true);
     const dataSubmit = {
       userName: data?.emailOrPhone,
       password: data?.password,
@@ -40,6 +43,7 @@ const LoginScreen = ({ navigation }) => {
         navigation.replace("MainTabs");
       })
       .catch(function (error) {
+        setLoading(false);
         Alert.alert(
           "Lỗi",
           "Đã xảy ra lỗi, vui lòng thử lại!",
@@ -63,11 +67,13 @@ const LoginScreen = ({ navigation }) => {
       }
     )
       .then(function (response) {
+        setLoading(false);
         const user = response.data;
         AppConfig.USER_ID = user.userID
         AppConfig.USER_OBJ = user
       })
-      .catch(function (error) {        
+      .catch(function (error) {   
+        setLoading(false);     
         Alert.alert(
           "Lỗi",
           "Lấy thông tin thất bại, vui lòng thử lại!",
@@ -205,6 +211,7 @@ const LoginScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
       </View>
+      <Loading show={loading} />
     </KeyboardAvoidingView>
   );
 };

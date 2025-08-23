@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Image, Dimensions, Animated } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { ScrollView as RNScrollView } from 'react-native';
 import AppConfig from '../utils/AppConfig';
+import { Loading } from '../components/Loading';
 
 const carImage = require('../assets/banner.png');
 
@@ -198,6 +199,8 @@ const getProgressColor = (percent) => {
 };
 
 const HomeScreen = ({ navigation }) => {
+
+  const [loading, setLoading] = useState(false);
   // Lấy tên người dùng từ AppConfig
   const getUserName = () => {
     if (AppConfig.USER_OBJ && AppConfig.USER_OBJ.fullName) {
@@ -355,6 +358,7 @@ const HomeScreen = ({ navigation }) => {
           ))}
         </ScrollView>
       </View>
+      <Loading show={loading} />
     </ScrollView>
   );
 };

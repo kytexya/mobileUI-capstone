@@ -20,18 +20,20 @@ import AppConfig from "../utils/AppConfig";
 import { FormProvider, useForm } from "react-hook-form";
 import InputForm from "../components/InputForm";
 import { emailRegex, phoneRegex } from "../utils/validator";
+import { Loading } from "../components/Loading";
 
 const ProfileScreen = ({ navigation }) => {
   const methods = useForm({
     defaultValues: {
-      'name': AppConfig.USER_OBJ.fullName,
-      'email': AppConfig.USER_OBJ.email,
-      'phone': AppConfig.USER_OBJ.phoneNumber,
-    }
+      name: AppConfig.USER_OBJ.fullName,
+      email: AppConfig.USER_OBJ.email,
+      phone: AppConfig.USER_OBJ.phoneNumber,
+    },
   });
   const [user, setUser] = useState(AppConfig.USER_OBJ);
 
   const [userVehicles, setUserVehicles] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   // Mock data xe của người dùng
   const userVehicles1 = [
@@ -54,6 +56,7 @@ const ProfileScreen = ({ navigation }) => {
   ];
 
   const getVehicle = () => {
+    setLoading(true);
     axios
       .get(`${DOMAIN_URL}/Vehicle/customer/${AppConfig.USER_ID}`, {
         headers: {
@@ -72,7 +75,9 @@ const ProfileScreen = ({ navigation }) => {
           { cancelable: false }
         );
       })
-      .finally(function () {});
+      .finally(function () {
+        setLoading(false);
+      });
   };
 
   useEffect(() => {
@@ -99,22 +104,25 @@ const ProfileScreen = ({ navigation }) => {
   };
 
   const onSubmit = (data) => {
+    setLoading(true);
     const dataSubmit = {
       fullName: data.name,
       email: data.email,
       phoneNumber: data.phone,
       address: "",
-    };    
-    
+    };
+
     axios
-      .put(`${DOMAIN_URL}/Account/update-profile/${AppConfig.USER_ID}`,
-        dataSubmit, 
+      .put(
+        `${DOMAIN_URL}/Account/update-profile/${AppConfig.USER_ID}`,
+        dataSubmit,
         {
-        headers: {
-          Authorization: `Bearer ${AppConfig.ACCESS_TOKEN}`,
-          "Content-Type": "application/json",
-        },
-      })
+          headers: {
+            Authorization: `Bearer ${AppConfig.ACCESS_TOKEN}`,
+            "Content-Type": "application/json",
+          },
+        }
+      )
       .then(function (response) {
         handleGetUser();
         Alert.alert(
@@ -132,180 +140,188 @@ const ProfileScreen = ({ navigation }) => {
           { cancelable: false }
         );
       })
-      .finally(function () {});
+      .finally(function () {
+        setLoading(false);
+      });
   };
 
   const handleGetUser = () => {
-    axios.get(`${DOMAIN_URL}/Account/by-mail/${AppConfig.USER_OBJ.email}`,
-      {
+    axios
+      .get(`${DOMAIN_URL}/Account/by-mail/${AppConfig.USER_OBJ.email}`, {
         headers: {
           Authorization: `Bearer ${AppConfig.ACCESS_TOKEN}`,
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-      }
-    )
+      })
       .then(function (response) {
         const user = response.data;
-        AppConfig.USER_ID = user.userID
+        AppConfig.USER_ID = user.userID;
         AppConfig.USER_OBJ = user;
         setUser(user);
       })
-      .catch(function (error) {        
+      .catch(function (error) {
         Alert.alert(
           "Lỗi",
           "Lấy thông tin thất bại, vui lòng thử lại!",
-          [
-            { text: "OK", onPress: () => console.log("OK Pressed") }
-          ],
+          [{ text: "OK", onPress: () => console.log("OK Pressed") }],
           { cancelable: false }
         );
       })
       .finally(function () {});
-  }
+  };
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={{ paddingBottom: 24 }}
-    >
-      <View style={styles.avatarWrap}>
-        <View style={styles.avatarCircle}>
-          <FontAwesome5 name="user-alt" size={38} color="#1976d2" />
+    <View style={{ flex: 1 }}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={{ paddingBottom: 24 }}
+      >
+        <View style={styles.avatarWrap}>
+          <View style={styles.avatarCircle}>
+            <FontAwesome5 name="user-alt" size={38} color="#1976d2" />
+          </View>
+          <Text style={styles.name}>{user.fullName}</Text>
+          <Text style={styles.email}>{user.email}</Text>
         </View>
-        <Text style={styles.name}>{user.fullName}</Text>
-        <Text style={styles.email}>{user.email}</Text>
-      </View>
 
-      {/* Thống kê người dùng */}
-      <View style={styles.statsCard}>
-        <Text style={styles.cardTitle}>Thống kê</Text>
-        <View style={styles.statsRow}>
-          <View style={styles.statItem}>
-            <MaterialCommunityIcons name="car-cog" size={24} color="#1976d2" />
-            <Text style={styles.statNumber}>{userStats.totalServices}</Text>
-            <Text style={styles.statLabel}>Tổng dịch vụ</Text>
+        {/* Thống kê người dùng */}
+        <View style={styles.statsCard}>
+          <Text style={styles.cardTitle}>Thống kê</Text>
+          <View style={styles.statsRow}>
+            <View style={styles.statItem}>
+              <MaterialCommunityIcons
+                name="car-cog"
+                size={24}
+                color="#1976d2"
+              />
+              <Text style={styles.statNumber}>{userStats.totalServices}</Text>
+              <Text style={styles.statLabel}>Tổng dịch vụ</Text>
+            </View>
+            <View style={styles.statItem}>
+              <MaterialCommunityIcons
+                name="check-circle"
+                size={24}
+                color="#4CAF50"
+              />
+              <Text style={styles.statNumber}>
+                {userStats.completedServices}
+              </Text>
+              <Text style={styles.statLabel}>Đã hoàn thành</Text>
+            </View>
+            <View style={styles.statItem}>
+              <MaterialCommunityIcons
+                name="currency-usd"
+                size={24}
+                color="#FF6B35"
+              />
+              <Text style={styles.statNumber}>
+                {(userStats.totalSpent / 1000000).toFixed(1)}M
+              </Text>
+              <Text style={styles.statLabel}>Tổng chi tiêu</Text>
+            </View>
           </View>
-          <View style={styles.statItem}>
-            <MaterialCommunityIcons
-              name="check-circle"
-              size={24}
-              color="#4CAF50"
-            />
-            <Text style={styles.statNumber}>{userStats.completedServices}</Text>
-            <Text style={styles.statLabel}>Đã hoàn thành</Text>
-          </View>
-          <View style={styles.statItem}>
-            <MaterialCommunityIcons
-              name="currency-usd"
-              size={24}
-              color="#FF6B35"
-            />
-            <Text style={styles.statNumber}>
-              {(userStats.totalSpent / 1000000).toFixed(1)}M
+        </View>
+
+        {/* Danh sách xe */}
+        <View style={styles.vehiclesCard}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.cardTitle}>
+              Xe của bạn ({userVehicles.length})
             </Text>
-            <Text style={styles.statLabel}>Tổng chi tiêu</Text>
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate("Trang chủ", { screen: "VehiclesScreen" })
+              }
+            >
+              <Text style={styles.seeAllText}>Quản lý</Text>
+            </TouchableOpacity>
           </View>
+          {userVehicles.map((vehicle, index) => (
+            <View
+              key={vehicle.vehicleId}
+              style={[
+                styles.vehicleItem,
+                index === userVehicles.length - 1 && { borderBottomWidth: 0 },
+              ]}
+            >
+              <View style={styles.vehicleIcon}>
+                <MaterialCommunityIcons name="car" size={20} color="#1976d2" />
+              </View>
+              <View style={styles.vehicleInfo}>
+                <Text style={styles.vehicleName}>
+                  {vehicle.brand} {vehicle.model}
+                </Text>
+                <Text style={styles.vehicleDetails}>
+                  {vehicle.licensePlate} • {vehicle.make} • {vehicle.year}
+                </Text>
+              </View>
+            </View>
+          ))}
         </View>
-      </View>
 
-      {/* Danh sách xe */}
-      <View style={styles.vehiclesCard}>
-        <View style={styles.cardHeader}>
-          <Text style={styles.cardTitle}>
-            Xe của bạn ({userVehicles.length})
-          </Text>
+        {/* Form chỉnh sửa thông tin */}
+        <View style={styles.formCard}>
+          <Text style={styles.cardTitle}>Thông tin cá nhân</Text>
+          <FormProvider {...methods}>
+            <InputForm
+              name="name"
+              placeholder="Họ và tên"
+              messageValidate="Vui lòng nhập họ và tên !"
+              prevIcon={
+                <Ionicons
+                  name="person-outline"
+                  size={20}
+                  color="#1976d2"
+                  style={styles.inputIcon}
+                />
+              }
+            />
+            <InputForm
+              name="email"
+              placeholder="Email"
+              messageValidate="Vui lòng nhập email !"
+              validate={(value) =>
+                emailRegex.test(value) || "Email không hợp lệ !"
+              }
+              prevIcon={
+                <Ionicons
+                  name="mail-outline"
+                  size={20}
+                  color="#1976d2"
+                  style={styles.inputIcon}
+                />
+              }
+            />
+            <InputForm
+              name="phone"
+              placeholder="Số điện thoại"
+              messageValidate="Vui lòng nhập số điện thoại !"
+              validate={(value) =>
+                phoneRegex.test(value) || "Số điện thoại không hợp lệ !"
+              }
+              prevIcon={
+                <Ionicons
+                  name="call-outline"
+                  size={20}
+                  color="#1976d2"
+                  style={styles.inputIcon}
+                />
+              }
+            />
+          </FormProvider>
           <TouchableOpacity
-            onPress={() =>
-              navigation.navigate("Trang chủ", { screen: "VehiclesScreen" })
-            }
+            style={styles.button}
+            onPress={methods.handleSubmit(onSubmit)}
           >
-            <Text style={styles.seeAllText}>Quản lý</Text>
+            <Text style={styles.buttonText}>Lưu thay đổi</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+            <Text style={styles.logoutText}>Đăng xuất</Text>
           </TouchableOpacity>
         </View>
-        {userVehicles.map((vehicle, index) => (
-          <View
-            key={vehicle.vehicleId}
-            style={[
-              styles.vehicleItem,
-              index === userVehicles.length - 1 && { borderBottomWidth: 0 },
-            ]}
-          >
-            <View style={styles.vehicleIcon}>
-              <MaterialCommunityIcons name="car" size={20} color="#1976d2" />
-            </View>
-            <View style={styles.vehicleInfo}>
-              <Text style={styles.vehicleName}>
-                {vehicle.brand} {vehicle.model}
-              </Text>
-              <Text style={styles.vehicleDetails}>
-                {vehicle.licensePlate} • {vehicle.make} • {vehicle.year}
-              </Text>
-            </View>
-          </View>
-        ))}
-      </View>
-
-      {/* Form chỉnh sửa thông tin */}
-      <View style={styles.formCard}>
-        <Text style={styles.cardTitle}>Thông tin cá nhân</Text>
-        <FormProvider {...methods}>
-          <InputForm
-            name="name"
-            placeholder="Họ và tên"
-            messageValidate="Vui lòng nhập họ và tên !"
-            prevIcon={
-              <Ionicons
-                name="person-outline"
-                size={20}
-                color="#1976d2"
-                style={styles.inputIcon}
-              />
-            }
-          />
-          <InputForm
-            name="email"
-            placeholder="Email"
-            messageValidate="Vui lòng nhập email !"
-            validate={(value) =>
-              emailRegex.test(value) || "Email không hợp lệ !"
-            }
-            prevIcon={
-              <Ionicons
-                name="mail-outline"
-                size={20}
-                color="#1976d2"
-                style={styles.inputIcon}
-              />
-            }
-          />
-          <InputForm
-            name="phone"
-            placeholder="Số điện thoại"
-            messageValidate="Vui lòng nhập số điện thoại !"
-            validate={(value) =>
-              phoneRegex.test(value) || "Số điện thoại không hợp lệ !"
-            }
-            prevIcon={
-              <Ionicons
-                name="call-outline"
-                size={20}
-                color="#1976d2"
-                style={styles.inputIcon}
-              />
-            }
-          />
-        </FormProvider>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={methods.handleSubmit(onSubmit)}
-        >
-          <Text style={styles.buttonText}>Lưu thay đổi</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-          <Text style={styles.logoutText}>Đăng xuất</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+      </ScrollView>
+      <Loading show={loading} />
+    </View>
   );
 };
 
