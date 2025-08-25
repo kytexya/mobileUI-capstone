@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   SafeAreaView,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import ProgressBar from "../components/ProgressBar";
@@ -157,16 +158,21 @@ const BookingFlowScreen = ({ navigation }) => {
 
   const getCombo = () => {
     axios
-      .get(`${DOMAIN_URL}/services/get-all-service-packages`, {
+      .get(`${DOMAIN_URL}/services/get-all-service-packages?currentPage=1&pageSize=99999`,
+        {
         headers: {
           Authorization: `Bearer ${AppConfig.ACCESS_TOKEN}`,
           "Content-Type": "application/json",
         },
       })
       .then(function (response) {
-        setServiceCombos(response.data.packages);
+        if(response?.data){
+          setServiceCombos(response.data.items ?? []);
+        }
       })
       .catch(function (error) {
+        console.log("error ",error);
+        
         Alert.alert(
           "Lỗi",
           "Đã xảy ra lỗi, vui lòng thử lại!",
@@ -179,14 +185,16 @@ const BookingFlowScreen = ({ navigation }) => {
 
   const getAllService = () => {
     axios
-      .get(`${DOMAIN_URL}/services/get-all-services`, {
+      .get(`${DOMAIN_URL}/services/get-all-services?currentPage=1&pageSize=99999`, {
         headers: {
           Authorization: `Bearer ${AppConfig.ACCESS_TOKEN}`,
           "Content-Type": "application/json",
         },
       })
       .then(function (response) {
-        setServiceCategories(response.data.services);
+        if(response?.data){
+          setServiceCategories(response.data.items ?? []);
+        }
       })
       .catch(function (error) {
         Alert.alert(

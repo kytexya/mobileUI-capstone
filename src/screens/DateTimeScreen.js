@@ -20,10 +20,10 @@ const DateTimeScreen = ({ navigation, route }) => {
   const [showMechanicModal, setShowMechanicModal] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(8); // Tháng hiện tại (8 = Tháng 8)
   const [currentYear, setCurrentYear] = useState(2025);
-  const [mechanics1, setMechanics] = useState([])
+  const [mechanics, setMechanics] = useState([])
 
   // Mock data cho danh sách nhân viên
-  const mechanics = [
+  const mechanics1 = [
     {
       id: 1,
       name: 'Nguyễn Văn An',

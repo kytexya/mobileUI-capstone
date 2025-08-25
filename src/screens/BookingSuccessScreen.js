@@ -97,7 +97,7 @@ const BookingSuccessScreen = ({ navigation }) => {
       <View style={styles.footer}>
         <TouchableOpacity
           style={styles.primaryButton}
-          onPress={() => navigation.navigate('MainTabs')}
+          onPress={() => navigation.navigate('Trang chủ', {screen: "HomeScreen"})}
         >
           <Text style={styles.primaryButtonText}>Về Trang Chủ</Text>
         </TouchableOpacity>

@@ -184,14 +184,16 @@ const ConfirmationScreen = ({ navigation, route }) => {
 
   const getAllService = () => {
     axios
-      .get(`${DOMAIN_URL}/services/get-all-services`, {
+      .get(`${DOMAIN_URL}/services/get-all-services?currentPage=1&pageSize=99999`, {
         headers: {
           Authorization: `Bearer ${AppConfig.ACCESS_TOKEN}`,
           "Content-Type": "application/json",
         },
       })
       .then(function (response) {
-        setAllService(response.data.services);
+        if(response?.data){
+          setAllService(response.data.items ?? []);
+        }
       })
       .catch(function (error) {
         Alert.alert(
@@ -206,14 +208,16 @@ const ConfirmationScreen = ({ navigation, route }) => {
 
     const getCombo = () => {
     axios
-      .get(`${DOMAIN_URL}/services/get-all-service-packages`, {
+      .get(`${DOMAIN_URL}/services/get-all-service-packages?currentPage=1&pageSize=99999`, {
         headers: {
           Authorization: `Bearer ${AppConfig.ACCESS_TOKEN}`,
           "Content-Type": "application/json",
         },
       })
       .then(function (response) {
-        setServiceCombos(response.data.packages);
+        if(response?.data){
+          setServiceCombos(response.data.items ?? []);
+        }
       })
       .catch(function (error) {
         Alert.alert(
@@ -323,7 +327,7 @@ const ConfirmationScreen = ({ navigation, route }) => {
           <View style={styles.servicesCard}>
             {selectedServiceDetails.map((service) => {
               return (
-                <View key={service.serviceId} style={styles.serviceRow}>
+                <View key={service.id} style={styles.serviceRow}>
                   <View style={styles.serviceInfo}>
                     <Text style={styles.serviceName}>{service.name}</Text>
                     {service.isCombo && (
