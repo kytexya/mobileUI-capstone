@@ -127,7 +127,7 @@ const ProfileScreen = ({ navigation }) => {
         handleGetUser();
         Alert.alert(
           "Thành công",
-          "Đã cập nhật thông tin !",
+          "Đã cập nhật thông tin!",
           [{ text: "OK", onPress: () => console.log("OK Pressed") }],
           { cancelable: false }
         );
@@ -266,7 +266,7 @@ const ProfileScreen = ({ navigation }) => {
             <InputForm
               name="name"
               placeholder="Họ và tên"
-              messageValidate="Vui lòng nhập họ và tên !"
+              messageValidate="Vui lòng nhập họ và tên!"
               prevIcon={
                 <Ionicons
                   name="person-outline"
@@ -279,9 +279,9 @@ const ProfileScreen = ({ navigation }) => {
             <InputForm
               name="email"
               placeholder="Email"
-              messageValidate="Vui lòng nhập email !"
+              messageValidate="Vui lòng nhập email!"
               validate={(value) =>
-                emailRegex.test(value) || "Email không hợp lệ !"
+                emailRegex.test(value) || "Email không hợp lệ!"
               }
               prevIcon={
                 <Ionicons
@@ -295,9 +295,9 @@ const ProfileScreen = ({ navigation }) => {
             <InputForm
               name="phone"
               placeholder="Số điện thoại"
-              messageValidate="Vui lòng nhập số điện thoại !"
+              messageValidate="Vui lòng nhập số điện thoại!"
               validate={(value) =>
-                phoneRegex.test(value) || "Số điện thoại không hợp lệ !"
+                phoneRegex.test(value) || "Số điện thoại không hợp lệ!"
               }
               prevIcon={
                 <Ionicons

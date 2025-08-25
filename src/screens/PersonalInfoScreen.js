@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   TextInput,
   Modal,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import ProgressBar from "../components/ProgressBar";
@@ -112,9 +113,11 @@ const PersonalInfoScreen = ({ navigation, route }) => {
       licensePlate: newVehicle.licensePlate,
       make: newVehicle.color,
       model: newVehicle.model,
-      year: newVehicle.year,
+      year: Number(newVehicle.year),
       carTypeId: newVehicle.carTypeId ?? 1,
     };
+    console.log("dataSubmit ",dataSubmit);
+    
 
     axios
       .post(
@@ -135,6 +138,8 @@ const PersonalInfoScreen = ({ navigation, route }) => {
         });
       })
       .catch(function (error) {
+        console.log("error ",error);
+        
         Alert.alert(
           "Lỗi",
           "Đã xảy ra lỗi, vui lòng thử lại!",
@@ -166,7 +171,7 @@ const PersonalInfoScreen = ({ navigation, route }) => {
               control={control}
               name="fullName"
               rules={{
-                required: "Vui lòng nhập họ và tên !",
+                required: "Vui lòng nhập họ và tên!",
               }}
               render={({ field: { onChange, onBlur, value } }) => (
                 <View>
@@ -203,9 +208,9 @@ const PersonalInfoScreen = ({ navigation, route }) => {
               control={control}
               name="email"
               rules={{
-                required: "Email không hợp lệ !",
+                required: "Email không hợp lệ!",
                 validate: (value) =>
-                  emailRegex.test(value) || "Email không hợp lệ !",
+                  emailRegex.test(value) || "Email không hợp lệ!",
               }}
               render={({ field: { onChange, onBlur, value } }) => (
                 <View>
@@ -243,9 +248,9 @@ const PersonalInfoScreen = ({ navigation, route }) => {
               control={control}
               name="phone"
               rules={{
-                required: "Email không hợp lệ !",
+                required: "Email không hợp lệ!",
                 validate: (value) =>
-                  phoneRegex.test(value) || "Số điện thoại không hợp lệ !",
+                  phoneRegex.test(value) || "Số điện thoại không hợp lệ!",
               }}
               render={({ field: { onChange, onBlur, value } }) => (
                 <View>

@@ -137,6 +137,7 @@ const ConfirmationScreen = ({ navigation, route }) => {
   };
 
   const selectedServiceDetails = getSelectedServiceDetails();
+  
   const vehicleCount = selectedVehicle ? 1 : 0;
 
   // Tính giá dựa trên combo hoặc dịch vụ riêng lẻ

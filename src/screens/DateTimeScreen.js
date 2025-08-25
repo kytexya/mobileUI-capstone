@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -7,10 +7,12 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Modal,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import AppConfig from '../utils/AppConfig';
+import { DOMAIN_URL } from '../utils/Constant';
 
 const DateTimeScreen = ({ navigation, route }) => {
   const { selectedServices, personalInfo, vehicleOption, selectedVehicle, packageId } = route.params;
@@ -72,6 +74,10 @@ const DateTimeScreen = ({ navigation, route }) => {
     { time: '17:00', available: true }
   ];
 
+  useEffect(() => {
+    getMechanics();
+  },[])
+
   const generateCalendarDays = () => {
     const days = [];
     const daysInMonth = new Date(currentYear, currentMonth, 0).getDate(); // Lấy số ngày trong tháng
@@ -121,13 +127,15 @@ const DateTimeScreen = ({ navigation, route }) => {
 
     const getMechanics = () => {
     axios
-      .get(`${DOMAIN_URL}/Account/service-staff`, {
+      .get(`${DOMAIN_URL}/Account/service-staffs`, {
         headers: {
           Authorization: `Bearer ${AppConfig.ACCESS_TOKEN}`,
           "Content-Type": "application/json",
         },
       })
       .then(function (response) {
+        console.log("response.data ",response.data);
+        
         setMechanics(response.data);
       })
       .catch(function (error) {
@@ -202,7 +210,7 @@ const DateTimeScreen = ({ navigation, route }) => {
              ) : (
                <View style={styles.mechanicInfoContainer}>
                  <Text style={styles.mechanicName}>
-                   {mechanics.find(m => m.id === selectedMechanic)?.name}
+                   {mechanics.find(m => m.staffId === selectedMechanic)?.user?.fullName}
                  </Text>
                </View>
              )}
@@ -216,7 +224,7 @@ const DateTimeScreen = ({ navigation, route }) => {
                      <Text style={styles.helperText}>
              {selectedMechanic === 'none' 
                ? 'Hệ thống sẽ tự động phân công thợ phù hợp'
-               : `${mechanics.find(m => m.id === selectedMechanic)?.specialty} • ${mechanics.find(m => m.id === selectedMechanic)?.experience} • ⭐${mechanics.find(m => m.id === selectedMechanic)?.rating}`
+               : `${mechanics.find(m => m.staffId === selectedMechanic)?.specialty} • ${mechanics.find(m => m.staffId === selectedMechanic)?.experience} năm • ⭐${mechanics.find(m => m.staffId === selectedMechanic)?.rating}`
              }
            </Text>
         </View>
@@ -371,32 +379,32 @@ const DateTimeScreen = ({ navigation, route }) => {
               {/* Danh sách nhân viên */}
               {mechanics.map((mechanic) => (
                 <TouchableOpacity
-                  key={mechanic.id}
+                  key={mechanic.staffId}
                   style={[
                     styles.mechanicItem,
-                    selectedMechanic === mechanic.id && styles.mechanicItemSelected
+                    selectedMechanic === mechanic.staffId && styles.mechanicItemSelected
                   ]}
                   onPress={() => {
-                    setSelectedMechanic(mechanic.id);
+                    setSelectedMechanic(mechanic.staffId);
                     setShowMechanicModal(false);
                   }}
                 >
                   <View style={styles.mechanicAvatar}>
-                    <Text style={styles.avatarText}>{mechanic.avatar}</Text>
+                    <Text style={styles.avatarText}>{mechanic.avatar ?? "👨‍🔧"}</Text>
                   </View>
                   <View style={styles.mechanicInfo}>
-                    <Text style={styles.mechanicName}>{mechanic.name}</Text>
+                    <Text style={styles.mechanicName}>{mechanic?.user?.fullName}</Text>
                     <Text style={styles.mechanicSpecialty}>{mechanic.specialty}</Text>
                     <View style={styles.mechanicDetails}>
-                      <Text style={styles.mechanicExperience}>{mechanic.experience}</Text>
+                      <Text style={styles.mechanicExperience}>{mechanic.experience} năm</Text>
                       <Text style={styles.mechanicRating}>⭐ {mechanic.rating}</Text>
                     </View>
                   </View>
                   <View style={[
                     styles.mechanicCheckbox,
-                    selectedMechanic === mechanic.id && styles.mechanicCheckboxSelected
+                    selectedMechanic === mechanic.staffId && styles.mechanicCheckboxSelected
                   ]}>
-                    {selectedMechanic === mechanic.id && (
+                    {selectedMechanic === mechanic.staffId && (
                       <Ionicons name="checkmark" size={16} color="white" />
                     )}
                   </View>

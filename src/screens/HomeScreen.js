@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Image, Dimensions, Animated } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Image, Dimensions, Animated, Alert } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { ScrollView as RNScrollView } from 'react-native';
 import AppConfig from '../utils/AppConfig';
 import { Loading } from '../components/Loading';
+import axios from 'axios';
+import { DOMAIN_URL } from '../utils/Constant';
 
 const carImage = require('../assets/banner.png');
 
@@ -200,6 +202,8 @@ const getProgressColor = (percent) => {
 
 const HomeScreen = ({ navigation }) => {
 
+  const [promotion, setPromotion] = useState([])
+
   const [loading, setLoading] = useState(false);
   // Lấy tên người dùng từ AppConfig
   const getUserName = () => {
@@ -211,6 +215,34 @@ const HomeScreen = ({ navigation }) => {
     }
     return 'Bạn'; // Fallback nếu không có tên
   };
+
+  useEffect(() => {
+    getPromotions();
+  },[])
+
+  const getPromotions = () => {
+    axios
+      .get(`${DOMAIN_URL}/Promotion/retrieve-all-promotion?currentPage=1&pageSize=99999`, {
+        headers: {
+          Authorization: `Bearer ${AppConfig.ACCESS_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      })
+      .then(function (response) {        
+        if(response?.data){
+          setPromotion(response.data.items ?? []);
+        }
+      })
+      .catch(function (error) {
+        Alert.alert(
+          "Lỗi",
+          "Đã xảy ra lỗi, vui lòng thử lại!",
+          [{ text: "OK", onPress: () => console.log("OK Pressed") }],
+          { cancelable: false }
+        );
+      })
+      .finally(function () {});
+  }
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: '#f6f8fa' }} contentContainerStyle={{ paddingBottom: 24 }}>
@@ -349,11 +381,11 @@ const HomeScreen = ({ navigation }) => {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.promoCardSlider}
         >
-          {promotions.map(item => (
-            <View key={item.id} style={styles.promoCardBox}>
-              <Image source={item.image} style={styles.promoCardImg} resizeMode="cover" />
+          {promotion.map(item => (
+            <View key={item.promotionId} style={styles.promoCardBox}>
+              <Image source={item.image ?? require('../assets/banner.png')} style={styles.promoCardImg} resizeMode="cover" />
               <Text style={styles.promoCardTitle}>{item.title}</Text>
-              {!!item.label && <View style={styles.promoCardLabel}><Text style={styles.promoCardLabelText}>{item.label}</Text></View>}
+              {<View style={styles.promoCardLabel}><Text style={styles.promoCardLabelText}>Giảm {item.discountPercentage ?? 0}%</Text></View>}
             </View>
           ))}
         </ScrollView>

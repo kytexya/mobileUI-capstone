@@ -19,7 +19,7 @@ const BookingFlowScreen = ({ navigation }) => {
   const [selectedServices, setSelectedServices] = useState([]);
   const [selectedComboId, setSelectedComboId] = useState(null);
   const [serviceCombos, setServiceCombos] = useState([]);
-  const [serviceCategories1, setServiceCategories] = useState([]);
+  const [allService, setAllService] = useState([]);
 
   const serviceCombos_test = [
     {
@@ -95,6 +95,7 @@ const BookingFlowScreen = ({ navigation }) => {
 
   useEffect(() => {
     getCombo();
+    getAllService();
   }, []);
 
   const toggleService = (serviceId) => {
@@ -193,7 +194,7 @@ const BookingFlowScreen = ({ navigation }) => {
       })
       .then(function (response) {
         if(response?.data){
-          setServiceCategories(response.data.items ?? []);
+          setAllService(response.data.items ?? []);
         }
       })
       .catch(function (error) {
@@ -265,7 +266,7 @@ const BookingFlowScreen = ({ navigation }) => {
 
         <Text style={styles.sectionTitle}>Chọn Dịch Vụ Riêng Lẻ</Text>
 
-        {serviceCategories.map((category) => (
+        {/* {serviceCategories.map((category) => (
           <View key={category.id} style={styles.categoryContainer}>
             <TouchableOpacity
               style={styles.categoryHeader}
@@ -364,7 +365,61 @@ const BookingFlowScreen = ({ navigation }) => {
               </View>
             )}
           </View>
-        ))}
+        ))} */}
+        <View style={styles.servicesList}>
+            {allService.map((service) => {
+                const isInCombo =
+                  selectedComboId &&
+                  serviceCombos
+                    .find((combo) => combo.packageId === selectedComboId)
+                    ?.services.includes(service.packageId);
+                return (
+                  <TouchableOpacity
+                    key={service.serviceId}
+                    style={[
+                      styles.serviceItem,
+                      isServiceSelected(service.serviceId) &&
+                        styles.serviceItemSelected,
+                      isInCombo && styles.comboServiceItem,
+                    ]}
+                    onPress={() => toggleService(service.serviceId)}
+                  >
+                    <View style={styles.serviceInfo}>
+                      <Text
+                        style={[
+                          styles.serviceName,
+                          isServiceSelected(service.serviceId) &&
+                            styles.serviceNameSelected,
+                        ]}
+                      >
+                        {service.name}
+                        {isInCombo && (
+                          <Text style={styles.comboLabel}> (Combo)</Text>
+                        )}
+                      </Text>
+                      <Text style={styles.servicePrice}>
+                        {service.price} vnd
+                      </Text>
+                    </View>
+                    <View
+                      style={[
+                        styles.checkbox,
+                        isServiceSelected(service.serviceId) &&
+                          styles.checkboxSelected,
+                      ]}
+                    >
+                      {isServiceSelected(service.serviceId) && (
+                        <Ionicons
+                          name="checkmark"
+                          size={16}
+                          color="white"
+                        />
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+          </View>
       </ScrollView>
 
       {/* Next button */}
