@@ -25,7 +25,7 @@ const LoginScreen = ({ navigation }) => {
     formState: { errors },
   } = useForm({ mode: "onChange", defaultValues: {
     // emailOrPhone: 'test4@gmail.com',
-    // password: '12345'
+// password: '12345'
   } });
   const [loading, setLoading] = useState(false);
 

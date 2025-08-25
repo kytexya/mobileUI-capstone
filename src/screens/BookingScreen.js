@@ -193,7 +193,7 @@ const BookingScreen = ({ navigation }) => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Chọn loại dịch vụ</Text>
-            {serviceItems.map((item) => (
+            {serviceItems?.map((item) => (
               <TouchableOpacity
                 key={item.value}
                 style={[
@@ -233,7 +233,7 @@ const BookingScreen = ({ navigation }) => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Chọn xe</Text>
-            {vehicleItems.map((item) => (
+            {vehicleItems?.map((item) => (
               <TouchableOpacity
                 key={item.value}
                 style={[
