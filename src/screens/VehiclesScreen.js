@@ -48,8 +48,8 @@ const VehiclesScreen = ({navigation}) => {
             .then(function (response) {
               getVehicle();
               Alert.alert(
-                "Thành công !",
-                "Đã xóa thành công !",
+                "Thành công!",
+                "Đã xóa thành công!",
                 [{ text: "OK", onPress: () => console.log("OK Pressed") }],
                 { cancelable: false }
               );

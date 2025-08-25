@@ -5,7 +5,7 @@ import { useForm, Controller, useFormContext } from "react-hook-form";
 export default function InputForm(props) {
   const {
     name = "",
-    messageValidate = "Vui lòng nhập thông tin !",
+    messageValidate = "Vui lòng nhập thông tin!",
     placeholder = "",
     validate = () => {},
     secureTextEntry = false,
