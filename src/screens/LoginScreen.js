@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import Icon from "react-native-vector-icons/Feather";
 import { useForm, Controller } from "react-hook-form";
-import axios from 'axios';
+import axios from "axios";
 import { emailRegex, phoneRegex } from "../utils/validator";
 import AppConfig from "../utils/AppConfig";
 import { DOMAIN_URL } from "../utils/Constant";
@@ -23,10 +23,13 @@ const LoginScreen = ({ navigation }) => {
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm({ mode: "onChange", defaultValues: {
-    // emailOrPhone: 'test4@gmail.com',
-// password: '12345'
-  } });
+  } = useForm({
+    mode: "onChange",
+    defaultValues: {
+      // emailOrPhone: "test4@gmail.com",
+      // password: "12345",
+    },
+  });
   const [loading, setLoading] = useState(false);
 
   const onSubmit = (data) => {
@@ -34,12 +37,13 @@ const LoginScreen = ({ navigation }) => {
     const dataSubmit = {
       userName: data?.emailOrPhone,
       password: data?.password,
-    }
-    axios.post(DOMAIN_URL + '/Home/Login', dataSubmit)
+    };
+    axios
+      .post(DOMAIN_URL + "/Home/Login", dataSubmit)
       .then(function (response) {
         const token = response.data;
         AppConfig.ACCESS_TOKEN = token;
-        handleGetUser(token,data?.emailOrPhone);
+        handleGetUser(token, data?.emailOrPhone);
         navigation.replace("MainTabs");
       })
       .catch(function (error) {
@@ -47,49 +51,43 @@ const LoginScreen = ({ navigation }) => {
         Alert.alert(
           "Lỗi",
           "Đã xảy ra lỗi, vui lòng thử lại!",
-          [
-            { text: "OK", onPress: () => console.log("OK Pressed") }
-          ],
+          [{ text: "OK", onPress: () => console.log("OK Pressed") }],
           { cancelable: false }
         );
       })
       .finally(function () {});
   };
 
-  const handleGetUser = (token,email) => {
-
-    axios.get(`${DOMAIN_URL}/Account/by-mail/${email}`,
-      {
+  const handleGetUser = (token, email) => {
+    axios
+      .get(`${DOMAIN_URL}/Account/by-mail/${email}`, {
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-      }
-    )
+      })
       .then(function (response) {
         setLoading(false);
         const user = response.data;
-        AppConfig.USER_ID = user.userID
-        AppConfig.USER_OBJ = user
+        AppConfig.USER_ID = user.userID;
+        AppConfig.USER_OBJ = user;
       })
-      .catch(function (error) {   
-        setLoading(false);     
+      .catch(function (error) {
+        setLoading(false);
         Alert.alert(
           "Lỗi",
           "Lấy thông tin thất bại, vui lòng thử lại!",
-          [
-            { text: "OK", onPress: () => console.log("OK Pressed") }
-          ],
+          [{ text: "OK", onPress: () => console.log("OK Pressed") }],
           { cancelable: false }
         );
       })
       .finally(function () {});
-  }
+  };
 
   return (
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: "#f4f6fb" }}
-      behavior={Platform.OS === "ios" ? "padding" : 'padding'}
+      behavior={Platform.OS === "ios" ? "padding" : "padding"}
     >
       <View style={styles.outerContainer}>
         <View style={styles.card}>
@@ -103,10 +101,9 @@ const LoginScreen = ({ navigation }) => {
             control={control}
             name="emailOrPhone"
             rules={{
-              required: "Vui lòng nhập email !",
+              required: "Vui lòng nhập email!",
               validate: (value) =>
-                emailRegex.test(value) ||
-                "Email  không hợp lệ !",
+                emailRegex.test(value) || "Email  không hợp lệ!",
             }}
             render={({ field: { onChange, onBlur, value } }) => (
               <View>
@@ -182,7 +179,7 @@ const LoginScreen = ({ navigation }) => {
           >
             <Text style={styles.buttonText}>Đăng nhập</Text>
           </TouchableOpacity>
-          
+
           {/* Nút để vào ứng dụng mà không cần đăng nhập */}
           {/* <TouchableOpacity
             style={[styles.button, styles.skipButton]}
@@ -203,7 +200,7 @@ const LoginScreen = ({ navigation }) => {
           >
             <Text style={styles.skipButtonText}>Vào ứng dụng (Test)</Text>
           </TouchableOpacity> */}
-          
+
           <TouchableOpacity
             onPress={() => navigation.navigate("RegisterScreen")}
           >

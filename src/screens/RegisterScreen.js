@@ -20,16 +20,16 @@ const RegisterScreen = ({ navigation }) => {
   const methods = useForm();
   const [loading, setLoading] = useState(false);
 
-  const onSubmit = (data) => {
+  const onSubmit = async (data) => {
     if (data?.password != data?.passwordConfirm) {
       methods.setError("password", {
-        message: "Mật khẩu không trùng khớp !",
+        message: "Mật khẩu không trùng khớp!",
       });
       methods.setError("passwordConfirm", {
-        message: "Mật khẩu không trùng khớp !",
+        message: "Mật khẩu không trùng khớp!",
       });
     }
-    setLoading(true);
+    // setLoading(true);
     const dataSubmit = {
       fullName: data?.name,
       email: data?.email,
@@ -43,12 +43,22 @@ const RegisterScreen = ({ navigation }) => {
       .then(function (response) {
         Alert.alert(
           "Thành Công",
-          "Đã đăng ký thành công !",
+          "Đã đăng ký thành công!",
           [{ text: "OK", onPress: () => navigation.navigate("LoginScreen") }],
           { cancelable: false }
         );
       })
       .catch(function (error) {
+        console.log("error ", error.response.status);
+        if (error.response.status == 400) {
+          return Alert.alert(
+            "Lỗi",
+            "Email đã tồn tại!",
+            [{ text: "OK", onPress: () => {} }],
+            { cancelable: false }
+          );
+        }
+
         Alert.alert(
           "Lỗi",
           "Đã xảy ra lỗi, vui lòng thử lại!",
@@ -72,34 +82,34 @@ const RegisterScreen = ({ navigation }) => {
           <InputForm
             name="name"
             placeholder="Họ và tên"
-            messageValidate="Vui lòng nhập họ và tên !"
+            messageValidate="Vui lòng nhập họ và tên!"
           />
           <InputForm
             name="email"
             placeholder="Email"
-            messageValidate="Vui lòng nhập email !"
+            messageValidate="Vui lòng nhập email!"
             validate={(value) =>
-              emailRegex.test(value) || "Email không hợp lệ !"
+              emailRegex.test(value) || "Email không hợp lệ!"
             }
           />
           <InputForm
             name="phone"
             placeholder="Số điện thoại"
-            messageValidate="Vui lòng nhập số điện thoại !"
+            messageValidate="Vui lòng nhập số điện thoại!"
             validate={(value) =>
-              phoneRegex.test(value) || "Số điện thoại không hợp lệ !"
+              phoneRegex.test(value) || "Số điện thoại không hợp lệ!"
             }
           />
           <InputForm
             name="password"
             placeholder="Mật khẩu"
-            messageValidate="Vui lòng nhập mật khẩu !"
+            messageValidate="Vui lòng nhập mật khẩu!"
             secureTextEntry={true}
           />
           <InputForm
             name="passwordConfirm"
             placeholder="Xác nhận mật khẩu"
-            messageValidate="Vui lòng xác nhận mật khẩu !"
+            messageValidate="Vui lòng xác nhận mật khẩu!"
             secureTextEntry={true}
           />
           <TouchableOpacity
