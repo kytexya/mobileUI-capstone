@@ -1,6 +1,11 @@
-import React from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, ScrollView, StyleSheet, Alert } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import axios from 'axios';
+import { DOMAIN_URL } from '../utils/Constant';
+import AppConfig from '../utils/AppConfig';
+import { Loading } from '../components/Loading';
+import PaymentPopup from '../components/PaymentPopup';
 
 // Timeline steps definition (same as HomeScreen)
 const timelineSteps = [
@@ -115,9 +120,43 @@ const ServiceTimeline = ({ currentStep, serviceColor }) => {
 };
 
 const HistoryScreen = () => {
+  const [history, setHistory] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const getHistory = () => {
+    setLoading(true);
+    axios
+      .get(`${DOMAIN_URL}/Appointment/GetByCustomerId/${AppConfig.USER_ID}`, {
+        headers: {
+          Authorization: `Bearer ${AppConfig.ACCESS_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      })
+      .then(function (response) {
+        setHistory(response.data);
+        console.log("res ", response.data);
+      })
+      .catch(function (error) {
+        Alert.alert(
+          "Lỗi",
+          "Đã xảy ra lỗi, vui lòng thử lại!",
+          [{ text: "OK", onPress: () => console.log("OK Pressed") }],
+          { cancelable: false }
+        );
+      })
+      .finally(function () {
+        setLoading(false);
+      });
+  };
+
+  useEffect(() => {
+    getHistory();
+  },[])
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Hoạt động</Text>
+      <Text style={styles.title}>Hoạt động 2</Text>
       <ScrollView 
         contentContainerStyle={{ paddingBottom: 24 }}
         showsVerticalScrollIndicator={false}
@@ -165,6 +204,8 @@ const HistoryScreen = () => {
           </View>
         ))}
       </ScrollView>
+      <PaymentPopup setModalVisible={setModalVisible} modalVisible={modalVisible} />
+      <Loading show={loading} />
     </View>
   );
 };
