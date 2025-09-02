@@ -26,8 +26,8 @@ const LoginScreen = ({ navigation }) => {
   } = useForm({
     mode: "onChange",
     defaultValues: {
-      // emailOrPhone: "test4@gmail.com",
-      // password: "12345",
+      emailOrPhone: "t@gmail.com",
+      password: "12345",
     },
   });
   const [loading, setLoading] = useState(false);
@@ -69,7 +69,7 @@ const LoginScreen = ({ navigation }) => {
       .then(function (response) {
         setLoading(false);
         const user = response.data;
-        AppConfig.USER_ID = user.userID;
+        AppConfig.USER_ID = user.customerId;
         AppConfig.USER_OBJ = user;
       })
       .catch(function (error) {
@@ -207,8 +207,8 @@ const LoginScreen = ({ navigation }) => {
             <Text style={styles.link}>Chưa có tài khoản? Đăng ký</Text>
           </TouchableOpacity>
         </View>
+        <Loading show={loading} />
       </View>
-      <Loading show={loading} />
     </KeyboardAvoidingView>
   );
 };

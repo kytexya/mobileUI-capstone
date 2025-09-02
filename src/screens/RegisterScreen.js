@@ -76,54 +76,56 @@ const RegisterScreen = ({ navigation }) => {
       style={{ flex: 1, backgroundColor: "#f4f6fb" }}
       behavior={Platform.OS === "ios" ? "padding" : "padding"}
     >
-      <FormProvider {...methods}>
-        <View style={styles.container}>
-          <Text style={styles.title}>Đăng ký</Text>
-          <InputForm
-            name="name"
-            placeholder="Họ và tên"
-            messageValidate="Vui lòng nhập họ và tên!"
-          />
-          <InputForm
-            name="email"
-            placeholder="Email"
-            messageValidate="Vui lòng nhập email!"
-            validate={(value) =>
-              emailRegex.test(value) || "Email không hợp lệ!"
-            }
-          />
-          <InputForm
-            name="phone"
-            placeholder="Số điện thoại"
-            messageValidate="Vui lòng nhập số điện thoại!"
-            validate={(value) =>
-              phoneRegex.test(value) || "Số điện thoại không hợp lệ!"
-            }
-          />
-          <InputForm
-            name="password"
-            placeholder="Mật khẩu"
-            messageValidate="Vui lòng nhập mật khẩu!"
-            secureTextEntry={true}
-          />
-          <InputForm
-            name="passwordConfirm"
-            placeholder="Xác nhận mật khẩu"
-            messageValidate="Vui lòng xác nhận mật khẩu!"
-            secureTextEntry={true}
-          />
-          <TouchableOpacity
-            style={styles.button}
-            onPress={methods.handleSubmit(onSubmit)}
-          >
-            <Text style={styles.buttonText}>Đăng ký</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate("LoginScreen")}>
-            <Text style={styles.link}>Đã có tài khoản? Đăng nhập</Text>
-          </TouchableOpacity>
-        </View>
-      </FormProvider>
-      <Loading show={loading} />
+      <View>
+        <FormProvider {...methods}>
+          <View style={styles.container}>
+            <Text style={styles.title}>Đăng ký</Text>
+            <InputForm
+              name="name"
+              placeholder="Họ và tên"
+              messageValidate="Vui lòng nhập họ và tên!"
+            />
+            <InputForm
+              name="email"
+              placeholder="Email"
+              messageValidate="Vui lòng nhập email!"
+              validate={(value) =>
+                emailRegex.test(value) || "Email không hợp lệ!"
+              }
+            />
+            <InputForm
+              name="phone"
+              placeholder="Số điện thoại"
+              messageValidate="Vui lòng nhập số điện thoại!"
+              validate={(value) =>
+                phoneRegex.test(value) || "Số điện thoại không hợp lệ!"
+              }
+            />
+            <InputForm
+              name="password"
+              placeholder="Mật khẩu"
+              messageValidate="Vui lòng nhập mật khẩu!"
+              secureTextEntry={true}
+            />
+            <InputForm
+              name="passwordConfirm"
+              placeholder="Xác nhận mật khẩu"
+              messageValidate="Vui lòng xác nhận mật khẩu!"
+              secureTextEntry={true}
+            />
+            <TouchableOpacity
+              style={styles.button}
+              onPress={methods.handleSubmit(onSubmit)}
+            >
+              <Text style={styles.buttonText}>Đăng ký</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate("LoginScreen")}>
+              <Text style={styles.link}>Đã có tài khoản? Đăng nhập</Text>
+            </TouchableOpacity>
+          </View>
+        </FormProvider>
+        <Loading show={loading} />
+      </View>
     </KeyboardAvoidingView>
   );
 };

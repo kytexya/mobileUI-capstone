@@ -142,7 +142,7 @@ const ConfirmationScreen = ({ navigation, route }) => {
 
   // Tính giá dựa trên combo hoặc dịch vụ riêng lẻ
   const totalPrice = selectedServiceDetails.reduce((sum, service) => {
-    const price = parseInt(service.price);
+    const price = Number(service.price);
     return sum + price;
   }, 0);
 

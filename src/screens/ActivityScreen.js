@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import axios from 'axios';
+import AppConfig from '../utils/AppConfig';
+import { DOMAIN_URL } from '../utils/Constant';
+import { Loading } from '../components/Loading';
+import PaymentPopup from '../components/PaymentPopup';
+import { formatVND } from '../utils/Utils';
 
 // Timeline steps definition (same as HomeScreen)
 const timelineSteps = [
@@ -21,7 +27,7 @@ const mockOngoing = [
     timeBooked: '09:00 - 10:00',
     date: '2024-06-01',
     estimatedDuration: '90 phút',
-    price: '350.000đ',
+    price: 350000,
     mechanic: 'Nguyễn Văn An',
     location: 'Garage A - Khu vực 1',
     services: ['Thay dầu động cơ', 'Kiểm tra phanh', 'Bảo dưỡng định kỳ'],
@@ -43,7 +49,7 @@ const mockOngoing = [
     timeBooked: '14:00 - 15:00',
     date: '2024-06-02',
     estimatedDuration: '45 phút',
-    price: '150.000đ',
+    price: 150000,
     mechanic: 'Trần Thị Bình',
     location: 'Garage B - Khu vực 2',
     services: ['Rửa xe cao cấp', 'Vệ sinh nội thất', 'Đánh bóng xe'],
@@ -137,6 +143,37 @@ const ServiceTimeline = ({ currentStep, serviceColor }) => {
 };
 
 const ActivityScreen = ({ route, navigation }) => {
+
+  const [history, setHistory] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [itemPayment, setItemPayment] = useState({});
+
+  const getHistory = () => {
+    setLoading(true);
+    axios
+      .get(`${DOMAIN_URL}/Appointment/GetByCustomerId/${AppConfig.USER_ID}`, {
+        headers: {
+          Authorization: `Bearer ${AppConfig.ACCESS_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      })
+      .then(function (response) {
+        setHistory(response.data);
+      })
+      .catch(function (error) {
+        Alert.alert(
+          "Lỗi",
+          "Đã xảy ra lỗi, vui lòng thử lại!",
+          [{ text: "OK", onPress: () => console.log("OK Pressed") }],
+          { cancelable: false }
+        );
+      })
+      .finally(function () {
+        setLoading(false);
+      });
+  };
+  
   // Get navigation params
   const initialTab = route?.params?.initialTab || 'ongoing';
   const serviceId = route?.params?.serviceId;
@@ -154,105 +191,118 @@ const ActivityScreen = ({ route, navigation }) => {
     }
   }, [route?.params?.initialTab, navigation]);
 
+  useEffect(() => {
+    getHistory();
+  },[])
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Hoạt động</Text>
-      <View style={styles.tabRow}>
-        <TouchableOpacity style={styles.tabBtn} onPress={() => setActiveTab('ongoing')}>
-          <Text style={[styles.tabText, activeTab === 'ongoing' && styles.tabTextActive]}>Đang diễn ra</Text>
-          {activeTab === 'ongoing' && <View style={styles.tabUnderline} />}
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.tabBtn} onPress={() => setActiveTab('history')}>
-          <Text style={[styles.tabText, activeTab === 'history' && styles.tabTextActive]}>Lịch sử</Text>
-          {activeTab === 'history' && <View style={styles.tabUnderline} />}
-        </TouchableOpacity>
-      </View>
-      <ScrollView 
-        contentContainerStyle={{ paddingBottom: 24, marginTop: 10 }}
-        showsVerticalScrollIndicator={false}
-      >
-        {data.map((service) => (
-          <View key={service.id} style={[styles.serviceCard, { backgroundColor: service.bgColor }]}>
-            {/* Header with icon and info */}
-            <View style={styles.serviceHeader}>
-              <View style={[styles.serviceIconContainer, { backgroundColor: service.color }]}>
-                <MaterialCommunityIcons 
-                  name={service.iconName} 
-                  size={24} 
-                  color="white" 
+    <View style={{flex: 1}}>
+      <View style={styles.container}>
+        <Text style={styles.title}>Hoạt động</Text>
+        <View style={styles.tabRow}>
+          <TouchableOpacity style={styles.tabBtn} onPress={() => setActiveTab('ongoing')}>
+            <Text style={[styles.tabText, activeTab === 'ongoing' && styles.tabTextActive]}>Đang diễn ra</Text>
+            {activeTab === 'ongoing' && <View style={styles.tabUnderline} />}
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.tabBtn} onPress={() => setActiveTab('history')}>
+            <Text style={[styles.tabText, activeTab === 'history' && styles.tabTextActive]}>Lịch sử</Text>
+            {activeTab === 'history' && <View style={styles.tabUnderline} />}
+          </TouchableOpacity>
+        </View>
+        <ScrollView 
+          contentContainerStyle={{ paddingBottom: 24, marginTop: 10 }}
+          showsVerticalScrollIndicator={false}
+        >
+          {data.map((service) => (
+            <TouchableOpacity onPress={() => {
+              setItemPayment(service);
+              setModalVisible(true);
+            }}>
+              <View key={service.id} style={[styles.serviceCard, { backgroundColor: service.bgColor }]}>
+                {/* Header with icon and info */}
+                <View style={styles.serviceHeader}>
+                  <View style={[styles.serviceIconContainer, { backgroundColor: service.color }]}>
+                    <MaterialCommunityIcons 
+                      name={service.iconName} 
+                      size={24} 
+                      color="white" 
+                    />
+                  </View>
+                  <View style={styles.serviceInfo}>
+                    <View style={styles.serviceTitleRow}>
+                      <Text style={styles.serviceName}>{service.name}</Text>
+                      <Text style={styles.servicePrice}>{formatVND(service.price)}</Text>
+                    </View>
+                    <Text style={styles.serviceTime}>{service.timeBooked} • {service.date}</Text>
+                    <Text style={styles.serviceDuration}>⏱ {service.estimatedDuration}</Text>
+                  </View>
+                </View>
+                
+                {/* Vehicle Info */}
+                <View style={styles.vehicleInfoCard}>
+                  <MaterialCommunityIcons 
+                    name="car" 
+                    size={16} 
+                    color={service.color} 
+                    style={styles.vehicleIcon}
+                  />
+                  <View style={styles.vehicleDetails}>
+                    <Text style={styles.vehicleName}>
+                      {service.vehicle.brand} {service.vehicle.model} ({service.vehicle.year})
+                    </Text>
+                    <View style={styles.vehicleSubInfo}>
+                      <Text style={styles.vehiclePlate}>{service.vehicle.licensePlate}</Text>
+                      <Text style={styles.vehicleSpecs}>{service.vehicle.color}</Text>
+                    </View>
+                  </View>
+                </View>
+
+                {/* Mechanic & Location Info */}
+                <View style={styles.detailsSection}>
+                  <View style={styles.detailRow}>
+                    <MaterialCommunityIcons name="account-wrench" size={16} color={service.color} />
+                    <Text style={styles.detailText}>Thợ: {service.mechanic}</Text>
+                  </View>
+                  <View style={styles.detailRow}>
+                    <MaterialCommunityIcons name="map-marker" size={16} color={service.color} />
+                    <Text style={styles.detailText}>{service.location}</Text>
+                  </View>
+                </View>
+
+                {/* Services List */}
+                <View style={styles.servicesSection}>
+                  <Text style={styles.sectionTitle}>Dịch vụ bao gồm:</Text>
+                  <View style={styles.servicesList}>
+                    {service.services.map((item, index) => (
+                      <View key={index} style={styles.serviceItem}>
+                        <MaterialCommunityIcons name="check-circle" size={14} color={service.color} />
+                        <Text style={styles.serviceItemText}>{item}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+
+
+
+                {/* Completed time for finished services */}
+                {service.currentStep === 4 && service.completedAt && (
+                  <View style={styles.completedSection}>
+                    <Text style={styles.completedText}>Hoàn thành lúc: {service.completedAt}</Text>
+                  </View>
+                )}
+                
+                {/* Timeline */}
+                <ServiceTimeline 
+                  currentStep={service.currentStep}
+                  serviceColor={service.color}
                 />
               </View>
-              <View style={styles.serviceInfo}>
-                <View style={styles.serviceTitleRow}>
-                  <Text style={styles.serviceName}>{service.name}</Text>
-                  <Text style={styles.servicePrice}>{service.price}</Text>
-                </View>
-                <Text style={styles.serviceTime}>{service.timeBooked} • {service.date}</Text>
-                <Text style={styles.serviceDuration}>⏱ {service.estimatedDuration}</Text>
-              </View>
-            </View>
-            
-            {/* Vehicle Info */}
-            <View style={styles.vehicleInfoCard}>
-              <MaterialCommunityIcons 
-                name="car" 
-                size={16} 
-                color={service.color} 
-                style={styles.vehicleIcon}
-              />
-              <View style={styles.vehicleDetails}>
-                <Text style={styles.vehicleName}>
-                  {service.vehicle.brand} {service.vehicle.model} ({service.vehicle.year})
-                </Text>
-                <View style={styles.vehicleSubInfo}>
-                  <Text style={styles.vehiclePlate}>{service.vehicle.licensePlate}</Text>
-                  <Text style={styles.vehicleSpecs}>{service.vehicle.color}</Text>
-                </View>
-              </View>
-            </View>
-
-            {/* Mechanic & Location Info */}
-            <View style={styles.detailsSection}>
-              <View style={styles.detailRow}>
-                <MaterialCommunityIcons name="account-wrench" size={16} color={service.color} />
-                <Text style={styles.detailText}>Thợ: {service.mechanic}</Text>
-              </View>
-              <View style={styles.detailRow}>
-                <MaterialCommunityIcons name="map-marker" size={16} color={service.color} />
-                <Text style={styles.detailText}>{service.location}</Text>
-              </View>
-            </View>
-
-            {/* Services List */}
-            <View style={styles.servicesSection}>
-              <Text style={styles.sectionTitle}>Dịch vụ bao gồm:</Text>
-              <View style={styles.servicesList}>
-                {service.services.map((item, index) => (
-                  <View key={index} style={styles.serviceItem}>
-                    <MaterialCommunityIcons name="check-circle" size={14} color={service.color} />
-                    <Text style={styles.serviceItemText}>{item}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-
-
-
-            {/* Completed time for finished services */}
-            {service.currentStep === 4 && service.completedAt && (
-              <View style={styles.completedSection}>
-                <Text style={styles.completedText}>Hoàn thành lúc: {service.completedAt}</Text>
-              </View>
-            )}
-            
-            {/* Timeline */}
-            <ServiceTimeline 
-              currentStep={service.currentStep}
-              serviceColor={service.color}
-            />
-          </View>
-        ))}
-      </ScrollView>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+      <PaymentPopup itemPayment={itemPayment} setModalVisible={setModalVisible} modalVisible={modalVisible} />
+      <Loading show={loading} />
     </View>
   );
 };

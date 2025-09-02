@@ -118,8 +118,8 @@ const NotificationScreen = () => {
             </View>
           ))}
         </ScrollView>
-      </View>
       <Loading show={loading} />
+      </View>
     </SafeAreaView>
   );
 };
