@@ -13,6 +13,7 @@ import ProgressBar from "../components/ProgressBar";
 import axios from "axios";
 import { DOMAIN_URL } from "../utils/Constant";
 import AppConfig from "../utils/AppConfig";
+import { formatVND } from "../utils/Utils";
 
 const BookingFlowScreen = ({ navigation }) => {
   const [expandedService, setExpandedService] = useState(null);
@@ -152,9 +153,9 @@ const BookingFlowScreen = ({ navigation }) => {
   const calcDiscount = (combo) => {
     if (combo?.discount > 0) {
       const priceDiscount = combo?.price * (combo?.discount / 100);
-      return combo?.price - priceDiscount;
+      return formatVND(combo?.price - priceDiscount);
     }
-    return combo?.price ?? 0;
+    return formatVND(combo?.price); 
   };
 
   const getCombo = () => {
@@ -207,6 +208,8 @@ const BookingFlowScreen = ({ navigation }) => {
       })
       .finally(function () {});
   };
+  console.log("allService ",allService);
+  
 
   return (
     <SafeAreaView style={styles.container}>
@@ -249,9 +252,9 @@ const BookingFlowScreen = ({ navigation }) => {
 
               <View style={styles.comboPricing}>
                 <View style={styles.priceRow}>
-                  <Text style={styles.originalPrice}>{combo.price} vnd</Text>
+                  <Text style={styles.originalPrice}>{formatVND(combo.price)}</Text>
                   <Text style={styles.discountPrice}>
-                    {calcDiscount(combo)} vnd
+                    {calcDiscount(combo)}
                   </Text>
                 </View>
                 <View style={styles.discountBadge}>
@@ -398,7 +401,7 @@ const BookingFlowScreen = ({ navigation }) => {
                         )}
                       </Text>
                       <Text style={styles.servicePrice}>
-                        {service.price} vnd
+                        {formatVND(service.price)}
                       </Text>
                     </View>
                     <View

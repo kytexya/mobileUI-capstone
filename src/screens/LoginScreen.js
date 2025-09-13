@@ -26,7 +26,7 @@ const LoginScreen = ({ navigation }) => {
   } = useForm({
     mode: "onChange",
     defaultValues: {
-      emailOrPhone: "t@gmail.com",
+      emailOrPhone: "a@gmail.com",
       password: "12345",
     },
   });
@@ -69,6 +69,7 @@ const LoginScreen = ({ navigation }) => {
       .then(function (response) {
         setLoading(false);
         const user = response.data;
+        console.log("user ",user);
         AppConfig.USER_ID = user.customerId;
         AppConfig.USER_OBJ = user;
       })

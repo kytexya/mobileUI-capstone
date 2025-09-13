@@ -22,6 +22,7 @@ import BookingSuccessScreen from '../screens/BookingSuccessScreen';
 import { Ionicons, MaterialIcons, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 import { TouchableOpacity, SafeAreaView, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import WebViewPaymentScreen from '../screens/WebViewPaymentScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -42,6 +43,7 @@ const HomeStack = () => (
     <HomeStackNav.Screen name="DateTimeScreen" component={DateTimeScreen} />
     <HomeStackNav.Screen name="ConfirmationScreen" component={ConfirmationScreen} />
     <HomeStackNav.Screen name="BookingSuccessScreen" component={BookingSuccessScreen} />
+    <HomeStackNav.Screen name="WebViewPaymentScreen" component={WebViewPaymentScreen} />
   </HomeStackNav.Navigator>
 );
 

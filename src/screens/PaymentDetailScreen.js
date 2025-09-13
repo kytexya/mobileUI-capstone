@@ -16,6 +16,7 @@ import { Loading } from "../components/Loading";
 import axios from "axios";
 import { DOMAIN_URL } from "../utils/Constant";
 import AppConfig from "../utils/AppConfig";
+import { useNavigation } from "@react-navigation/native";
 
 const PaymentDetailScreen = ({ route, navigation }) => {
   const { selectedBill, selectedMethod } = route.params;
@@ -32,15 +33,17 @@ const PaymentDetailScreen = ({ route, navigation }) => {
   };
 
   const handleConfirmPayment = () => {
-    setLoading(true);
+    console.log("selectedBill ",selectedBill);
+    
     if (selectedMethod === "cash") {
+      setLoading(true);
       const nowISO = new Date().toISOString();
       const dataSubmit = {
-        appointmentId: 22,
+        appointmentId: selectedBill.appointmentId,
         amount: selectedBill.price ?? 0,
         paymentMethod: selectedMethod === "cash" ? "Cash" : "Credit Card",
         paidAt: nowISO,
-        orderId: 22,
+        orderId: selectedBill.appointmentId,
         status: "Pending",
       };
 
@@ -88,7 +91,7 @@ const PaymentDetailScreen = ({ route, navigation }) => {
     } else {
       const dataSubmit = {
         amount: selectedBill.price,
-        orderId: 22,
+        orderId: selectedBill.appointmentId,
       };
 
       axios
@@ -99,27 +102,14 @@ const PaymentDetailScreen = ({ route, navigation }) => {
           },
         })
         .then(function (response) {
-          Alert.alert(
-            "Thanh toán thành công!",
-            "Cảm ơn bạn đã thanh toán online!",
-            [
-              {
-                text: "OK",
-                onPress: () =>
-                  navigation.reset({
-                    index: 0,
-                    routes: [
-                      {
-                        name: "Trang chủ",
-                        state: {
-                          routes: [{ name: "HomeScreen" }],
-                        },
-                      },
-                    ],
-                  }),
-              },
-            ]
-          );
+          console.log("response ",response);
+
+          navigation.navigate("Trang chủ", {
+            screen: "WebViewPaymentScreen",
+            params: {
+              paymentUrl: response.data,
+            },
+          });
         })
         .catch(function (error) {
           Alert.alert(

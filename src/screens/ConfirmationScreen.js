@@ -13,6 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
 import AppConfig from "../utils/AppConfig";
 import { DOMAIN_URL } from "../utils/Constant";
+import { formatVND } from "../utils/Utils";
 
 const ConfirmationScreen = ({ navigation, route }) => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -160,6 +161,7 @@ const ConfirmationScreen = ({ navigation, route }) => {
       serviceIds: selectedServices,
       promotionId: null,
       appointmentDate: `${selectedDate.year}-${selectedDate.month}-${selectedDate.date}T${selectedTime}:28.598Z`,
+      staffId: selectedMechanic
     };
 
     console.log("dataSubmit ", dataSubmit);
@@ -177,6 +179,8 @@ const ConfirmationScreen = ({ navigation, route }) => {
         navigation.navigate('BookingSuccessScreen');
       })
       .catch(function (error) {
+        console.log("error",error);
+        
       })
       .finally(function () {
         setIsLoading(false);
@@ -336,7 +340,7 @@ const ConfirmationScreen = ({ navigation, route }) => {
                     )}
                   </View>
                   <View style={styles.priceContainer}>
-                    <Text style={styles.servicePrice}>{service.price} vnd</Text>
+                    <Text style={styles.servicePrice}>{formatVND(service.price)}</Text>
                   </View>
                 </View>
               );
@@ -344,7 +348,7 @@ const ConfirmationScreen = ({ navigation, route }) => {
             <View style={styles.totalRow}>
               <Text style={styles.totalLabel}>Tổng cộng:</Text>
               <Text style={styles.totalPrice}>
-                {totalPrice.toLocaleString()} vnd
+                {formatVND(totalPrice)}
               </Text>
             </View>
           </View>
@@ -509,7 +513,7 @@ const ConfirmationScreen = ({ navigation, route }) => {
                 <View style={styles.confirmDetailRow}>
                   <Ionicons name="card" size={16} color="#1976d2" />
                   <Text style={styles.confirmDetailText}>
-                    Tổng tiền: {totalPrice.toLocaleString()} vnd
+                    Tổng tiền: {formatVND(totalPrice)}
                   </Text>
                 </View>
               </View>
