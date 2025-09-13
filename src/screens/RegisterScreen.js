@@ -29,7 +29,7 @@ const RegisterScreen = ({ navigation }) => {
         message: "Mật khẩu không trùng khớp!",
       });
     }
-    // setLoading(true);
+    setLoading(true);
     const dataSubmit = {
       fullName: data?.name,
       email: data?.email,
@@ -76,7 +76,7 @@ const RegisterScreen = ({ navigation }) => {
       style={{ flex: 1, backgroundColor: "#f4f6fb" }}
       behavior={Platform.OS === "ios" ? "padding" : "padding"}
     >
-      <View>
+      <View style={{flex: 1}}>
         <FormProvider {...methods}>
           <View style={styles.container}>
             <Text style={styles.title}>Đăng ký</Text>
