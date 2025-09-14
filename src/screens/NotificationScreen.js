@@ -90,7 +90,7 @@ const NotificationScreen = () => {
   };
   return (
     <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
-      <View style={{ padding: 16 }}>
+      <View style={{ padding: 16, flex: 1 }}>
         <Text style={styles.title}>Thông báo</Text>
         <ScrollView
           contentContainerStyle={{ paddingBottom: 24, marginTop: 18 }}
@@ -118,8 +118,8 @@ const NotificationScreen = () => {
             </View>
           ))}
         </ScrollView>
-      <Loading show={loading} />
       </View>
+      <Loading show={loading} />
     </SafeAreaView>
   );
 };

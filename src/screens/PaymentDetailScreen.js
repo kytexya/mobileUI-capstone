@@ -43,7 +43,7 @@ const PaymentDetailScreen = ({ route, navigation }) => {
         amount: selectedBill.price ?? 0,
         paymentMethod: selectedMethod === "cash" ? "Cash" : "Credit Card",
         paidAt: nowISO,
-        orderId: selectedBill.appointmentId,
+        orderId: selectedBill.orderId,
         status: "Pending",
       };
 
@@ -91,7 +91,7 @@ const PaymentDetailScreen = ({ route, navigation }) => {
     } else {
       const dataSubmit = {
         amount: selectedBill.price,
-        orderId: selectedBill.appointmentId,
+        orderId: selectedBill.orderId,
       };
 
       axios
