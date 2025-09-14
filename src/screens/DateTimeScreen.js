@@ -20,9 +20,9 @@ const DateTimeScreen = ({ navigation, route }) => {
   const [selectedTime, setSelectedTime] = useState(null);
   const [selectedMechanic, setSelectedMechanic] = useState('none');
   const [showMechanicModal, setShowMechanicModal] = useState(false);
-  const [currentMonth, setCurrentMonth] = useState(8); // Tháng hiện tại (8 = Tháng 8)
+  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1); // Tháng hiện tại (8 = Tháng 8)
   const [currentYear, setCurrentYear] = useState(2025);
-  const [mechanics, setMechanics] = useState([])
+  const [mechanics, setMechanics] = useState([])  
 
   // Mock data cho danh sách nhân viên
   const mechanics1 = [
@@ -315,16 +315,16 @@ const DateTimeScreen = ({ navigation, route }) => {
         <TouchableOpacity
           style={[
             styles.nextButton,
-            (!selectedDate || !selectedTime) && styles.nextButtonDisabled
+            (!selectedDate || !selectedTime || selectedMechanic === 'none') && styles.nextButtonDisabled
           ]}
           onPress={() => {
             handleContinute()
           }}
-          disabled={!selectedDate || !selectedTime}
+          disabled={!selectedDate || !selectedTime || selectedMechanic === 'none'}
         >
           <Text style={[
             styles.nextButtonText,
-            (!selectedDate || !selectedTime) && styles.nextButtonTextDisabled
+            (!selectedDate || !selectedTime || selectedMechanic === 'none') && styles.nextButtonTextDisabled
           ]}>
             Tiếp theo
           </Text>

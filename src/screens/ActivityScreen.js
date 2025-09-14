@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -19,6 +19,7 @@ import {
   generateStepAppointmentColor,
   getRandomItem,
 } from "../utils/Utils";
+import { useFocusEffect } from "@react-navigation/native";
 
 // Timeline steps definition (same as HomeScreen)
 const timelineSteps = [
@@ -230,7 +231,6 @@ const ActivityScreen = ({ route, navigation }) => {
         const newData = response.data.map((e) => ({
           ...e,
           name: "Bảo dưỡng",
-          price: 500000,
           timeBooked: "09:00 - 10:00",
           currentStep: getRandomItem(stepMock),
         }));
@@ -267,10 +267,18 @@ const ActivityScreen = ({ route, navigation }) => {
     }
   }, [route?.params?.initialTab, navigation]);
 
-  useEffect(() => {
-    getHistory();
-    getAppointmentOngoing();
-  }, []);
+  // useEffect(() => {
+  //   getHistory();
+  //   getAppointmentOngoing();
+  // }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      // getHistory();
+      getAppointmentOngoing();
+      return () => {};
+    }, [])
+  );
 
   return (
     <View style={{ flex: 1 }}>
