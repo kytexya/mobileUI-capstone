@@ -16,7 +16,7 @@ import { emailRegex, phoneRegex } from "../utils/validator";
 import AppConfig from "../utils/AppConfig";
 import { DOMAIN_URL } from "../utils/Constant";
 import { useState } from "react";
-import { Loading } from "../components/Loading";
+import { useLoading } from "../components/LoadingContext";
 
 const LoginScreen = ({ navigation }) => {
   const {
@@ -26,11 +26,11 @@ const LoginScreen = ({ navigation }) => {
   } = useForm({
     mode: "onChange",
     defaultValues: {
-      emailOrPhone: "a@gmail.com",
+      emailOrPhone: "c@gmail.com",
       password: "12345",
     },
   });
-  const [loading, setLoading] = useState(false);
+  const { setLoading } = useLoading();
 
   const onSubmit = (data) => {
     setLoading(true);
@@ -44,7 +44,7 @@ const LoginScreen = ({ navigation }) => {
         const token = response.data;
         AppConfig.ACCESS_TOKEN = token;
         handleGetUser(token, data?.emailOrPhone);
-        navigation.replace("MainTabs");
+        // navigation.replace("MainTabs");
       })
       .catch(function (error) {
         setLoading(false);
@@ -69,9 +69,9 @@ const LoginScreen = ({ navigation }) => {
       .then(function (response) {
         setLoading(false);
         const user = response.data;
-        console.log("user ",user);
         AppConfig.USER_ID = user.customerId;
         AppConfig.USER_OBJ = user;
+        navigation.replace("MainTabs");
       })
       .catch(function (error) {
         setLoading(false);
@@ -208,7 +208,6 @@ const LoginScreen = ({ navigation }) => {
             <Text style={styles.link}>Chưa có tài khoản? Đăng ký</Text>
           </TouchableOpacity>
         </View>
-        <Loading show={loading} />
       </View>
     </KeyboardAvoidingView>
   );

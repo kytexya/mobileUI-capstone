@@ -17,6 +17,7 @@ import axios from "axios";
 import { DOMAIN_URL } from "../utils/Constant";
 import AppConfig from "../utils/AppConfig";
 import { useNavigation } from "@react-navigation/native";
+import { useLoading } from "../components/LoadingContext";
 
 const PaymentDetailScreen = ({ route, navigation }) => {
   const { selectedBill, selectedMethod } = route.params;
@@ -25,7 +26,7 @@ const PaymentDetailScreen = ({ route, navigation }) => {
   const [cardName, setCardName] = useState("");
   const [cardExpiry, setCardExpiry] = useState("");
   const [cardCVV, setCardCVV] = useState("");
-  const [loading, setLoading] = useState(false);
+  const { setLoading } = useLoading();
 
   const qrImages = {
     zalopay: require("../assets/banner.png"),
@@ -364,7 +365,6 @@ const PaymentDetailScreen = ({ route, navigation }) => {
           </Text>
         </LinearGradient>
       </TouchableOpacity>
-      <Loading show={loading} />
     </ScrollView>
   );
 };

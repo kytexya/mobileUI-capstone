@@ -6,6 +6,7 @@ import { DOMAIN_URL } from "../utils/Constant";
 import AppConfig from "../utils/AppConfig";
 import axios from "axios";
 import { Loading } from "../components/Loading";
+import { useLoading } from "../components/LoadingContext";
 
 const mockNotifications = [
   {
@@ -46,7 +47,7 @@ const getIcon = (type) => {
 
 const NotificationScreen = () => {
   const [notifi, setNotifi] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const { setLoading } = useLoading();
 
   useEffect(() => {
     getNotification();
@@ -90,7 +91,7 @@ const NotificationScreen = () => {
   };
   return (
     <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
-      <View style={{ padding: 16, flex: 1 }}>
+      <View style={{ padding: 16, flex: 1, paddingTop: 0 }}>
         <Text style={styles.title}>Thông báo</Text>
         <ScrollView
           contentContainerStyle={{ paddingBottom: 24, marginTop: 18 }}
@@ -119,7 +120,6 @@ const NotificationScreen = () => {
           ))}
         </ScrollView>
       </View>
-      <Loading show={loading} />
     </SafeAreaView>
   );
 };

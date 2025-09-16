@@ -6,8 +6,9 @@ import { DOMAIN_URL } from "../utils/Constant";
 import AppConfig from "../utils/AppConfig";
 import { Loading } from "../components/Loading";
 import PaymentPopup from "../components/PaymentPopup";
-import { formatDate, generateStepAppointmentColor, getRandomItem } from "../utils/Utils";
+import { formatDate, formatTime, generateStepAppointmentColor, getRandomItem } from "../utils/Utils";
 import { stepMock } from "./ActivityScreen";
+import { useLoading } from "../components/LoadingContext";
 
 // Timeline steps definition (same as HomeScreen)
 const timelineSteps = [
@@ -144,7 +145,7 @@ const HistoryScreen = () => {
   const [history, setHistory] = useState([]);
   console.log("history ", history);
 
-  const [loading, setLoading] = useState(false);
+  const { setLoading } = useLoading();
   const [modalVisible, setModalVisible] = useState(false);
 
   const getHistory = () => {
@@ -157,11 +158,13 @@ const HistoryScreen = () => {
         },
       })
       .then(function (response) {
+        console.log("response ",response);
+        
         const newData = response.data.map((e) => ({
           ...e,
           name: "Bảo dưỡng",
           price: 500000,
-          timeBooked: "09:00 - 10:00",
+          timeBooked: formatTime(e.bookedTime),
           currentStep: getRandomItem(stepMock),
         }));
         setHistory(newData);
@@ -183,6 +186,7 @@ const HistoryScreen = () => {
   useEffect(() => {
     getHistory();
   }, []);
+console.log("history ",history);
 
   return (
     <View style={styles.container}>
@@ -193,7 +197,7 @@ const HistoryScreen = () => {
       >
         {history.map((history) => (
           <View
-            key={history.id}
+            key={history.appointmentId}
             style={[
               styles.serviceCard,
               {
@@ -262,7 +266,6 @@ const HistoryScreen = () => {
         setModalVisible={setModalVisible}
         modalVisible={modalVisible}
       />
-      <Loading show={loading} />
     </View>
   );
 };

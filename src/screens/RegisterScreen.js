@@ -15,11 +15,11 @@ import { emailRegex, phoneRegex } from "../utils/validator";
 import axios from "axios";
 import { DOMAIN_URL } from "../utils/Constant";
 import { Loading } from "../components/Loading";
+import { useLoading } from "../components/LoadingContext";
 
 const RegisterScreen = ({ navigation }) => {
   const methods = useForm();
-  const [loading, setLoading] = useState(false);
-
+  const { setLoading } = useLoading();
   const onSubmit = async (data) => {
     if (data?.password != data?.passwordConfirm) {
       methods.setError("password", {
@@ -124,7 +124,6 @@ const RegisterScreen = ({ navigation }) => {
             </TouchableOpacity>
           </View>
         </FormProvider>
-        <Loading show={loading} />
       </View>
     </KeyboardAvoidingView>
   );

@@ -29,6 +29,7 @@ const ConfirmationScreen = ({ navigation, route }) => {
     selectedDate,
     selectedTime,
     selectedMechanic,
+    staff,
     packageId,
     selectedVehicle,
   } = route.params;
@@ -131,7 +132,7 @@ const ConfirmationScreen = ({ navigation, route }) => {
     // });
     allService.forEach((service) => {
       if (selectedServices.includes(service.serviceId)) {
-        details.push(service);
+        details.push({...service, id: service.serviceId});
       }
     });
     return details;
@@ -161,7 +162,7 @@ const ConfirmationScreen = ({ navigation, route }) => {
       serviceIds: selectedServices,
       promotionId: null,
       appointmentDate: `${selectedDate.year}-${selectedDate.month}-${selectedDate.date}T${selectedTime}:28.598Z`,
-      staffId: selectedMechanic
+      staffId: selectedMechanic ?? null
     };
 
     console.log("dataSubmit ", dataSubmit);
@@ -374,7 +375,7 @@ const ConfirmationScreen = ({ navigation, route }) => {
               <Text style={styles.infoText}>
                 {selectedMechanic === "none"
                   ? "Không chỉ định thợ"
-                  : "Thợ đã chỉ định"}
+                  : "Thợ đã chỉ định: " + staff?.user?.fullName ?? ""}
               </Text>
             </View>
           </View>
