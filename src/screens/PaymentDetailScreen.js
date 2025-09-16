@@ -103,7 +103,7 @@ const PaymentDetailScreen = ({ route, navigation }) => {
           },
         })
         .then(function (response) {
-          console.log("response ",response);
+          console.log("Payment/payment/vnpay/payment-url ",response);
 
           navigation.navigate("Trang chủ", {
             screen: "WebViewPaymentScreen",

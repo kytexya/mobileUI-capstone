@@ -6,7 +6,7 @@ import { DOMAIN_URL } from "../utils/Constant";
 import AppConfig from "../utils/AppConfig";
 import { Loading } from "../components/Loading";
 import PaymentPopup from "../components/PaymentPopup";
-import { formatDate, formatTime, generateStepAppointmentColor, getRandomItem } from "../utils/Utils";
+import { convertStatusToStep, formatDate, formatTime, generateStepAppointmentColor } from "../utils/Utils";
 import { stepMock } from "./ActivityScreen";
 import { useLoading } from "../components/LoadingContext";
 
@@ -165,7 +165,7 @@ const HistoryScreen = () => {
           name: "Bảo dưỡng",
           price: 500000,
           timeBooked: formatTime(e.bookedTime),
-          currentStep: getRandomItem(stepMock),
+          currentStep: convertStatusToStep(e.status),
         }));
         setHistory(newData);
         console.log("res ", response.data);

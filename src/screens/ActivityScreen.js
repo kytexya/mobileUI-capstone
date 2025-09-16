@@ -18,7 +18,7 @@ import {
   formatTime,
   formatVND,
   generateStepAppointmentColor,
-  getRandomItem,
+  convertStatusToStep,
 } from "../utils/Utils";
 import { useFocusEffect } from "@react-navigation/native";
 import { useLoading } from "../components/LoadingContext";
@@ -201,7 +201,7 @@ const ActivityScreen = ({ route, navigation }) => {
           ...e,
           name: "Bảo dưỡng",
           timeBooked: formatTime(e.bookedTime),
-          currentStep: getRandomItem(stepMock),
+          currentStep: convertStatusToStep(e.status),
         }));
         setAppointmentHistory(newData);
       })
@@ -237,7 +237,7 @@ const ActivityScreen = ({ route, navigation }) => {
           ...e,
           name: "Bảo dưỡng",
           timeBooked: formatTime(e.bookedTime),
-          currentStep: getRandomItem(stepMock),
+          currentStep: convertStatusToStep(e.status),
         }));
         setAppointmentOnGoing(newData);
       })
