@@ -6,7 +6,6 @@ import { useNavigation } from "@react-navigation/native";
 
 export default function PaymentPopup(props) {
   const { itemPayment, setModalVisible, modalVisible } = props;
-  console.log("itemPayment ", itemPayment);
   const navigation = useNavigation();
 
   const paymentMethods = [

@@ -15,11 +15,13 @@ import { Loading } from "../components/Loading";
 import PaymentPopup from "../components/PaymentPopup";
 import {
   formatDate,
+  formatTime,
   formatVND,
   generateStepAppointmentColor,
   getRandomItem,
 } from "../utils/Utils";
 import { useFocusEffect } from "@react-navigation/native";
+import { useLoading } from "../components/LoadingContext";
 
 // Timeline steps definition (same as HomeScreen)
 const timelineSteps = [
@@ -179,7 +181,7 @@ const ServiceTimeline = ({ currentStep, serviceColor }) => {
 const ActivityScreen = ({ route, navigation }) => {
   const [appointmentHistory, setAppointmentHistory] = useState([]);
   const [appointmentOnGoing, setAppointmentOnGoing] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const { setLoading } = useLoading();
   const [modalVisible, setModalVisible] = useState(false);
   const [itemPayment, setItemPayment] = useState({});
 
@@ -193,11 +195,12 @@ const ActivityScreen = ({ route, navigation }) => {
         },
       })
       .then(function (response) {
+        console.log("GetByCustomerId ",response);
+        
         const newData = response.data.map((e) => ({
           ...e,
           name: "Bảo dưỡng",
-          price: 500000,
-          timeBooked: "09:00 - 10:00",
+          timeBooked: formatTime(e.bookedTime),
           currentStep: getRandomItem(stepMock),
         }));
         setAppointmentHistory(newData);
@@ -228,10 +231,12 @@ const ActivityScreen = ({ route, navigation }) => {
         }
       )
       .then(function (response) {
+        console.log("GetOngoingByCustomerId ",response);
+
         const newData = response.data.map((e) => ({
           ...e,
           name: "Bảo dưỡng",
-          timeBooked: "09:00 - 10:00",
+          timeBooked: formatTime(e.bookedTime),
           currentStep: getRandomItem(stepMock),
         }));
         setAppointmentOnGoing(newData);
@@ -274,7 +279,7 @@ const ActivityScreen = ({ route, navigation }) => {
 
   useFocusEffect(
     useCallback(() => {
-      // getHistory();
+      getHistory();
       getAppointmentOngoing();
       return () => {};
     }, [])
@@ -320,13 +325,13 @@ const ActivityScreen = ({ route, navigation }) => {
         >
           {data.map((history) => (
             <TouchableOpacity
+              key={history.appointmentId}
               onPress={() => {
                 setItemPayment(history);
                 setModalVisible(true);
               }}
             >
               <View
-                key={history.appointmentId}
                 style={[
                   styles.serviceCard,
                   {
@@ -368,7 +373,7 @@ const ActivityScreen = ({ route, navigation }) => {
                       {formatDate(new Date(history.appointmentDate))}
                     </Text>
                     <Text style={styles.serviceDuration}>
-                      ⏱ {history.duration}
+                      ⏱ {history.duration} giờ
                     </Text>
                   </View>
                 </View>
@@ -423,7 +428,7 @@ const ActivityScreen = ({ route, navigation }) => {
                   <Text style={styles.sectionTitle}>Dịch vụ bao gồm:</Text>
                   <View style={styles.servicesList}>
                     {history.services.map((item, index) => (
-                      <View key={index} style={styles.serviceItem}>
+                      <View key={index + 999} style={styles.serviceItem}>
                         <MaterialCommunityIcons
                           name="check-circle"
                           size={14}
@@ -465,7 +470,6 @@ const ActivityScreen = ({ route, navigation }) => {
         setModalVisible={setModalVisible}
         modalVisible={modalVisible}
       />
-      <Loading show={loading} />
     </View>
   );
 };
@@ -474,6 +478,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+    paddingTop: 32,
     backgroundColor: "#f6f8fa",
   },
   title: {

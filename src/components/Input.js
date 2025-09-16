@@ -11,6 +11,8 @@ const Input = ({ value, onChangeText, placeholder, secureTextEntry, style, keybo
     keyboardType={keyboardType}
     placeholderTextColor="#aaa"
     multiline={multiline}
+    autoCapitalize="none"
+    textBreakStrategy="simple"
   />
 );
 

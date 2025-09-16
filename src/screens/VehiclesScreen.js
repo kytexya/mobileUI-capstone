@@ -15,11 +15,12 @@ import axios from "axios";
 import AppConfig from "../utils/AppConfig";
 import { DOMAIN_URL } from "../utils/Constant";
 import { Loading } from "../components/Loading";
+import { useLoading } from "../components/LoadingContext";
 
 const VehiclesScreen = ({navigation}) => {
   const [showAddVehicleModal, setShowAddVehicleModal] = useState(false);
   const [vehicles, setVehicles] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const { setLoading } = useLoading();
   const [newVehicle, setNewVehicle] = useState({
     model: "",
     licensePlate: "",
@@ -119,9 +120,6 @@ const VehiclesScreen = ({navigation}) => {
   };
 
   const getVehicle = () => {
-    if (!loading) {
-      setLoading(true);
-    }
     axios
       .get(`${DOMAIN_URL}/Vehicle/customer/${AppConfig.USER_ID}`, {
         headers: {
@@ -130,7 +128,7 @@ const VehiclesScreen = ({navigation}) => {
         },
       })
       .then(function (response) {
-        setVehicles(response.data);
+        setVehicles(response.data.map(e => ({...e, status: 1})));
       })
       .catch(function (error) {
         Alert.alert(
@@ -194,19 +192,19 @@ const VehiclesScreen = ({navigation}) => {
                     styles.statusBadge,
                     {
                       backgroundColor:
-                        vehicle.status === "Hoạt động" ? "#E8F5E8" : "#FFF3E0",
+                        vehicle.status === 1 ? "#E8F5E8" : "#FFF3E0",
                     },
                   ]}
                 >
                   <MaterialCommunityIcons
                     name={
-                      vehicle.status === "Hoạt động"
+                      vehicle.status === 1
                         ? "check-circle"
                         : "alert-circle"
                     }
                     size={12}
                     color={
-                      vehicle.status === "Hoạt động" ? "#4CAF50" : "#FF9800"
+                      vehicle.status === 1 ? "#4CAF50" : "#FF9800"
                     }
                   />
                   <Text
@@ -214,13 +212,13 @@ const VehiclesScreen = ({navigation}) => {
                       styles.statusText,
                       {
                         color:
-                          vehicle.status === "Hoạt động"
+                          vehicle.status === 1
                             ? "#4CAF50"
                             : "#FF9800",
                       },
                     ]}
                   >
-                    {vehicle.status}
+                    {vehicle.status !== 1 ? "Hoạt động" : "Hoạt động"}
                   </Text>
                 </View>
                 <TouchableOpacity
@@ -267,7 +265,7 @@ const VehiclesScreen = ({navigation}) => {
                 <Text style={styles.serviceLabel}>Bảo dưỡng cuối:</Text>
                 <Text style={styles.serviceDate}>{vehicle.lastService}</Text>
               </View>
-              <View style={styles.serviceItem}>
+              {/* <View style={styles.serviceItem}>
                 <MaterialCommunityIcons
                   name="calendar-clock"
                   size={14}
@@ -275,7 +273,7 @@ const VehiclesScreen = ({navigation}) => {
                 />
                 <Text style={styles.serviceLabel}>Bảo dưỡng tiếp:</Text>
                 <Text style={styles.serviceDate}>{vehicle.nextService}</Text>
-              </View>
+              </View> */}
             </View>
           </View>
         ))}
@@ -412,7 +410,6 @@ const VehiclesScreen = ({navigation}) => {
           </View>
         </View>
       </Modal>
-      <Loading show={loading} />
     </SafeAreaView>
   );
 };
@@ -420,10 +417,10 @@ const VehiclesScreen = ({navigation}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f6f8fa",
+    backgroundColor: "white",
   },
   header: {
-    backgroundColor: "white",
+    // backgroundColor: "white",
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
@@ -553,7 +550,7 @@ const styles = StyleSheet.create({
   serviceItem: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 6,
+    // marginBottom: 6,
   },
   serviceLabel: {
     fontSize: 12,

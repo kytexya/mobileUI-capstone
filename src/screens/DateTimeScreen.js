@@ -63,13 +63,13 @@ const DateTimeScreen = ({ navigation, route }) => {
   // Mock data cho slot có sẵn/không có sẵn
   const timeSlots = [
     { time: '08:00', available: true },
-    { time: '09:00', available: false },
+    { time: '09:00', available: true },
     { time: '10:00', available: true },
     { time: '11:00', available: true },
-    { time: '12:00', available: false },
+    { time: '12:00', available: true },
     { time: '13:00', available: true },
     { time: '14:00', available: true },
-    { time: '15:00', available: false },
+    { time: '15:00', available: true },
     { time: '16:00', available: true },
     { time: '17:00', available: true }
   ];
@@ -150,6 +150,7 @@ const DateTimeScreen = ({ navigation, route }) => {
   };
 
   const handleContinute = () => {    
+    const staff = mechanics.find((e) => e.staffId == selectedMechanic)
     navigation.navigate('ConfirmationScreen', {
       selectedServices,
       personalInfo,
@@ -162,6 +163,7 @@ const DateTimeScreen = ({ navigation, route }) => {
       },
       selectedTime,
       selectedMechanic,
+      staff: staff,
       packageId
     })
   }
@@ -315,16 +317,16 @@ const DateTimeScreen = ({ navigation, route }) => {
         <TouchableOpacity
           style={[
             styles.nextButton,
-            (!selectedDate || !selectedTime || selectedMechanic === 'none') && styles.nextButtonDisabled
+            (!selectedDate || !selectedTime) && styles.nextButtonDisabled
           ]}
           onPress={() => {
             handleContinute()
           }}
-          disabled={!selectedDate || !selectedTime || selectedMechanic === 'none'}
+          disabled={!selectedDate || !selectedTime }
         >
           <Text style={[
             styles.nextButtonText,
-            (!selectedDate || !selectedTime || selectedMechanic === 'none') && styles.nextButtonTextDisabled
+            (!selectedDate || !selectedTime ) && styles.nextButtonTextDisabled
           ]}>
             Tiếp theo
           </Text>

@@ -18,11 +18,13 @@ import axios from "axios";
 import { DOMAIN_URL } from "../utils/Constant";
 import {
   formatDate,
+  formatTime,
   generateStepAppointmentColor,
   getRandomItem,
 } from "../utils/Utils";
 import { stepMock } from "./ActivityScreen";
 import { useFocusEffect } from "@react-navigation/native";
+import { useLoading } from "../components/LoadingContext";
 
 const carImage = require("../assets/banner.png");
 
@@ -264,7 +266,7 @@ const HomeScreen = ({ navigation }) => {
   const [promotion, setPromotion] = useState([]);
   const [appointmentOnGoing, setAppointmentOnGoing] = useState([]);
 
-  const [loading, setLoading] = useState(false);
+  const { setLoading } = useLoading();
   // Lấy tên người dùng từ AppConfig
   const getUserName = () => {
     if (AppConfig.USER_OBJ && AppConfig.USER_OBJ.fullName) {
@@ -319,14 +321,13 @@ const HomeScreen = ({ navigation }) => {
         const newData = response.data.map((e) => ({
           ...e,
           name: "Bảo dưỡng",
-          timeBooked: "09:00 - 10:00",
+          timeBooked: formatTime(e.bookedTime),
           currentStep: getRandomItem(stepMock),
         }));
         setAppointmentOnGoing(newData);
       })
       .catch(function (error) {
-        console.log("error ", error);
-
+        console.log("error get appointment", error);
         Alert.alert(
           "Lỗi",
           "Đã xảy ra lỗi, vui lòng thử lại!",
@@ -347,7 +348,6 @@ const HomeScreen = ({ navigation }) => {
       }, [])
     );
 
-  console.log(" appointmentOnGoing ", appointmentOnGoing);
 
   return (
     <ScrollView
@@ -561,7 +561,6 @@ const HomeScreen = ({ navigation }) => {
           ))}
         </ScrollView>
       </View>
-      <Loading show={loading} />
     </ScrollView>
   );
 };

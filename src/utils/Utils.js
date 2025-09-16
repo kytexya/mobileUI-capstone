@@ -15,6 +15,18 @@ export function formatDate(date) {
   return `${year}-${month}-${day}`;
 }
 
+export const formatTime = (timeString) => {
+  if (!timeString) return "";
+
+  const parts = timeString.split(":");
+  if (parts.length < 2) return timeString;
+
+  const hour = parts[0];
+  const minute = parts[1];
+
+  return `${hour}:${minute}`;
+};
+
 
 export function getRandomItem(arr) {
   const randomIndex = Math.floor(Math.random() * arr.length);
