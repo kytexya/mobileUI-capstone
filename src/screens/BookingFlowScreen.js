@@ -21,6 +21,7 @@ const BookingFlowScreen = ({ navigation }) => {
   const [selectedComboId, setSelectedComboId] = useState(null);
   const [serviceCombos, setServiceCombos] = useState([]);
   const [allService, setAllService] = useState([]);
+console.log("serviceCombos ",serviceCombos);
 
   const serviceCombos_test = [
     {

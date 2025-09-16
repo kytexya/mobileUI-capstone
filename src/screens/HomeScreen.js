@@ -20,7 +20,7 @@ import {
   formatDate,
   formatTime,
   generateStepAppointmentColor,
-  getRandomItem,
+  convertStatusToStep,
 } from "../utils/Utils";
 import { stepMock } from "./ActivityScreen";
 import { useFocusEffect } from "@react-navigation/native";
@@ -322,7 +322,7 @@ const HomeScreen = ({ navigation }) => {
           ...e,
           name: "Bảo dưỡng",
           timeBooked: formatTime(e.bookedTime),
-          currentStep: getRandomItem(stepMock),
+          currentStep: convertStatusToStep(e.status),
         }));
         setAppointmentOnGoing(newData);
       })
