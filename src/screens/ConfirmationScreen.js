@@ -95,7 +95,6 @@ const ConfirmationScreen = ({ navigation, route }) => {
     },
   ];
 
-
   const calcDiscount = (combo) => {
     if (combo?.discount > 0) {
       const priceDiscount = combo?.price * (combo?.discount / 100);
@@ -114,7 +113,8 @@ const ConfirmationScreen = ({ navigation, route }) => {
             id: selectedCombo.packageId,
             packageId: selectedCombo.packageId,
             name: selectedCombo.name,
-            price: calcDiscount(selectedCombo),
+            // price: calcDiscount(selectedCombo),
+            price: selectedCombo.price,
             isCombo: true,
           },
         ];
@@ -162,7 +162,7 @@ const ConfirmationScreen = ({ navigation, route }) => {
       serviceIds: selectedServices,
       promotionId: null,
       appointmentDate: `${selectedDate.year}-${selectedDate.month}-${selectedDate.date}T${selectedTime}:28.598Z`,
-      staffId: selectedMechanic ?? null
+      staffId: selectedMechanic != "none" ? selectedMechanic : null
     };
 
     console.log("dataSubmit ", dataSubmit);

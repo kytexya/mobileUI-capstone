@@ -153,8 +153,8 @@ console.log("serviceCombos ",serviceCombos);
 
   const calcDiscount = (combo) => {
     if (combo?.discount > 0) {
-      const priceDiscount = combo?.price * (combo?.discount / 100);
-      return formatVND(combo?.price - priceDiscount);
+      const priceDiscount = combo?.price / (1-(combo?.discount / 100));      
+      return formatVND(Math.round(priceDiscount));
     }
     return formatVND(combo?.price); 
   };
@@ -209,7 +209,7 @@ console.log("serviceCombos ",serviceCombos);
       })
       .finally(function () {});
   };
-  console.log("allService ",allService);
+  console.log("serviceCombos ",serviceCombos);
   
 
   return (
@@ -253,9 +253,10 @@ console.log("serviceCombos ",serviceCombos);
 
               <View style={styles.comboPricing}>
                 <View style={styles.priceRow}>
-                  <Text style={styles.originalPrice}>{formatVND(combo.price)}</Text>
+                  <Text style={styles.originalPrice}>{calcDiscount(combo)}</Text>
                   <Text style={styles.discountPrice}>
-                    {calcDiscount(combo)}
+                    {/* {calcDiscount(combo)} */}
+                    {formatVND(combo.price)}
                   </Text>
                 </View>
                 <View style={styles.discountBadge}>

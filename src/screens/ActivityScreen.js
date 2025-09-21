@@ -25,10 +25,11 @@ import { useLoading } from "../components/LoadingContext";
 
 // Timeline steps definition (same as HomeScreen)
 const timelineSteps = [
-  { id: 1, icon: "clock-outline", label: "Đặt lịch", color: "#9E9E9E" },
-  { id: 2, icon: "check-circle", label: "Xác nhận", color: "#2196F3" },
-  { id: 3, icon: "car-wrench", label: "Thực hiện", color: "#9C27B0" },
-  { id: 4, icon: "check-all", label: "Hoàn tất", color: "#4CAF50" },
+  { id: 1, icon: "clock-outline", label: "Đặt lịch", color: "#1aca35ff" },
+  // { id: 2, icon: "check-circle", label: "Xác nhận", color: "#2196F3" },
+  { id: 2, icon: "car-wrench", label: "Thực hiện", color: "#9C27B0" },
+  { id: 3, icon: "check-all", label: "Hoàn tất", color: "#4CAF50" },
+  { id: 4, icon: "cancel", label: "Hủy", color: "#d51717ff" },
 ];
 
 const mockOngoing = [

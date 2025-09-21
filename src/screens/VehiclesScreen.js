@@ -127,7 +127,7 @@ const VehiclesScreen = ({navigation}) => {
           "Content-Type": "application/json",
         },
       })
-      .then(function (response) {
+      .then(function (response) {        
         setVehicles(response.data.map(e => ({...e, status: 1})));
       })
       .catch(function (error) {
