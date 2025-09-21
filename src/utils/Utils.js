@@ -31,11 +31,11 @@ export function convertStatusToStep(status) {
   switch (status) {
     case "Booked":
       return 1;
-    case "Confirm":
-      return 1;
     case "Vehicle Received":
       return 1;
     case "Completed":
+      return 3;
+    case "Canceled":
       return 4;
 
     default:
