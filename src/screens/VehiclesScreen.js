@@ -16,6 +16,7 @@ import AppConfig from "../utils/AppConfig";
 import { DOMAIN_URL } from "../utils/Constant";
 import { Loading } from "../components/Loading";
 import { useLoading } from "../components/LoadingContext";
+import { formatDate, formatDateAndHour } from "../utils/Utils";
 
 const VehiclesScreen = ({navigation}) => {
   const [showAddVehicleModal, setShowAddVehicleModal] = useState(false);
@@ -23,6 +24,7 @@ const VehiclesScreen = ({navigation}) => {
   const { setLoading } = useLoading();
   const [newVehicle, setNewVehicle] = useState({
     model: "",
+    brand: "",
     licensePlate: "",
     year: "",
     color: "",
@@ -76,25 +78,27 @@ const VehiclesScreen = ({navigation}) => {
     setLoading(true);
     if (
       newVehicle.model &&
+      newVehicle.brand &&
       newVehicle.licensePlate &&
       newVehicle.year &&
       newVehicle.color
     ) {
-      const vehicleToAdd = {
-        id: Date.now(),
-        ...newVehicle,
-      };
-      setVehicles((prev) => [...prev, vehicleToAdd]);
+      // const vehicleToAdd = {
+      //   id: Date.now(),
+      //   ...newVehicle,
+      // };
+      // setVehicles((prev) => [...prev, vehicleToAdd]);
       setShowAddVehicleModal(false);
-      setNewVehicle({ model: "", licensePlate: "", year: "", color: "" });
+      setNewVehicle({ model: "", brand: "", licensePlate: "", year: "", color: "" });
     }
 
     const dataSubmit = {
       licensePlate: newVehicle.licensePlate,
-      make: newVehicle.color,
+      make: newVehicle.brand,
       model: newVehicle.model,
       year: newVehicle.year,
       carTypeId: newVehicle?.carTypeId ?? 1,
+      color: newVehicle.color
     };
 
     axios
@@ -128,7 +132,7 @@ const VehiclesScreen = ({navigation}) => {
         },
       })
       .then(function (response) {        
-        setVehicles(response.data.map(e => ({...e, status: 1})));
+        setVehicles(response.data.map(e => ({...e})));
       })
       .catch(function (error) {
         Alert.alert(
@@ -146,6 +150,42 @@ const VehiclesScreen = ({navigation}) => {
   useEffect(() => {
     getVehicle();
   }, []);
+
+  const getStatus = (status) => {
+    switch (status) {
+      case "Available":
+        return {
+          bgColor: "#E8F5E8",
+          color: "#4CAF50",
+          title: "Hoạt động",
+          icon: "check-circle"
+        }
+    case "Booked":
+      return {
+          bgColor: "#b0c2f5ff",
+          color: "#354ae7ff",
+          title: "Đã đặt lịch",
+          icon: "calendar"
+        }
+    case "In Service":
+      return {
+          bgColor: "#FFF3E0",
+          color: "#FF9800",
+          title: "Đang thực hiện",
+          icon: "wrench",
+        }
+    default:
+      return {
+          bgColor: "#E8F5E8",
+          color: "#4CAF50",
+          title: "Hoạt động",
+          icon: "check-circle"
+        }
+    }
+  }
+
+  console.log(" vehicles ", vehicles);
+  
 
   return (
     <SafeAreaView style={styles.container}>
@@ -179,7 +219,7 @@ const VehiclesScreen = ({navigation}) => {
                 </View>
                 <View style={styles.vehicleText}>
                   <Text style={styles.vehicleModel}>
-                    {vehicle.brand} {vehicle.model}
+                    {vehicle.make} {vehicle.model}
                   </Text>
                   <Text style={styles.vehicleLicense}>
                     {vehicle.licensePlate}
@@ -192,19 +232,17 @@ const VehiclesScreen = ({navigation}) => {
                     styles.statusBadge,
                     {
                       backgroundColor:
-                        vehicle.status === 1 ? "#E8F5E8" : "#FFF3E0",
+                        getStatus(vehicle.status).bgColor,
                     },
                   ]}
                 >
                   <MaterialCommunityIcons
                     name={
-                      vehicle.status === 1
-                        ? "check-circle"
-                        : "alert-circle"
+                      getStatus(vehicle.status).icon
                     }
                     size={12}
                     color={
-                      vehicle.status === 1 ? "#4CAF50" : "#FF9800"
+                      getStatus(vehicle.status).color
                     }
                   />
                   <Text
@@ -212,13 +250,11 @@ const VehiclesScreen = ({navigation}) => {
                       styles.statusText,
                       {
                         color:
-                          vehicle.status === 1
-                            ? "#4CAF50"
-                            : "#FF9800",
+                          getStatus(vehicle.status).color,
                       },
                     ]}
                   >
-                    {vehicle.status !== 1 ? "Hoạt động" : "Hoạt động"}
+                    {getStatus(vehicle.status).title}
                   </Text>
                 </View>
                 <TouchableOpacity
@@ -250,30 +286,30 @@ const VehiclesScreen = ({navigation}) => {
                   size={14}
                   color="#FF6B35"
                 />
-                <Text style={styles.specText}>{vehicle.make}</Text>
+                <Text style={styles.specText}>{vehicle.color ?? ""}</Text>
               </View>
             </View>
 
             {/* Service info */}
             <View style={styles.serviceInfo}>
-              <View style={styles.serviceItem}>
+              <View style={[styles.serviceItem, {marginBottom: 6}]}>
                 <MaterialCommunityIcons
                   name="wrench"
                   size={14}
                   color="#4CAF50"
                 />
                 <Text style={styles.serviceLabel}>Bảo dưỡng cuối:</Text>
-                <Text style={styles.serviceDate}>{vehicle.lastService}</Text>
+                <Text style={styles.serviceDate}>{formatDateAndHour(vehicle.lastService)}</Text>
               </View>
-              {/* <View style={styles.serviceItem}>
+              <View style={styles.serviceItem}>
                 <MaterialCommunityIcons
                   name="calendar-clock"
                   size={14}
                   color="#FF9800"
                 />
                 <Text style={styles.serviceLabel}>Bảo dưỡng tiếp:</Text>
-                <Text style={styles.serviceDate}>{vehicle.nextService}</Text>
-              </View> */}
+                <Text style={styles.serviceDate}>{formatDateAndHour(vehicle.nextServiceDue)}</Text>
+              </View>
             </View>
           </View>
         ))}
@@ -398,6 +434,7 @@ const VehiclesScreen = ({navigation}) => {
                   setShowAddVehicleModal(false);
                   setNewVehicle({
                     model: "",
+                    brand: "",
                     licensePlate: "",
                     year: "",
                     color: "",
@@ -550,7 +587,6 @@ const styles = StyleSheet.create({
   serviceItem: {
     flexDirection: "row",
     alignItems: "center",
-    // marginBottom: 6,
   },
   serviceLabel: {
     fontSize: 12,

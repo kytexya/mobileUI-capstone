@@ -149,8 +149,21 @@ const DateTimeScreen = ({ navigation, route }) => {
       .finally(function () {});
   };
 
-  const handleContinute = () => {    
-    const staff = mechanics.find((e) => e.staffId == selectedMechanic)
+  function getRandomId(arr) {
+    const index = Math.floor(Math.random() * arr.length);
+    return arr[index].staffId;
+  }
+
+  const handleContinute = () => {
+    const randomStaff = getRandomId(mechanics);
+    const staffId = selectedMechanic === "none" ? randomStaff :selectedMechanic ;
+    console.log("randomStaff ",randomStaff);
+    console.log("mechanics ",mechanics);
+    console.log("staffId ",staffId);
+    
+    
+
+    const staff = mechanics.find((e) => e.staffId == staffId)
     navigation.navigate('ConfirmationScreen', {
       selectedServices,
       personalInfo,
@@ -162,7 +175,7 @@ const DateTimeScreen = ({ navigation, route }) => {
         year: currentYear
       },
       selectedTime,
-      selectedMechanic,
+      selectedMechanic: staffId,
       staff: staff,
       packageId
     })

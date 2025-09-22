@@ -19,6 +19,7 @@ import {
   formatVND,
   generateStepAppointmentColor,
   convertStatusToStep,
+  sortByLatestDate,
 } from "../utils/Utils";
 import { useFocusEffect } from "@react-navigation/native";
 import { useLoading } from "../components/LoadingContext";
@@ -30,79 +31,6 @@ const timelineSteps = [
   { id: 2, icon: "car-wrench", label: "Thực hiện", color: "#9C27B0" },
   { id: 3, icon: "check-all", label: "Hoàn tất", color: "#4CAF50" },
   { id: 4, icon: "cancel", label: "Hủy", color: "#d51717ff" },
-];
-
-const mockOngoing = [
-  {
-    id: "1",
-    name: "Bảo dưỡng",
-    iconName: "oil",
-    color: "#FF6B35",
-    bgColor: "#FFF8F3",
-    currentStep: 2,
-    timeBooked: "09:00 - 10:00",
-    date: "2024-06-01",
-    estimatedDuration: "90 phút",
-    price: 350000,
-    mechanic: "Nguyễn Văn An",
-    location: "Garage A - Khu vực 1",
-    services: ["Thay dầu động cơ", "Kiểm tra phanh", "Bảo dưỡng định kỳ"],
-    vehicle: {
-      brand: "Toyota",
-      model: "Vios",
-      licensePlate: "30A-12345",
-      year: "2022",
-      color: "Trắng",
-    },
-  },
-  {
-    id: "2",
-    name: "Rửa xe",
-    iconName: "car-wash",
-    color: "#00BCD4",
-    bgColor: "#F0FDFF",
-    currentStep: 3,
-    timeBooked: "14:00 - 15:00",
-    date: "2024-06-02",
-    estimatedDuration: "45 phút",
-    price: 150000,
-    mechanic: "Trần Thị Bình",
-    location: "Garage B - Khu vực 2",
-    services: ["Rửa xe cao cấp", "Vệ sinh nội thất", "Đánh bóng xe"],
-    vehicle: {
-      brand: "Honda",
-      model: "City",
-      licensePlate: "51B-67890",
-      year: "2021",
-      color: "Đen",
-    },
-  },
-];
-
-const mockHistory = [
-  {
-    id: "3",
-    name: "Kiểm tra lốp",
-    iconName: "tire",
-    color: "#4CAF50",
-    bgColor: "#F1F8F4",
-    currentStep: 4,
-    timeBooked: "08:00 - 09:00",
-    date: "2024-05-28",
-    estimatedDuration: "30 phút",
-    price: "100.000đ",
-    mechanic: "Lê Văn Cường",
-    location: "Garage C - Khu vực 3",
-    services: ["Kiểm tra áp suất lốp", "Kiểm tra độ mòn lốp", "Cân bằng lốp"],
-    completedAt: "09:15 AM",
-    vehicle: {
-      brand: "Mitsubishi",
-      model: "Xpander",
-      licensePlate: "29C-11111",
-      year: "2023",
-      color: "Bạc",
-    },
-  },
 ];
 
 export const stepMock = [1, 2, 3, 4];
@@ -196,15 +124,14 @@ const ActivityScreen = ({ route, navigation }) => {
         },
       })
       .then(function (response) {
-        console.log("GetByCustomerId ",response);
-        
+        console.log("response ",response);
         const newData = response.data.map((e) => ({
           ...e,
-          name: "Bảo dưỡng",
+          name: e?.bookedDate,
           timeBooked: formatTime(e.bookedTime),
           currentStep: convertStatusToStep(e.status),
         }));
-        setAppointmentHistory(newData);
+        setAppointmentHistory(sortByLatestDate(newData, "appointmentDate"));
       })
       .catch(function (error) {
         Alert.alert(
@@ -232,15 +159,13 @@ const ActivityScreen = ({ route, navigation }) => {
         }
       )
       .then(function (response) {
-        console.log("GetOngoingByCustomerId ",response);
-
         const newData = response.data.map((e) => ({
           ...e,
-          name: "Bảo dưỡng",
+          name: e?.bookedDate,
           timeBooked: formatTime(e.bookedTime),
           currentStep: convertStatusToStep(e.status),
         }));
-        setAppointmentOnGoing(newData);
+        setAppointmentOnGoing(sortByLatestDate(newData, "appointmentDate"));
       })
       .catch(function (error) {
         Alert.alert(
@@ -286,6 +211,8 @@ const ActivityScreen = ({ route, navigation }) => {
     }, [])
   );
 
+
+
   return (
     <View style={{ flex: 1 }}>
       <View style={styles.container}>
@@ -327,6 +254,7 @@ const ActivityScreen = ({ route, navigation }) => {
           {data.map((history) => (
             <TouchableOpacity
               key={history.appointmentId}
+              disabled={activeTab !== "ongoing"}
               onPress={() => {
                 setItemPayment(history);
                 setModalVisible(true);
@@ -391,14 +319,14 @@ const ActivityScreen = ({ route, navigation }) => {
                   />
                   <View style={styles.vehicleDetails}>
                     <Text style={styles.vehicleName}>
-                      {history.vehicleModel} ({history.vehicleYear ?? 2025})
+                      {history?.vehicleMake ?? ""} {history.vehicleModel ?? ""} ({history.vehicleYear ?? ""})
                     </Text>
                     <View style={styles.vehicleSubInfo}>
                       <Text style={styles.vehiclePlate}>
-                        {history.vehicleLicensePlate}
+                        {history.vehicleLicensePlate ?? ""}
                       </Text>
                       <Text style={styles.vehicleSpecs}>
-                        {history.vehicleMake}
+                        {history.vehicleColor ?? ""}
                       </Text>
                     </View>
                   </View>
@@ -480,6 +408,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     paddingTop: 32,
+    paddingBottom: 0,
     backgroundColor: "#f6f8fa",
   },
   title: {

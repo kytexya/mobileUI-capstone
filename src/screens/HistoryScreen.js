@@ -6,67 +6,17 @@ import { DOMAIN_URL } from "../utils/Constant";
 import AppConfig from "../utils/AppConfig";
 import { Loading } from "../components/Loading";
 import PaymentPopup from "../components/PaymentPopup";
-import { convertStatusToStep, formatDate, formatTime, generateStepAppointmentColor } from "../utils/Utils";
+import { convertStatusToStep, formatDate, formatTime, generateStepAppointmentColor, sortByLatestDate } from "../utils/Utils";
 import { stepMock } from "./ActivityScreen";
 import { useLoading } from "../components/LoadingContext";
 
 // Timeline steps definition (same as HomeScreen)
 const timelineSteps = [
-  { id: 1, icon: "clock-outline", label: "Đặt lịch", color: "#9E9E9E" },
-  { id: 2, icon: "check-circle", label: "Xác nhận", color: "#2196F3" },
-  { id: 3, icon: "car-wrench", label: "Thực hiện", color: "#FF9800" },
-  { id: 4, icon: "check-all", label: "Hoàn tất", color: "#4CAF50" },
-];
-
-const mockHistory = [
-  {
-    id: "1",
-    name: "Bảo dưỡng",
-    iconName: "oil",
-    color: "#FF6B35",
-    bgColor: "#FFF3F0",
-    currentStep: 4,
-    timeBooked: "09:00 - 10:00",
-    date: "2024-06-01",
-    vehicle: {
-      brand: "Toyota",
-      model: "Vios",
-      licensePlate: "30A-12345",
-      year: "2022",
-    },
-  },
-  {
-    id: "2",
-    name: "Rửa xe",
-    iconName: "car-wash",
-    color: "#4CAF50",
-    bgColor: "#F1F8E9",
-    currentStep: 3,
-    timeBooked: "14:00 - 15:00",
-    date: "2024-06-02",
-    vehicle: {
-      brand: "Honda",
-      model: "City",
-      licensePlate: "51B-67890",
-      year: "2021",
-    },
-  },
-  {
-    id: "3",
-    name: "Kiểm tra lốp",
-    iconName: "tire",
-    color: "#2196F3",
-    bgColor: "#E3F2FD",
-    currentStep: 4,
-    timeBooked: "08:00 - 09:00",
-    date: "2024-05-30",
-    vehicle: {
-      brand: "Mitsubishi",
-      model: "Xpander",
-      licensePlate: "29C-11111",
-      year: "2023",
-    },
-  },
+  { id: 1, icon: "clock-outline", label: "Đặt lịch", color: "#1aca35ff" },
+  // { id: 2, icon: "check-circle", label: "Xác nhận", color: "#2196F3" },
+  { id: 2, icon: "car-wrench", label: "Thực hiện", color: "#9C27B0" },
+  { id: 3, icon: "check-all", label: "Hoàn tất", color: "#4CAF50" },
+  { id: 4, icon: "cancel", label: "Hủy", color: "#d51717ff" },
 ];
 
 // Component Timeline để hiển thị trạng thái theo bước (same as HomeScreen)
@@ -162,12 +112,12 @@ const HistoryScreen = () => {
         
         const newData = response.data.map((e) => ({
           ...e,
-          name: "Bảo dưỡng",
+          name: e?.bookedDate,
           price: 500000,
           timeBooked: formatTime(e.bookedTime),
           currentStep: convertStatusToStep(e.status),
         }));
-        setHistory(newData);
+        setHistory(sortByLatestDate(newData, "appointmentDate"));
         console.log("res ", response.data);
       })
       .catch(function (error) {

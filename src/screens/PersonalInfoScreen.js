@@ -111,7 +111,8 @@ const PersonalInfoScreen = ({ navigation, route }) => {
 
     const dataSubmit = {
       licensePlate: newVehicle.licensePlate,
-      make: newVehicle.color,
+      make: newVehicle.brand,
+      color: newVehicle.color,
       model: newVehicle.model,
       year: Number(newVehicle.year),
       carTypeId: newVehicle.carTypeId ?? 1,
@@ -349,7 +350,7 @@ const PersonalInfoScreen = ({ navigation, route }) => {
             >
               <Ionicons name="add" size={16} color="#4CAF50" />
               <Text style={styles.addButtonText}>
-                + Thêm một phương tiện mới
+                Thêm một phương tiện mới
               </Text>
             </TouchableOpacity>
           )}
@@ -422,7 +423,7 @@ const PersonalInfoScreen = ({ navigation, route }) => {
                     >
                       <View style={styles.vehicleInfo}>
                         <Text style={styles.vehicleModel}>
-                          {vehicle.brand ? `${vehicle.brand} ${vehicle.model}` : vehicle.model}
+                          {vehicle.make ? `${vehicle.make} ${vehicle.model}` : vehicle.model}
                         </Text>
                         <Text style={styles.vehicleDetails}>
                           {vehicle.licensePlate} • {vehicle.year} • {vehicle.color}
@@ -454,7 +455,7 @@ const PersonalInfoScreen = ({ navigation, route }) => {
                     >
                       <View style={styles.vehicleInfo}>
                         <Text style={styles.vehicleModelDisabled}>
-                          {vehicle.brand ? `${vehicle.brand} ${vehicle.model}` : vehicle.model}
+                          {vehicle.make ? `${vehicle.make} ${vehicle.model}` : vehicle.model}
                         </Text>
                         <Text style={styles.vehicleDetailsDisabled}>
                           {vehicle.licensePlate} • {vehicle.year} • {vehicle.color}
@@ -531,7 +532,7 @@ const PersonalInfoScreen = ({ navigation, route }) => {
             </View>
 
             <ScrollView style={styles.addVehicleForm}>
-              <View style={styles.formField}>
+              <View style={[styles.formField, {paddingTop: 12}]}>
                 <Text style={styles.formLabel}>Hãng xe *</Text>
                 <TextInput
                   style={styles.formInput}
