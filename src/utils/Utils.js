@@ -15,6 +15,24 @@ export function formatDate(date) {
   return `${year}-${month}-${day}`;
 }
 
+export const formatDateAndHour = (_date) => {
+  if (_date === "0001-01-01T00:00:00") return "";
+  const date = new Date(_date);
+
+  const pad = (n) => n.toString().padStart(2, "0"); // thêm 0 phía trước nếu < 10
+
+  const formatted = `${pad(date.getHours())}:${pad(date.getMinutes())} ${pad(
+    date.getDate()
+  )}/${pad(date.getMonth() + 1)}/${date.getFullYear()}`;
+  return formatted;
+};
+
+export const sortByLatestDate = (arr, key) => {
+  return arr.sort(
+    (a, b) => new Date(b[key]).getTime() - new Date(a[key]).getTime()
+  );
+};
+
 export const formatTime = (timeString) => {
   if (!timeString) return "";
 

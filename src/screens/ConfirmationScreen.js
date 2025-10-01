@@ -305,11 +305,11 @@ const ConfirmationScreen = ({ navigation, route }) => {
                   <Ionicons name="car" size={16} color="#1976d2" />
                   <View style={styles.vehicleDetails}>
                     <Text style={styles.vehicleName}>
-                      {selectedVehicle.model}
+                      {selectedVehicle.make} {selectedVehicle.model}
                     </Text>
                     <Text style={styles.vehicleSubInfo}>
                       {selectedVehicle.licensePlate} • {selectedVehicle.year} •{" "}
-                      {selectedVehicle.make}
+                      {selectedVehicle.color}
                     </Text>
                   </View>
                 </View>
@@ -500,7 +500,7 @@ const ConfirmationScreen = ({ navigation, route }) => {
                 <View style={styles.confirmDetailRow}>
                   <Ionicons name="car" size={16} color="#1976d2" />
                   <Text style={styles.confirmDetailText}>
-                    {selectedVehicle?.model} - {selectedVehicle?.licensePlate}
+                    {selectedVehicle?.make} {selectedVehicle?.model} - {selectedVehicle?.licensePlate}
                   </Text>
                 </View>
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -23,6 +23,7 @@ import InputForm from "../components/InputForm";
 import { emailRegex, phoneRegex } from "../utils/validator";
 import { Loading } from "../components/Loading";
 import { useLoading } from "../components/LoadingContext";
+import { useFocusEffect } from "@react-navigation/native";
 
 const ProfileScreen = ({ navigation }) => {
   const methods = useForm({
@@ -35,6 +36,7 @@ const ProfileScreen = ({ navigation }) => {
   const [user, setUser] = useState(AppConfig.USER_OBJ);
 
   const [userVehicles, setUserVehicles] = useState([]);
+  const [dashboard, setDashboard] = useState({});
   const { setLoading } = useLoading();
 
   // Mock data xe của người dùng
@@ -56,6 +58,31 @@ const ProfileScreen = ({ navigation }) => {
       color: "Đen",
     },
   ];
+
+  const getDashboard = () => {
+    setLoading(true);
+    axios
+      .get(`${DOMAIN_URL}/Account/customer-dashboard/${AppConfig.USER_ID}`, {
+        headers: {
+          Authorization: `Bearer ${AppConfig.ACCESS_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      })
+      .then(function (response) {
+        setDashboard(response.data);
+      })
+      .catch(function (error) {
+        Alert.alert(
+          "Lỗi",
+          "Đã xảy ra lỗi, vui lòng thử lại!",
+          [{ text: "OK", onPress: () => console.log("OK Pressed") }],
+          { cancelable: false }
+        );
+      })
+      .finally(function () {
+        setLoading(false);
+      });
+  };
 
   const getVehicle = () => {
     setLoading(true);
@@ -82,9 +109,18 @@ const ProfileScreen = ({ navigation }) => {
       });
   };
 
-  useEffect(() => {
-    getVehicle();
-  }, []);
+  // useEffect(() => {
+  //   getVehicle();
+  //   getDashboard();
+  // }, []);
+
+    useFocusEffect(
+      useCallback(() => {
+        getVehicle();
+    getDashboard();
+        return () => {};
+      }, [])
+    );
 
   // Mock data thống kê
   const userStats = {
@@ -202,7 +238,7 @@ const ProfileScreen = ({ navigation }) => {
                   size={24}
                   color="#1976d2"
                 />
-                <Text style={styles.statNumber}>{userStats.totalServices}</Text>
+                <Text style={styles.statNumber}>{dashboard?.totalServices}</Text>
                 <Text style={styles.statLabel}>Tổng dịch vụ</Text>
               </View>
               <View style={styles.statItem}>
@@ -212,7 +248,7 @@ const ProfileScreen = ({ navigation }) => {
                   color="#4CAF50"
                 />
                 <Text style={styles.statNumber}>
-                  {userStats.completedServices}
+                  {dashboard.completedServices}
                 </Text>
                 <Text style={styles.statLabel}>Đã hoàn thành</Text>
               </View>
@@ -223,7 +259,7 @@ const ProfileScreen = ({ navigation }) => {
                   color="#FF6B35"
                 />
                 <Text style={styles.statNumber}>
-                  {(userStats.totalSpent / 1000000).toFixed(1)}M
+                  {(dashboard.totalSpent / 1000000).toFixed(1)}M
                 </Text>
                 <Text style={styles.statLabel}>Tổng chi tiêu</Text>
               </View>
@@ -261,10 +297,10 @@ const ProfileScreen = ({ navigation }) => {
                 </View>
                 <View style={styles.vehicleInfo}>
                   <Text style={styles.vehicleName}>
-                    {vehicle.brand} {vehicle.model}
+                    {vehicle.make ?? ""} {vehicle.model ?? ""}
                   </Text>
                   <Text style={styles.vehicleDetails}>
-                    {vehicle.licensePlate} • {vehicle.make} • {vehicle.year}
+                    {vehicle.licensePlate ?? ""} • {vehicle.color ?? ""} • {vehicle.year ?? ""}
                   </Text>
                 </View>
               </View>

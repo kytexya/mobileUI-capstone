@@ -26,32 +26,6 @@ import { stepMock } from "./ActivityScreen";
 import { useFocusEffect } from "@react-navigation/native";
 import { useLoading } from "../components/LoadingContext";
 
-const carImage = require("../assets/banner.png");
-
-// Mock data khuyến mãi
-const promotions = [
-  {
-    id: "1",
-    title: "Giảm 20% dịch vụ rửa xe",
-    desc: "Áp dụng đến 30/6",
-    image: require("../assets/banner.png"),
-    label: "GIẢM 20%",
-  },
-  {
-    id: "2",
-    title: "Tặng voucher 50k",
-    desc: "Khi đặt lịch bảo dưỡng",
-    image: require("../assets/banner.png"),
-    label: "VOUCHER 50K",
-  },
-  {
-    id: "3",
-    title: "Miễn phí kiểm tra lốp",
-    desc: "",
-    image: require("../assets/banner.png"),
-    label: "MIỄN PHÍ",
-  },
-];
 // Timeline steps definition
 const timelineSteps = [
   { id: 1, icon: "clock-outline", label: "Đặt lịch", color: "#9E9E9E" },
@@ -60,57 +34,6 @@ const timelineSteps = [
   { id: 4, icon: "check-all", label: "Hoàn tất", color: "#4CAF50" },
 ];
 
-// Mock data trạng thái dịch vụ với timeline và thông tin xe
-const serviceStatus = [
-  {
-    id: "a1",
-    name: "Bảo dưỡng",
-    iconName: "oil",
-    color: "#FF6B35", // Cam cho thay dầu
-    bgColor: "#FFF8F3",
-    currentStep: 2, // Đang ở bước xác nhận
-    timeBooked: "09:00 - 10:00",
-    date: "Hôm nay",
-    vehicle: {
-      brand: "Toyota",
-      model: "Vios",
-      licensePlate: "30A-12345",
-      year: "2022",
-    },
-  },
-  {
-    id: "a2",
-    name: "Rửa xe",
-    iconName: "car-wash",
-    color: "#00BCD4", // Xanh cyan cho rửa xe
-    bgColor: "#F0FDFF",
-    currentStep: 3, // Đang thực hiện
-    timeBooked: "14:00 - 15:00",
-    date: "Hôm nay",
-    vehicle: {
-      brand: "Honda",
-      model: "City",
-      licensePlate: "51B-67890",
-      year: "2021",
-    },
-  },
-  {
-    id: "a3",
-    name: "Kiểm tra lốp",
-    iconName: "tire",
-    color: "#4CAF50", // Xanh lá cho hoàn thành
-    bgColor: "#F1F8F4",
-    currentStep: 4, // Hoàn thành
-    timeBooked: "08:00 - 09:00",
-    date: "Hôm qua",
-    vehicle: {
-      brand: "Mitsubishi",
-      model: "Xpander",
-      licensePlate: "29C-11111",
-      year: "2023",
-    },
-  },
-];
 
 const mainFeatures = [
   {
@@ -141,7 +64,8 @@ const mainFeatures = [
     icon: (
       <MaterialCommunityIcons name="credit-card" size={32} color="#fbc02d" />
     ),
-    screen: "PaymentScreen",
+    // screen: "PaymentScreen",
+    screen: "Hoạt động",
   },
 ];
 
@@ -254,12 +178,6 @@ const ServiceTimeline = ({ currentStep, serviceColor }) => {
       })}
     </View>
   );
-};
-
-const getProgressColor = (percent) => {
-  if (percent < 40) return "#ff7043"; // đỏ/cam nhạt
-  if (percent < 80) return "#ffb300"; // vàng/cam
-  return "#1976d2"; // xanh dương
 };
 
 const HomeScreen = ({ navigation }) => {
@@ -523,7 +441,7 @@ const HomeScreen = ({ navigation }) => {
         <Text style={styles.smallBannerDesc}>{smallBanner.desc}</Text>
       </View>
       {/* Khuyến mãi nổi bật (đưa xuống dưới cùng) */}
-      <View style={{ marginTop: 18 }}>
+      <View style={{ marginTop: 18, marginLeft: 9, marginRight: 8 }}>
         <View
           style={{
             flexDirection: "row",
@@ -533,9 +451,9 @@ const HomeScreen = ({ navigation }) => {
           }}
         >
           <Text style={styles.sectionTitle}>Khuyến mãi nổi bật</Text>
-          <TouchableOpacity>
+          {/* <TouchableOpacity>
             <Text style={styles.seeMore}>Xem thêm</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
         <ScrollView
           horizontal
@@ -988,7 +906,7 @@ const styles = StyleSheet.create({
   },
   mainFeatureBox: {
     flex: 1,
-    marginHorizontal: 6,
+    marginHorizontal: 3,
     borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",

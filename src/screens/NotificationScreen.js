@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { View, Text, ScrollView, StyleSheet } from "react-native";
 import Icon from "react-native-vector-icons/Feather";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -7,6 +7,8 @@ import AppConfig from "../utils/AppConfig";
 import axios from "axios";
 import { Loading } from "../components/Loading";
 import { useLoading } from "../components/LoadingContext";
+import { useFocusEffect } from "@react-navigation/native";
+import { formatDateAndHour } from "../utils/Utils";
 
 const mockNotifications = [
   {
@@ -25,24 +27,46 @@ const mockNotifications = [
   },
 ];
 
-const getIcon = (type) => {
-  if (type === "reminder")
-    return (
-      <View style={[styles.iconCircle, { backgroundColor: "#e3f2fd" }]}>
-        <Icon name="bell" size={22} color="#1976d2" />
-      </View>
-    );
-  if (type === "promo")
-    return (
-      <View style={[styles.iconCircle, { backgroundColor: "#fde7f3" }]}>
-        <Icon name="gift" size={22} color="#e91e63" />
-      </View>
-    );
-  return (
-    <View style={[styles.iconCircle, { backgroundColor: "#f0f0f0" }]}>
-      <Icon name="info" size={22} color="#888" />
-    </View>
-  );
+const getIconAndColor = (type) => {
+  switch (type) {
+    case "Reminder":
+      return {
+        icon: (
+          <View style={[styles.iconCircle, { backgroundColor: "#e3f2fd" }]}>
+            <Icon name="bell" size={22} color="#1976d2" />
+          </View>
+        ),
+        color: "#1976d2",
+      };
+    case "System":
+      return {
+        icon: (
+          <View style={[styles.iconCircle, { backgroundColor: "#c6cacdff" }]}>
+            <Icon name="settings" size={22} color="#000000ff" />
+          </View>
+        ),
+        color: "",
+      };
+    case "Promotion":
+      return {
+        icon: (
+          <View style={[styles.iconCircle, { backgroundColor: "#fde7f3" }]}>
+            <Icon name="gift" size={22} color="#e91e63" />
+          </View>
+        ),
+        color: "#e91e63",
+      };
+
+    default:
+      return {
+        icon: (
+          <View style={[styles.iconCircle, { backgroundColor: "#f0f0f0" }]}>
+            <Icon name="info" size={22} color="#888" />
+          </View>
+        ),
+        color: "",
+      };
+  }
 };
 
 const NotificationScreen = () => {
@@ -52,6 +76,13 @@ const NotificationScreen = () => {
   useEffect(() => {
     getNotification();
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      getNotification();
+      return () => {};
+    }, [])
+  );
 
   const getNotification = () => {
     setLoading(true);
@@ -79,19 +110,9 @@ const NotificationScreen = () => {
       });
   };
 
-  const formatDate = (_date) => {
-    const date = new Date(_date);
-
-    const pad = (n) => n.toString().padStart(2, "0"); // thêm 0 phía trước nếu < 10
-
-    const formatted = `${pad(date.getHours())}:${pad(date.getMinutes())} ${pad(
-      date.getDate()
-    )}/${pad(date.getMonth() + 1)}/${date.getFullYear()}`;
-    return formatted;
-  };
   return (
     <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
-      <View style={{ padding: 16, flex: 1, paddingTop: 0 }}>
+      <View style={{ padding: 16, flex: 1, paddingTop: 0, paddingBottom: 0 }}>
         <Text style={styles.title}>Thông báo</Text>
         <ScrollView
           contentContainerStyle={{ paddingBottom: 24, marginTop: 18 }}
@@ -100,21 +121,21 @@ const NotificationScreen = () => {
           {notifi.map((item) => (
             <View key={item.notificationId} style={styles.card}>
               <View style={styles.cardHeader}>
-                {getIcon(item.type)}
+                {getIconAndColor(item.type).icon}
                 <View style={{ flex: 1 }}>
                   <Text
                     style={[
                       styles.titleText,
-                      item.type === "promo"
-                        ? { color: "#e91e63" }
-                        : { color: "#1976d2" },
+                      {color: getIconAndColor(item.type).color}
                     ]}
                   >
                     {item.title}
                   </Text>
                   <Text style={styles.content}>{item.message}</Text>
+                  <View style={styles.dateCont}>
+                    <Text style={styles.date}>{formatDateAndHour(item.sentAt)}</Text>
+                  </View>
                 </View>
-                <Text style={styles.date}>{formatDate(item.sentAt)}</Text>
               </View>
             </View>
           ))}
@@ -154,9 +175,9 @@ const styles = StyleSheet.create({
   date: {
     color: "#888",
     fontSize: 13,
-    marginLeft: 12,
+    // marginLeft: 12,
     alignSelf: "flex-start",
-    marginTop: 2,
+    marginTop: 4,
   },
   title: {
     fontSize: 22,
@@ -165,6 +186,9 @@ const styles = StyleSheet.create({
     marginTop: 24,
     marginBottom: 0,
     textAlign: "left",
+  },
+  dateCont: {
+    alignSelf: "flex-end",
   },
 });
 
