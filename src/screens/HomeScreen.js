@@ -451,9 +451,9 @@ const HomeScreen = ({ navigation }) => {
           }}
         >
           <Text style={styles.sectionTitle}>Khuyến mãi nổi bật</Text>
-          <TouchableOpacity>
+          {/* <TouchableOpacity>
             <Text style={styles.seeMore}>Xem thêm</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
         <ScrollView
           horizontal

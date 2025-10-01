@@ -139,7 +139,7 @@ const PaymentDetailScreen = ({ route, navigation }) => {
   };
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <View style={styles.container} >
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
@@ -151,183 +151,185 @@ const PaymentDetailScreen = ({ route, navigation }) => {
         <Text style={styles.headerTitle}>Thanh toán</Text>
         <View style={{ width: 40 }} />
       </View>
-
-      {/* Payment Summary */}
-      <View style={styles.summaryCard}>
-        <Text style={styles.summaryTitle}>Thông tin thanh toán</Text>
-        <View style={styles.summaryRow}>
-          <MaterialCommunityIcons name="car-cog" size={24} color="#007bff" />
-          <Text style={styles.summaryText}>Dịch vụ: {selectedBill.name}</Text>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Payment Summary */}
+        <View style={styles.summaryCard}>
+          <Text style={styles.summaryTitle}>Thông tin thanh toán</Text>
+          <View style={styles.summaryRow}>
+            <MaterialCommunityIcons name="car-cog" size={24} color="#007bff" />
+            <Text style={styles.summaryText}>Dịch vụ: {selectedBill.name}</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <MaterialCommunityIcons
+              name="currency-usd"
+              size={24}
+              color="#28a745"
+            />
+            <Text style={styles.amountText}>{formatVND(selectedBill.price)}</Text>
+          </View>
         </View>
-        <View style={styles.summaryRow}>
-          <MaterialCommunityIcons
-            name="currency-usd"
-            size={24}
-            color="#28a745"
-          />
-          <Text style={styles.amountText}>{formatVND(selectedBill.price)}</Text>
-        </View>
-      </View>
 
-      {/* Payment Method */}
-      <View style={styles.methodCard}>
-        <Text style={styles.methodTitle}>Phương thức thanh toán</Text>
-        <View style={styles.methodInfo}>
-          <MaterialCommunityIcons
-            name={
-              selectedMethod === "bank"
-                ? "credit-card"
+        {/* Payment Method */}
+        <View style={styles.methodCard}>
+          <Text style={styles.methodTitle}>Phương thức thanh toán</Text>
+          <View style={styles.methodInfo}>
+            <MaterialCommunityIcons
+              name={
+                selectedMethod === "bank"
+                  ? "credit-card"
+                  : selectedMethod === "cash"
+                  ? "cash"
+                  : "qrcode-scan"
+              }
+              size={28}
+              color="#007bff"
+            />
+            <Text style={styles.methodText}>
+              {selectedMethod === "bank"
+                ? "Thẻ ngân hàng"
                 : selectedMethod === "cash"
-                ? "cash"
-                : "qrcode-scan"
-            }
-            size={28}
-            color="#007bff"
-          />
-          <Text style={styles.methodText}>
-            {selectedMethod === "bank"
-              ? "Thẻ ngân hàng"
-              : selectedMethod === "cash"
-              ? "Tiền mặt"
-              : selectedMethod === "zalopay"
-              ? "ZaloPay"
-              : "VNPay"}
-          </Text>
-        </View>
-      </View>
-
-      {/* Payment Form */}
-      {selectedMethod === "bank" ? (
-        <View style={styles.formCard}>
-          <Text style={styles.formTitle}>Thông tin thẻ</Text>
-
-          <View style={styles.inputGroup}>
-            <MaterialCommunityIcons
-              name="credit-card-outline"
-              size={22}
-              color="#007bff"
-              style={styles.inputIcon}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Số thẻ"
-              keyboardType="number-pad"
-              value={cardNumber}
-              onChangeText={(text) => setCardNumber(formatCardNumber(text))}
-              maxLength={19}
-              placeholderTextColor="#b0b8c1"
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <MaterialCommunityIcons
-              name="account"
-              size={22}
-              color="#007bff"
-              style={styles.inputIcon}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Tên chủ thẻ"
-              value={cardName}
-              onChangeText={setCardName}
-              autoCapitalize="characters"
-              placeholderTextColor="#b0b8c1"
-            />
-          </View>
-
-          <View style={styles.row}>
-            <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
-              <MaterialCommunityIcons
-                name="calendar"
-                size={20}
-                color="#007bff"
-                style={styles.inputIcon}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="MM/YY"
-                value={cardExpiry}
-                onChangeText={(text) => setCardExpiry(formatExpiry(text))}
-                maxLength={5}
-                placeholderTextColor="#b0b8c1"
-              />
-            </View>
-            <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}>
-              <MaterialCommunityIcons
-                name="lock"
-                size={20}
-                color="#007bff"
-                style={styles.inputIcon}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="CVV"
-                value={cardCVV}
-                onChangeText={setCardCVV}
-                maxLength={4}
-                secureTextEntry
-                placeholderTextColor="#b0b8c1"
-              />
-            </View>
-          </View>
-        </View>
-      ) : selectedMethod === "cash" ? (
-        <View style={styles.cashCard}>
-          <Text style={styles.formTitle}>Thanh toán tiền mặt</Text>
-
-          <View style={styles.cashInfo}>
-            <MaterialCommunityIcons name="cash" size={48} color="#4caf50" />
-            <Text style={styles.cashTitle}>Thanh toán khi nhận xe</Text>
-            <Text style={styles.cashDescription}>
-              Bạn sẽ thanh toán {formatVND(selectedBill.price)} bằng tiền mặt
-              khi đến nhận xe tại garage
+                ? "Tiền mặt"
+                : selectedMethod === "zalopay"
+                ? "ZaloPay"
+                : "VNPay"}
             </Text>
           </View>
+        </View>
 
-          <View style={styles.cashDetails}>
-            <View style={styles.detailRow}>
+        {/* Payment Form */}
+        {selectedMethod === "bank" ? (
+          <View style={styles.formCard}>
+            <Text style={styles.formTitle}>Thông tin thẻ</Text>
+
+            <View style={styles.inputGroup}>
               <MaterialCommunityIcons
-                name="map-marker"
-                size={20}
-                color="#666"
+                name="credit-card-outline"
+                size={22}
+                color="#007bff"
+                style={styles.inputIcon}
               />
-              <Text style={styles.detailText}>
-                Địa chỉ: 123 Đường ABC, Quận 1, TP.HCM
-              </Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Số thẻ"
+                keyboardType="number-pad"
+                value={cardNumber}
+                onChangeText={(text) => setCardNumber(formatCardNumber(text))}
+                maxLength={19}
+                placeholderTextColor="#b0b8c1"
+              />
             </View>
-            <View style={styles.detailRow}>
+
+            <View style={styles.inputGroup}>
               <MaterialCommunityIcons
-                name="clock-outline"
-                size={20}
-                color="#666"
+                name="account"
+                size={22}
+                color="#007bff"
+                style={styles.inputIcon}
               />
-              <Text style={styles.detailText}>
-                Giờ làm việc: 8:00 - 18:00 (Thứ 2 - Chủ nhật)
-              </Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Tên chủ thẻ"
+                value={cardName}
+                onChangeText={setCardName}
+                autoCapitalize="characters"
+                placeholderTextColor="#b0b8c1"
+              />
             </View>
-            <View style={styles.detailRow}>
-              <MaterialCommunityIcons name="phone" size={20} color="#666" />
-              <Text style={styles.detailText}>Liên hệ: 0909 123 456</Text>
+
+            <View style={styles.row}>
+              <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
+                <MaterialCommunityIcons
+                  name="calendar"
+                  size={20}
+                  color="#007bff"
+                  style={styles.inputIcon}
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="MM/YY"
+                  value={cardExpiry}
+                  onChangeText={(text) => setCardExpiry(formatExpiry(text))}
+                  maxLength={5}
+                  placeholderTextColor="#b0b8c1"
+                />
+              </View>
+              <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}>
+                <MaterialCommunityIcons
+                  name="lock"
+                  size={20}
+                  color="#007bff"
+                  style={styles.inputIcon}
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="CVV"
+                  value={cardCVV}
+                  onChangeText={setCardCVV}
+                  maxLength={4}
+                  secureTextEntry
+                  placeholderTextColor="#b0b8c1"
+                />
+              </View>
             </View>
           </View>
-        </View>
-      ) : (
-        <View style={styles.qrCard}>
-          <Text style={styles.formTitle}>Quét mã QR để thanh toán</Text>
-          <View style={styles.qrContainer}>
-            <Image
-              source={qrImages[selectedMethod]}
-              style={styles.qrImage}
-              resizeMode="contain"
-            />
+        ) : selectedMethod === "cash" ? (
+          <View style={styles.cashCard}>
+            <Text style={styles.formTitle}>Thanh toán tiền mặt</Text>
+
+            <View style={styles.cashInfo}>
+              <MaterialCommunityIcons name="cash" size={48} color="#4caf50" />
+              <Text style={styles.cashTitle}>Thanh toán khi nhận xe</Text>
+              <Text style={styles.cashDescription}>
+                Bạn sẽ thanh toán {formatVND(selectedBill.price)} bằng tiền mặt
+                khi đến nhận xe tại garage
+              </Text>
+            </View>
+
+            <View style={styles.cashDetails}>
+              <View style={styles.detailRow}>
+                <MaterialCommunityIcons
+                  name="map-marker"
+                  size={20}
+                  color="#666"
+                />
+                <Text style={styles.detailText}>
+                  Địa chỉ: 123 Đường ABC, Quận 1, TP.HCM
+                </Text>
+              </View>
+              <View style={styles.detailRow}>
+                <MaterialCommunityIcons
+                  name="clock-outline"
+                  size={20}
+                  color="#666"
+                />
+                <Text style={styles.detailText}>
+                  Giờ làm việc: 8:00 - 18:00 (Thứ 2 - Chủ nhật)
+                </Text>
+              </View>
+              <View style={styles.detailRow}>
+                <MaterialCommunityIcons name="phone" size={20} color="#666" />
+                <Text style={styles.detailText}>Liên hệ: 0909 123 456</Text>
+              </View>
+            </View>
           </View>
-          <Text style={styles.qrNote}>
-            Mở ứng dụng {selectedMethod === "zalopay" ? "ZaloPay" : "VNPay"} và
-            quét mã QR
-          </Text>
-        </View>
-      )}
+        ) : (
+          // <View style={styles.qrCard}>
+          //   <Text style={styles.formTitle}>Quét mã QR để thanh toán</Text>
+          //   <View style={styles.qrContainer}>
+          //     <Image
+          //       source={qrImages[selectedMethod]}
+          //       style={styles.qrImage}
+          //       resizeMode="contain"
+          //     />
+          //   </View>
+          //   <Text style={styles.qrNote}>
+          //     Mở ứng dụng {selectedMethod === "zalopay" ? "ZaloPay" : "VNPay"} và
+          //     quét mã QR
+          //   </Text>
+          // </View>
+          <View style={{flex: 1}}/>
+        )}
+      </ScrollView>
 
       {/* Security Note */}
       <View style={styles.securityCard}>
@@ -363,7 +365,7 @@ const PaymentDetailScreen = ({ route, navigation }) => {
           </Text>
         </LinearGradient>
       </TouchableOpacity>
-    </ScrollView>
+  </View>
   );
 };
 
