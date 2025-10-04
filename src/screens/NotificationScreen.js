@@ -67,7 +67,7 @@ const NotificationScreen = () => {
   const getNotification = () => {
     setLoading(true);
     axios
-      .get(`${DOMAIN_URL}/Notification/user/${AppConfig.USER_ID}`, {
+      .get(`${DOMAIN_URL}/Notification/user/${AppConfig.USER_OBJ.userID}`, {
         headers: {
           Authorization: `Bearer ${AppConfig.ACCESS_TOKEN}`,
           "Content-Type": "application/json",
