@@ -10,23 +10,6 @@ import { useLoading } from "../components/LoadingContext";
 import { useFocusEffect } from "@react-navigation/native";
 import { formatDateAndHour } from "../utils/Utils";
 
-const mockNotifications = [
-  {
-    id: "1",
-    type: "reminder",
-    title: "Nhắc nhở bảo dưỡng",
-    content: "Xe Toyota Camry đến hạn bảo dưỡng.",
-    date: "2024-06-01",
-  },
-  {
-    id: "2",
-    type: "promo",
-    title: "Khuyến mãi",
-    content: "Giảm giá 20% cho dịch vụ thay dầu.",
-    date: "2024-05-28",
-  },
-];
-
 const getIconAndColor = (type) => {
   switch (type) {
     case "Reminder":
@@ -140,32 +123,6 @@ const NotificationScreen = () => {
     <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
       <View style={{ padding: 16, flex: 1, paddingTop: 0, paddingBottom: 0 }}>
         <Text style={styles.title}>Thông báo</Text>
-        {/* <ScrollView
-          contentContainerStyle={{ paddingBottom: 24, marginTop: 18 }}
-          showsVerticalScrollIndicator={false}
-        >
-          {notifi.map((item) => (
-            <View key={item.notificationId} style={styles.card}>
-              <View style={styles.cardHeader}>
-                {getIconAndColor(item.type).icon}
-                <View style={{ flex: 1 }}>
-                  <Text
-                    style={[
-                      styles.titleText,
-                      {color: getIconAndColor(item.type).color}
-                    ]}
-                  >
-                    {item.title}
-                  </Text>
-                  <Text style={styles.content}>{item.message}</Text>
-                  <View style={styles.dateCont}>
-                    <Text style={styles.date}>{formatDateAndHour(item.sentAt)}</Text>
-                  </View>
-                </View>
-              </View>
-            </View>
-          ))}
-        </ScrollView> */}
         <FlatList
           data={notifi}
           keyExtractor={(item) => item.notificationId.toString()}
