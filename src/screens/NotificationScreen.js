@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { View, Text, ScrollView, StyleSheet } from "react-native";
+import { View, Text, ScrollView, StyleSheet, FlatList } from "react-native";
 import Icon from "react-native-vector-icons/Feather";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { DOMAIN_URL } from "../utils/Constant";
@@ -71,11 +71,8 @@ const getIconAndColor = (type) => {
 
 const NotificationScreen = () => {
   const [notifi, setNotifi] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
   const { setLoading } = useLoading();
-
-  useEffect(() => {
-    getNotification();
-  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -95,6 +92,7 @@ const NotificationScreen = () => {
       })
       .then(function (response) {
         setNotifi(response.data);
+        setRefreshing(false);
         console.log("res ", response.data);
       })
       .catch(function (error) {
@@ -107,14 +105,42 @@ const NotificationScreen = () => {
       })
       .finally(function () {
         setLoading(false);
+        setRefreshing(false);
       });
   };
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    getNotification();
+  };
+
+  const renderItem = ({ item }) => (
+    <View key={item.notificationId} style={styles.card}>
+      <View style={styles.cardHeader}>
+        {getIconAndColor(item.type).icon}
+        <View style={{ flex: 1 }}>
+          <Text
+            style={[
+              styles.titleText,
+              { color: getIconAndColor(item.type).color },
+            ]}
+          >
+            {item.title}
+          </Text>
+          <Text style={styles.content}>{item.message}</Text>
+          <View style={styles.dateCont}>
+            <Text style={styles.date}>{formatDateAndHour(item.sentAt)}</Text>
+          </View>
+        </View>
+      </View>
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
       <View style={{ padding: 16, flex: 1, paddingTop: 0, paddingBottom: 0 }}>
         <Text style={styles.title}>Thông báo</Text>
-        <ScrollView
+        {/* <ScrollView
           contentContainerStyle={{ paddingBottom: 24, marginTop: 18 }}
           showsVerticalScrollIndicator={false}
         >
@@ -139,7 +165,16 @@ const NotificationScreen = () => {
               </View>
             </View>
           ))}
-        </ScrollView>
+        </ScrollView> */}
+        <FlatList
+          data={notifi}
+          keyExtractor={(item) => item.notificationId.toString()}
+          renderItem={renderItem}
+          contentContainerStyle={{ paddingBottom: 24, marginTop: 18 }}
+          showsVerticalScrollIndicator={false}
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+        />
       </View>
     </SafeAreaView>
   );
